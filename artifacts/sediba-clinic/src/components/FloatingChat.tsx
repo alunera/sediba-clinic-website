@@ -3,26 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Send } from "lucide-react";
 import { useCreateOpenaiConversation } from "@workspace/api-client-react";
 
-function AfricanLadyIcon() {
-  return (
-    <svg viewBox="0 0 64 64" width="32" height="32" fill="none" aria-hidden="true">
-      {/* Head */}
-      <ellipse cx="32" cy="18" rx="9" ry="10" fill="white" opacity="0.95" />
-      {/* Natural hair / crown */}
-      <ellipse cx="32" cy="10" rx="12" ry="8" fill="white" opacity="0.85" />
-      <ellipse cx="22" cy="13" rx="5" ry="6" fill="white" opacity="0.75" />
-      <ellipse cx="42" cy="13" rx="5" ry="6" fill="white" opacity="0.75" />
-      {/* Neck */}
-      <rect x="29" y="27" width="6" height="6" rx="1" fill="white" opacity="0.9" />
-      {/* Shoulders / bust */}
-      <path d="M14 52 Q18 36 32 34 Q46 36 50 52 Z" fill="white" opacity="0.85" />
-      {/* Face features — subtle */}
-      <ellipse cx="28" cy="19" rx="1.5" ry="1.8" fill="#C4A882" opacity="0.6" />
-      <ellipse cx="36" cy="19" rx="1.5" ry="1.8" fill="#C4A882" opacity="0.6" />
-      <path d="M29 24 Q32 26.5 35 24" stroke="#C4A882" strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.7" />
-    </svg>
-  );
-}
 
 interface Message {
   role: "user" | "assistant";
@@ -132,10 +112,10 @@ export function FloatingChat() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-foreground text-white flex items-center justify-center shadow-lg hover:bg-primary transition-colors duration-300 rounded-full overflow-hidden"
+            className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full overflow-hidden shadow-xl border-2 border-primary hover:scale-105 transition-transform duration-300"
             aria-label="Chat with Sedi"
           >
-            <AfricanLadyIcon />
+            <img src="/sedi-avatar.jpg" alt="Sedi — AI Concierge" className="w-full h-full object-cover object-top" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -151,12 +131,14 @@ export function FloatingChat() {
             className="fixed bottom-6 right-6 z-50 w-[360px] max-h-[520px] bg-white border border-border shadow-xl flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-foreground text-white">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-foreground text-white">
               <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-primary/40 flex-shrink-0">
+                  <img src="/sedi-avatar.jpg" alt="Sedi" className="w-full h-full object-cover object-top" />
+                </div>
                 <div>
-                  <p className="font-serif text-base">Sedi</p>
-                  <p className="text-[10px] uppercase tracking-widest text-white/50">AI Concierge</p>
+                  <p className="font-serif text-base leading-tight">Sedi</p>
+                  <p className="text-[10px] uppercase tracking-widest text-white/50">AI Concierge · Online</p>
                 </div>
               </div>
               <button
