@@ -133,11 +133,11 @@ export default function About() {
           </div>
 
           <div className="text-center">
-            <Link href="/book">
+            <a href="https://sediba-wellness-clinic.salonbridge.website/" target="_blank" rel="noopener noreferrer">
               <Button className="rounded-none px-12 py-6 uppercase tracking-widest text-xs">
                 Book Now
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -201,11 +201,9 @@ export default function About() {
                 </div>
                 <div>
                   <h4 className="font-sans uppercase tracking-[0.2em] text-[10px] text-primary mb-2">Book Online</h4>
-                  <Link href="/book">
-                    <span className="text-foreground text-lg hover:text-primary transition-colors cursor-pointer">
-                      Reserve your appointment
-                    </span>
-                  </Link>
+                  <a href="https://sediba-wellness-clinic.salonbridge.website/" target="_blank" rel="noopener noreferrer" className="text-foreground text-lg hover:text-primary transition-colors">
+                    Reserve your appointment
+                  </a>
                 </div>
                 <div>
                   <h4 className="font-sans uppercase tracking-[0.2em] text-[10px] text-primary mb-2">WhatsApp</h4>
