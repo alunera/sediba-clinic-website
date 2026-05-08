@@ -197,6 +197,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Clinic Interior Photo */}
+      <section className="w-full">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1 }}
+          className="w-full h-[60vh] md:h-[75vh] overflow-hidden"
+        >
+          <img
+            src="/clinic-interior.png"
+            alt="Sediba Aesthetic & Wellness Clinic interior"
+            className="w-full h-full object-cover object-center"
+          />
+        </motion.div>
+      </section>
+
       {/* Google Reviews */}
       <section className="py-32 bg-background">
         <div className="container px-6 mx-auto">
