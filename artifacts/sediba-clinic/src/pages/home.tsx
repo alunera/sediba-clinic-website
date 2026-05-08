@@ -201,7 +201,7 @@ export default function Home() {
           <img
             src="/clinic-interior.png"
             alt="Sediba Aesthetic & Wellness Clinic interior"
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover object-top"
           />
         </motion.div>
       </section>
