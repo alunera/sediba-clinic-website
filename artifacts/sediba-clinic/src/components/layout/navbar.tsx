@@ -76,7 +76,7 @@ export function Navbar() {
 
           <div className="flex items-center gap-3">
             <a
-              href="https://www.instagram.com/sedibawellnessclinic"
+              href="https://www.instagram.com/sedibawellnessclinic?utm_source=qr&igsh=MTE4cXFoNjBzYmV5dw%3D%3D"
               target="_blank"
               rel="noopener noreferrer"
               className={`transition-colors hover:text-primary ${textMuted}`}
@@ -125,7 +125,7 @@ export function Navbar() {
             </Link>
           ))}
           <div className="flex items-center gap-4 pt-2">
-            <a href="https://www.instagram.com/sedibawellnessclinic" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
+            <a href="https://www.instagram.com/sedibawellnessclinic?utm_source=qr&igsh=MTE4cXFoNjBzYmV5dw%3D%3D" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
               <InstagramIcon size={18} />
             </a>
             <a href="https://www.facebook.com/sedibawellnessclinic" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Facebook">

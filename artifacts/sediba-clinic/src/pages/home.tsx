@@ -133,9 +133,9 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { title: "Aesthetic Medicine", image: "/aesthetic.png", desc: "Injectables, biostimulators, and profound rejuvenation." },
-              { title: "Skin Health", image: "/skin.png", desc: "Advanced laser, micro-needling, and restorative peels." },
-              { title: "Holistic Wellness", image: "/wellness.png", desc: "IV therapy, body contouring, and metabolic optimization." }
+              { title: "Skin Treatments", image: "/aesthetic.png", desc: "Dermalogica facials, DMK enzyme therapy, and advanced skin resurfacing." },
+              { title: "Nail & Grooming", image: "/skin.png", desc: "Manicures, pedicures, CND Shellac, lash lifts, and precision waxing." },
+              { title: "Massage & Wellness", image: "/wellness.png", desc: "Swedish, aromatherapy, hot stone, sports massage, and lymphatic drainage." }
             ].map((cat, i) => (
               <motion.div
                 key={i}

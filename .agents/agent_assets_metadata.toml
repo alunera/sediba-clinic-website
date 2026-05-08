@@ -11,22 +11,28 @@ title = "Premium clinic hero interior"
 id = "OfSlpNPDQlqrFKKjbVZH-"
 uri = "file://artifacts/sediba-clinic/public/aesthetic.png"
 type = "image"
-title = "Aesthetic treatments detail"
+title = "african woman facial treatment"
 
 [[generated]]
 id = "HLnSNrGIbt-LHTtgS-wsH"
 uri = "file://artifacts/sediba-clinic/public/skin.png"
 type = "image"
-title = "Skin treatments detail"
+title = "african woman nail treatment"
 
 [[generated]]
 id = "efTwpmnZcDJWTpEIA3Kl7"
 uri = "file://artifacts/sediba-clinic/public/wellness.png"
 type = "image"
-title = "Wellness treatments detail"
+title = "african woman massage wellness"
 
 [[generated]]
 id = "g5dQEONATShl3dP_demFg"
 uri = "file://artifacts/sediba-clinic/public/about.png"
 type = "image"
 title = "Clinic about image"
+
+[[generated]]
+id = "tz3PCZTB-oA03mzS-gCNy"
+uri = "file://attached_assets/generated_images/generated_image.png"
+type = "image"
+title = "generated_image"

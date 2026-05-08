@@ -38,7 +38,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-4">
               <a
-                href="https://www.instagram.com/sedibawellnessclinic"
+                href="https://www.instagram.com/sedibawellnessclinic?utm_source=qr&igsh=MTE4cXFoNjBzYmV5dw%3D%3D"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white/50 hover:text-primary transition-colors"
