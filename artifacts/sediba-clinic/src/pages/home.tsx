@@ -163,12 +163,13 @@ export default function Home() {
 
       {/* Differentiator */}
       <section className="py-32 bg-foreground text-white">
-        <div className="container px-6 mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="container px-6 mx-auto">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
+            className="max-w-3xl"
           >
             <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-6 block">The Sediba Standard</span>
             <h2 className="font-serif text-4xl md:text-5xl mb-8 leading-tight">Mastery in every detail.</h2>
@@ -184,15 +185,6 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="aspect-square relative"
-          >
-            <img src="/about.png" alt="Clinic Interior" className="object-cover w-full h-full" />
           </motion.div>
         </div>
       </section>
