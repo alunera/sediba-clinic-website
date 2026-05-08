@@ -1,0 +1,32 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "jL-aN1Xk65cx2lii3LFCR"
+uri = "file://artifacts/sediba-clinic/public/hero.png"
+type = "image"
+title = "Premium clinic hero interior"
+
+[[generated]]
+id = "OfSlpNPDQlqrFKKjbVZH-"
+uri = "file://artifacts/sediba-clinic/public/aesthetic.png"
+type = "image"
+title = "Aesthetic treatments detail"
+
+[[generated]]
+id = "HLnSNrGIbt-LHTtgS-wsH"
+uri = "file://artifacts/sediba-clinic/public/skin.png"
+type = "image"
+title = "Skin treatments detail"
+
+[[generated]]
+id = "efTwpmnZcDJWTpEIA3Kl7"
+uri = "file://artifacts/sediba-clinic/public/wellness.png"
+type = "image"
+title = "Wellness treatments detail"
+
+[[generated]]
+id = "g5dQEONATShl3dP_demFg"
+uri = "file://artifacts/sediba-clinic/public/about.png"
+type = "image"
+title = "Clinic about image"
