@@ -109,11 +109,14 @@ export default function Services() {
                               <span className="text-xs uppercase tracking-widest text-muted-foreground">
                                 {service.duration} min
                               </span>
-                              <Link href={`/book?service=${service.id}`}>
-                                <Button variant="link" className="uppercase tracking-widest text-xs text-foreground hover:text-primary px-0">
-                                  Book
-                                </Button>
-                              </Link>
+                              <a
+                                href="https://sediba-wellness-clinic.salonbridge.website/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="uppercase tracking-widest text-xs text-foreground hover:text-primary transition-colors"
+                              >
+                                Book
+                              </a>
                             </div>
                           </motion.div>
                         ))}

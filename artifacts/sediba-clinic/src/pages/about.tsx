@@ -35,7 +35,7 @@ export default function About() {
 
       {/* Story Section */}
       <section className="container px-6 mx-auto mb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-3xl">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -63,15 +63,6 @@ export default function About() {
                 The highlight of every Sediba experience is that we take great care and intention in walking you through your urban retreat away from the pressures of modern life. Every colour, sound, scent, and texture has been carefully selected to enhance your experience and treatment results. We want you to always walk out feeling pampered, revitalised, and at your very best.
               </p>
             </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="aspect-[4/5] relative"
-          >
-            <img src="/about.png" alt="Sediba Clinic" className="w-full h-full object-cover" />
           </motion.div>
         </div>
       </section>
