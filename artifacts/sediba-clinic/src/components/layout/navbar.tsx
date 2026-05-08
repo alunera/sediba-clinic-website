@@ -27,9 +27,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -41,24 +39,23 @@ export function Navbar() {
   ];
 
   const isOnHero = location === "/";
-  const textColor = !isScrolled && isOnHero ? "text-white" : "text-foreground";
-  const textMuted = !isScrolled && isOnHero ? "text-white/70" : "text-foreground/80";
+  const logoInvert = !isScrolled && isOnHero;
 
   return (
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white/90 backdrop-blur-md border-b border-border shadow-sm py-4" : "bg-transparent py-6"
+        isScrolled ? "bg-white/90 backdrop-blur-md border-b border-border shadow-sm py-3" : "bg-transparent py-5"
       }`}
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
+        {/* Logo */}
         <Link href="/">
           <div className="cursor-pointer">
-            <h1 className={`font-serif text-2xl tracking-widest font-semibold uppercase transition-colors duration-300 ${textColor}`}>
-              SEDIBA
-            </h1>
-            <p className={`text-[10px] tracking-[0.2em] uppercase mt-1 transition-colors duration-300 ${textMuted}`}>
-              Aesthetic & Wellness
-            </p>
+            <img
+              src="/logo.png"
+              alt="Sediba Aesthetic & Wellness Clinic"
+              className={`h-12 w-auto object-contain transition-all duration-300 ${logoInvert ? "brightness-0 invert" : "brightness-0"}`}
+            />
           </div>
         </Link>
 
@@ -67,7 +64,9 @@ export function Navbar() {
           {navLinks.map((link) => (
             <Link key={link.name} href={link.href}>
               <span className={`text-sm uppercase tracking-wider transition-colors hover:text-primary cursor-pointer ${
-                location === link.href ? "text-primary font-medium" : textMuted
+                location === link.href
+                  ? "text-primary font-medium"
+                  : logoInvert ? "text-white/80" : "text-foreground/80"
               }`}>
                 {link.name}
               </span>
@@ -79,7 +78,7 @@ export function Navbar() {
               href="https://www.instagram.com/sedibawellnessclinic?utm_source=qr&igsh=MTE4cXFoNjBzYmV5dw%3D%3D"
               target="_blank"
               rel="noopener noreferrer"
-              className={`transition-colors hover:text-primary ${textMuted}`}
+              className={`transition-colors hover:text-primary ${logoInvert ? "text-white/70" : "text-foreground/60"}`}
               aria-label="Instagram"
             >
               <InstagramIcon size={16} />
@@ -88,7 +87,7 @@ export function Navbar() {
               href="https://www.facebook.com/sedibawellnessclinic"
               target="_blank"
               rel="noopener noreferrer"
-              className={`transition-colors hover:text-primary ${textMuted}`}
+              className={`transition-colors hover:text-primary ${logoInvert ? "text-white/70" : "text-foreground/60"}`}
               aria-label="Facebook"
             >
               <FacebookIcon size={16} />
@@ -104,7 +103,7 @@ export function Navbar() {
 
         {/* Mobile Toggle */}
         <button
-          className={`md:hidden transition-colors duration-300 ${textColor}`}
+          className={`md:hidden transition-colors duration-300 ${logoInvert ? "text-white" : "text-foreground"}`}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
