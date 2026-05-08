@@ -1,7 +1,28 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, MessageCircle } from "lucide-react";
+import { X, Send } from "lucide-react";
 import { useCreateOpenaiConversation } from "@workspace/api-client-react";
+
+function AfricanLadyIcon() {
+  return (
+    <svg viewBox="0 0 64 64" width="32" height="32" fill="none" aria-hidden="true">
+      {/* Head */}
+      <ellipse cx="32" cy="18" rx="9" ry="10" fill="white" opacity="0.95" />
+      {/* Natural hair / crown */}
+      <ellipse cx="32" cy="10" rx="12" ry="8" fill="white" opacity="0.85" />
+      <ellipse cx="22" cy="13" rx="5" ry="6" fill="white" opacity="0.75" />
+      <ellipse cx="42" cy="13" rx="5" ry="6" fill="white" opacity="0.75" />
+      {/* Neck */}
+      <rect x="29" y="27" width="6" height="6" rx="1" fill="white" opacity="0.9" />
+      {/* Shoulders / bust */}
+      <path d="M14 52 Q18 36 32 34 Q46 36 50 52 Z" fill="white" opacity="0.85" />
+      {/* Face features — subtle */}
+      <ellipse cx="28" cy="19" rx="1.5" ry="1.8" fill="#C4A882" opacity="0.6" />
+      <ellipse cx="36" cy="19" rx="1.5" ry="1.8" fill="#C4A882" opacity="0.6" />
+      <path d="M29 24 Q32 26.5 35 24" stroke="#C4A882" strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.7" />
+    </svg>
+  );
+}
 
 interface Message {
   role: "user" | "assistant";
@@ -111,10 +132,10 @@ export function FloatingChat() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-foreground text-white flex items-center justify-center shadow-lg hover:bg-primary transition-colors duration-300"
+            className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-foreground text-white flex items-center justify-center shadow-lg hover:bg-primary transition-colors duration-300 rounded-full overflow-hidden"
             aria-label="Chat with Sedi"
           >
-            <MessageCircle size={22} />
+            <AfricanLadyIcon />
           </motion.button>
         )}
       </AnimatePresence>

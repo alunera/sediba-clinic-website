@@ -56,7 +56,7 @@ export function Footer() {
                 <FacebookIcon size={20} />
               </a>
               <a
-                href="https://www.tiktok.com/@sedibawellnessclinic"
+                href="https://www.tiktok.com/@sedibawellnessclinic?_r=1&_t=ZS-96Bti2ATdMg"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white/50 hover:text-primary transition-colors"
