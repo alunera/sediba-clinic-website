@@ -91,7 +91,7 @@ export function Navbar() {
               <InstagramIcon size={16} />
             </a>
             <a
-              href="https://www.facebook.com/sedibawellnessclinic"
+              href="https://www.facebook.com/share/17iZSPotiF/"
               target="_blank"
               rel="noopener noreferrer"
               className={`transition-colors hover:text-primary ${logoInvert ? "text-white/70" : "text-foreground/60"}`}
@@ -143,7 +143,7 @@ export function Navbar() {
             <a href="https://www.instagram.com/sedibawellnessclinic?utm_source=qr&igsh=MTE4cXFoNjBzYmV5dw%3D%3D" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
               <InstagramIcon size={18} />
             </a>
-            <a href="https://www.facebook.com/sedibawellnessclinic" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Facebook">
+            <a href="https://www.facebook.com/share/17iZSPotiF/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Facebook">
               <FacebookIcon size={18} />
             </a>
             <a href="https://www.tiktok.com/@sedibawellnessclinic?_r=1&_t=ZS-96Bti2ATdMg" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="TikTok">

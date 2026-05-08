@@ -47,7 +47,7 @@ export function Footer() {
                 <InstagramIcon size={20} />
               </a>
               <a
-                href="https://www.facebook.com/sedibawellnessclinic"
+                href="https://www.facebook.com/share/17iZSPotiF/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white/50 hover:text-primary transition-colors"
