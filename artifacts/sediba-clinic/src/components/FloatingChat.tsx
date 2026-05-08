@@ -31,7 +31,7 @@ export function FloatingChat() {
   useEffect(() => {
     if (isOpen && !conversationId) {
       createConversation.mutate(
-        { title: "Floating Chat" },
+        { data: { title: "Floating Chat" } },
         { onSuccess: (data) => setConversationId(data.id) }
       );
     }
