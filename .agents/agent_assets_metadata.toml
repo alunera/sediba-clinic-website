@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "jL-aN1Xk65cx2lii3LFCR"
@@ -36,3 +35,10 @@ id = "tz3PCZTB-oA03mzS-gCNy"
 uri = "file://attached_assets/generated_images/generated_image.png"
 type = "image"
 title = "generated_image"
+
+[[outputs]]
+id = "yc6QKciDJxetJt0TA7pdm"
+uri = "file://sediba-clinic-html.zip"
+type = "unspecified"
+title = "Sediba Clinic — HTML Files"
+description = "Built static HTML, CSS, JS, and all images for the Sediba Aesthetic & Wellness Clinic website. Upload these files to any web host."
