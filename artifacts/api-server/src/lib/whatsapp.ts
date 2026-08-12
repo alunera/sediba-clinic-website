@@ -316,7 +316,35 @@ export async function rehydrateReminders(): Promise<void> {
         time: row.time,
       };
 
-      enqueueReminder(appt, new Date(row.reminderScheduledFor));
+      const reminderAt = new Date(row.reminderScheduledFor);
+      const [apptYear, apptMonth, apptDay] = row.date.split("-").map(Number);
+      const [apptHour, apptMin] = row.time.split(":").map(Number);
+      const appointmentAt = new Date(apptYear, apptMonth - 1, apptDay, apptHour, apptMin, 0);
+      const now = new Date();
+
+      if (reminderAt < now && appointmentAt < now) {
+        // The reminder is past-due AND the appointment has already occurred.
+        // Sending a belated reminder would confuse the client — skip it and
+        // mark it as sent so it is never retried.
+        logger.info(
+          { bookingRef: row.bookingRef },
+          "[WhatsApp] Appointment already passed — skipping reminder",
+        );
+        try {
+          await db
+            .update(appointmentsTable)
+            .set({ reminderSentAt: now })
+            .where(eq(appointmentsTable.id, row.id));
+        } catch (dbErr) {
+          logger.error(
+            { dbErr, bookingRef: row.bookingRef },
+            "[WhatsApp] Failed to stamp reminderSentAt for skipped reminder",
+          );
+        }
+        continue;
+      }
+
+      enqueueReminder(appt, reminderAt);
     }
   } catch (err) {
     logger.error(
