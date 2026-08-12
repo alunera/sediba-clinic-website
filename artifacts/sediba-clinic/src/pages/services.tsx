@@ -160,12 +160,30 @@ export default function Services() {
           transition={{ duration: 0.5 }}
         >
           <SectionDivider label="Advanced Aesthetics" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16">
-            <div>
-              {ADVANCED.slice(0, 4).map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
-            </div>
-            <div>
-              {ADVANCED.slice(4).map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+            {/* Aesthetics image */}
+            <motion.div
+              className="lg:col-span-2 sticky top-36"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="relative overflow-hidden aspect-[3/4]">
+                <img
+                  src="/advanced-aesthetics.jpg"
+                  alt="Advanced body contouring treatment at Sediba"
+                  className="w-full h-full object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+              </div>
+              <p className="mt-4 text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
+                Aesthetics · Technology · Results
+              </p>
+            </motion.div>
+
+            <div className="lg:col-span-3">
+              {ADVANCED.map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
             </div>
           </div>
         </motion.section>
