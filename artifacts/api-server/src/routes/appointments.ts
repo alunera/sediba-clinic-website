@@ -10,6 +10,10 @@ import {
   DeleteAppointmentParams,
   GetAvailabilityQueryParams,
 } from "@workspace/api-zod";
+import {
+  sendBookingConfirmation,
+  scheduleReminderMessage,
+} from "../lib/whatsapp";
 
 const router = Router();
 
@@ -83,6 +87,19 @@ router.post("/appointments", async (req, res): Promise<void> => {
       policyAgreed: policyAgreed ? "true" : "false",
     })
     .returning();
+
+  const apptDetails = {
+    bookingRef: appointment.bookingRef,
+    clientName: appointment.clientName,
+    clientWhatsapp: appointment.clientWhatsapp,
+    serviceName: service[0].name,
+    date: appointment.date,
+    time: appointment.time,
+  };
+
+  // Send confirmation and schedule 24h reminder — failures are non-blocking
+  void sendBookingConfirmation(apptDetails);
+  scheduleReminderMessage(apptDetails);
 
   res.status(201).json({
     ...appointment,
