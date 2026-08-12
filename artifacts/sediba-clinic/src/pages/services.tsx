@@ -218,41 +218,31 @@ export default function Services() {
         >
           <SectionDivider label="Hands & Feet" />
 
-          {/* Two portrait images side by side above the treatments */}
-          <div className="grid grid-cols-2 gap-4 mb-12">
-            {[
-              { src: "/hands-manicure.jpg", alt: "Luxury manicure treatment", label: "Hands · Manicure · Care" },
-              { src: "/feet-pedicure.jpg",  alt: "Luxury pedicure treatment", label: "Feet · Pedicure · Restore" },
-            ].map((img, i) => (
-              <motion.div
-                key={img.src}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.55, delay: i * 0.12 }}
-              >
-                <div className="relative overflow-hidden aspect-[4/3]">
-                  <img
-                    src={img.src}
-                    alt={img.alt}
-                    className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
-                  <p className="absolute bottom-4 left-0 right-0 text-center text-xs uppercase tracking-[0.2em] text-white/90">
-                    {img.label}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+            <div className="lg:col-span-3">
+              {HANDS_FEET.map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16">
-            <div>
-              {HANDS_FEET.slice(0, 3).map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
-            </div>
-            <div>
-              {HANDS_FEET.slice(3).map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
-            </div>
+            {/* Hands portrait */}
+            <motion.div
+              className="lg:col-span-2 sticky top-36"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <div className="relative overflow-hidden aspect-[3/4]">
+                <img
+                  src="/hands-nails.jpg"
+                  alt="Luxury manicure treatment at Sediba"
+                  className="w-full h-full object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
+              </div>
+              <p className="mt-4 text-xs uppercase tracking-[0.2em] text-muted-foreground text-center">
+                Hands · Precision · Care
+              </p>
+            </motion.div>
           </div>
         </motion.section>
 
