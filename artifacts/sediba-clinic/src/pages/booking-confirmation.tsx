@@ -138,6 +138,16 @@ export default function BookingConfirmation() {
           >
             Add to Calendar
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const msg = `Hi Sediba, I just confirmed my appointment.\n\nRef: ${appointment.bookingRef}\nTreatment: ${appointment.serviceName}\nDate: ${format(new Date(appointment.date), "MMMM d, yyyy")}\nTime: ${appointment.time}\n\nPlease let me know if you need anything further.`;
+              window.open(`https://wa.me/27814566402?text=${encodeURIComponent(msg)}`, "_blank");
+            }}
+            className="rounded-none uppercase tracking-widest text-xs px-8 border-border"
+          >
+            Message us on WhatsApp
+          </Button>
           <Button 
             onClick={() => setLocation("/")}
             className="rounded-none uppercase tracking-widest text-xs px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
