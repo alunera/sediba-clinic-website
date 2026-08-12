@@ -217,6 +217,35 @@ export default function Services() {
           transition={{ duration: 0.5 }}
         >
           <SectionDivider label="Hands & Feet" />
+
+          {/* Two portrait images side by side above the treatments */}
+          <div className="grid grid-cols-2 gap-4 mb-12">
+            {[
+              { src: "/hands-manicure.jpg", alt: "Luxury manicure treatment", label: "Hands · Manicure · Care" },
+              { src: "/feet-pedicure.jpg",  alt: "Luxury pedicure treatment", label: "Feet · Pedicure · Restore" },
+            ].map((img, i) => (
+              <motion.div
+                key={img.src}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.55, delay: i * 0.12 }}
+              >
+                <div className="relative overflow-hidden aspect-[4/3]">
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    className="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/50 to-transparent" />
+                  <p className="absolute bottom-4 left-0 right-0 text-center text-xs uppercase tracking-[0.2em] text-white/90">
+                    {img.label}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16">
             <div>
               {HANDS_FEET.slice(0, 3).map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
