@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/sediba-mobile/"
+title = "Sediba Mobile Booking"
+description = "A mobile booking app for Sediba Aesthetic & Wellness Clinic. Lets clients browse services, pick a date and time slot, fill in their details, and receive a shareable confirmation screen with their booking reference number."
+version = "1.0.0"
+id = "artifacts/sediba-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/sediba-mobile/" ]
+localPort = 19694
+
+[services.development]
+run = "pnpm --filter @workspace/sediba-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sediba-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/sediba-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "19694"
+BASE_PATH = "/sediba-mobile/"
