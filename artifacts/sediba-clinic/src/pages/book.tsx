@@ -5,6 +5,7 @@ import {
   useListServices, 
   getListServicesQueryKey,
   useGetAvailability,
+  getGetAvailabilityQueryKey,
   useCreateAppointment
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
@@ -31,7 +32,9 @@ export default function Book() {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [clientWhatsapp, setClientWhatsapp] = useState("");
   const [notes, setNotes] = useState("");
+  const [policyAgreed, setPolicyAgreed] = useState(false);
 
   // Queries
   const { data: services, isLoading: isLoadingServices } = useListServices({
@@ -39,16 +42,17 @@ export default function Book() {
   });
 
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
+  const availabilityParams = { date: dateStr, serviceId: selectedServiceId || undefined };
   const { data: availability, isLoading: isLoadingAvailability } = useGetAvailability(
-    { date: dateStr, serviceId: selectedServiceId || undefined },
-    { query: { enabled: !!selectedDate && !!selectedServiceId } }
+    availabilityParams,
+    { query: { enabled: !!selectedDate && !!selectedServiceId, queryKey: getGetAvailabilityQueryKey(availabilityParams) } }
   );
 
   const createAppointment = useCreateAppointment();
 
   const handleBook = () => {
-    if (!selectedServiceId || !selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone) {
-      toast({ title: "Incomplete details", description: "Please fill in all required fields.", variant: "destructive" });
+    if (!selectedServiceId || !selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone || !policyAgreed) {
+      toast({ title: "Incomplete details", description: "Please fill in all required fields and agree to the policies.", variant: "destructive" });
       return;
     }
 
@@ -60,17 +64,19 @@ export default function Book() {
         clientName,
         clientEmail,
         clientPhone,
+        clientWhatsapp: clientWhatsapp || undefined,
         notes: notes || undefined,
+        policyAgreed: true,
       }
     }, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         toast({
           title: "Reservation Confirmed",
           description: "Your appointment has been successfully booked.",
         });
-        setLocation("/");
+        setLocation(`/booking-confirmation?ref=${data.bookingRef}`);
       },
-      onError: (err) => {
+      onError: () => {
         toast({
           title: "Booking Failed",
           description: "There was an error securing your reservation. Please try again.",
@@ -80,24 +86,26 @@ export default function Book() {
     });
   };
 
+  const steps = ["Treatment", "Time", "Details", "Policy", "Confirm"];
+
   return (
     <div className="min-h-screen pt-32 pb-24 bg-background flex flex-col items-center">
-      <div className="container max-w-3xl px-6">
+      <div className="container max-w-4xl px-6">
         <div className="text-center mb-16">
           <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-4 block">Reservations</span>
           <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-6">Secure Your Time</h1>
           <p className="text-muted-foreground font-light max-w-xl mx-auto">
-            Select your preferred treatment and time. Our concierge will prepare the clinic for your arrival.
+            Follow the steps to reserve your bespoke aesthetic and wellness experience.
           </p>
         </div>
 
         <div className="bg-card border border-border p-8 md:p-12">
           {/* Step Indicators */}
-          <div className="flex justify-between border-b border-border pb-8 mb-8">
-            {["Treatment", "Time", "Details"].map((label, idx) => (
+          <div className="flex justify-between border-b border-border pb-8 mb-8 overflow-x-auto gap-4">
+            {steps.map((label, idx) => (
               <div 
                 key={label} 
-                className={`flex flex-col items-center flex-1 ${step === idx + 1 ? "text-primary" : step > idx + 1 ? "text-foreground" : "text-muted-foreground/50"}`}
+                className={`flex flex-col items-center flex-1 min-w-[80px] ${step === idx + 1 ? "text-primary" : step > idx + 1 ? "text-foreground" : "text-muted-foreground/50"}`}
               >
                 <span className="font-serif text-xl mb-2">0{idx + 1}</span>
                 <span className="text-[10px] uppercase tracking-widest">{label}</span>
@@ -128,7 +136,7 @@ export default function Book() {
                       <div>
                         <h3 className="font-serif text-lg text-foreground mb-1">{service.name}</h3>
                         <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                          {service.duration} Min &bull; R{service.price}
+                          {service.duration} Min &bull; R{(service.price / 100).toFixed(2)}
                         </p>
                       </div>
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
@@ -167,7 +175,7 @@ export default function Book() {
                         setSelectedDate(date);
                         setSelectedTime(null);
                       }}
-                      disabled={(date) => date < new Date() || date.getDay() === 0} // Disable past dates and Sundays
+                      disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) || date.getDay() === 0}
                       className="font-sans"
                     />
                   </div>
@@ -265,6 +273,16 @@ export default function Book() {
                   </div>
                 </div>
                 <div>
+                  <Label className="uppercase tracking-widest text-[10px] text-muted-foreground mb-2 block">WhatsApp Number (Optional)</Label>
+                  <Input 
+                    type="tel"
+                    value={clientWhatsapp} 
+                    onChange={e => setClientWhatsapp(e.target.value)} 
+                    className="rounded-none border-border bg-background focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary h-12"
+                    placeholder="+27 82 123 4567"
+                  />
+                </div>
+                <div>
                   <Label className="uppercase tracking-widest text-[10px] text-muted-foreground mb-2 block">Notes (Optional)</Label>
                   <Textarea 
                     value={notes} 
@@ -272,28 +290,6 @@ export default function Book() {
                     className="rounded-none border-border bg-background focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary min-h-[100px]"
                     placeholder="Any specific concerns or requests?"
                   />
-                </div>
-              </div>
-
-              <div className="bg-muted/30 p-6 mt-8 border border-border">
-                <h4 className="font-serif text-lg mb-4">Reservation Summary</h4>
-                <div className="space-y-2 text-sm text-foreground/80">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Treatment:</span>
-                    <span className="font-medium text-foreground">{services?.find(s => s.id === selectedServiceId)?.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Date:</span>
-                    <span className="font-medium text-foreground">{selectedDate && format(selectedDate, "MMMM d, yyyy")}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Time:</span>
-                    <span className="font-medium text-foreground">{selectedTime}</span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-border mt-2">
-                    <span className="text-muted-foreground">Total:</span>
-                    <span className="font-medium text-foreground">R{services?.find(s => s.id === selectedServiceId)?.price}</span>
-                  </div>
                 </div>
               </div>
 
@@ -306,9 +302,110 @@ export default function Book() {
                   Back
                 </Button>
                 <Button 
-                  onClick={handleBook} 
-                  disabled={!clientName || !clientEmail || !clientPhone || createAppointment.isPending}
+                  onClick={() => setStep(4)} 
+                  disabled={!clientName || !clientEmail || !clientPhone}
                   className="rounded-none uppercase tracking-widest text-xs px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4: Policy */}
+          {step === 4 && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+              <h2 className="font-serif text-2xl text-foreground mb-6">Booking Policies</h2>
+              
+              <div className="bg-muted/30 p-6 border border-border space-y-4 text-sm text-foreground/80 leading-relaxed font-light">
+                <p>Please review our booking policies before confirming your appointment:</p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>100% payment is required to secure your appointment.</li>
+                  <li>Cancellations made less than 24 hours before your appointment will forfeit the full booking amount.</li>
+                  <li>Rescheduling is permitted with a minimum of 24 hours' notice.</li>
+                  <li>Please arrive 5 minutes before your appointment time.</li>
+                </ul>
+              </div>
+
+              <div className="flex items-center space-x-3 mt-6">
+                <input 
+                  type="checkbox" 
+                  id="policy" 
+                  checked={policyAgreed}
+                  onChange={(e) => setPolicyAgreed(e.target.checked)}
+                  className="w-5 h-5 accent-primary border-border bg-background"
+                />
+                <label htmlFor="policy" className="text-sm font-medium leading-none cursor-pointer">
+                  I agree to the booking policy
+                </label>
+              </div>
+
+              <div className="mt-8 flex justify-between">
+                <Button 
+                  variant="outline"
+                  onClick={() => setStep(3)} 
+                  className="rounded-none uppercase tracking-widest text-xs px-8 border-border text-foreground"
+                >
+                  Back
+                </Button>
+                <Button 
+                  onClick={() => setStep(5)} 
+                  disabled={!policyAgreed}
+                  className="rounded-none uppercase tracking-widest text-xs px-8 bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5: Confirm */}
+          {step === 5 && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+              <h2 className="font-serif text-2xl text-foreground mb-6">Review & Confirm</h2>
+              
+              <div className="bg-muted/10 p-8 border border-border">
+                <h4 className="font-serif text-xl mb-6 border-b border-border pb-4">Reservation Summary</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground uppercase tracking-widest text-[10px] block mb-1">Client Details</span>
+                      <p className="font-medium text-foreground">{clientName}</p>
+                      <p className="text-foreground/80">{clientEmail}</p>
+                      <p className="text-foreground/80">{clientPhone}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4 text-sm">
+                    <div>
+                      <span className="text-muted-foreground uppercase tracking-widest text-[10px] block mb-1">Appointment Details</span>
+                      <p className="font-medium text-foreground">{services?.find(s => s.id === selectedServiceId)?.name}</p>
+                      <p className="text-foreground/80">{selectedDate && format(selectedDate, "MMMM d, yyyy")} at {selectedTime}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center pt-6 mt-6 border-t border-border">
+                  <span className="text-muted-foreground uppercase tracking-widest text-xs">Total Amount</span>
+                  <span className="font-serif text-2xl text-foreground">
+                    R{(services?.find(s => s.id === selectedServiceId)?.price! / 100).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-between">
+                <Button 
+                  variant="outline"
+                  onClick={() => setStep(4)} 
+                  className="rounded-none uppercase tracking-widest text-xs px-8 border-border text-foreground"
+                >
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleBook} 
+                  disabled={createAppointment.isPending}
+                  className="rounded-none uppercase tracking-widest text-xs px-10 py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {createAppointment.isPending ? "Confirming..." : "Confirm Booking"}
                 </Button>

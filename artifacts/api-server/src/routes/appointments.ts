@@ -13,19 +13,32 @@ import {
 
 const router = Router();
 
-router.get("/appointments", async (req, res) => {
+function generateBookingRef(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let ref = "SWC-";
+  for (let i = 0; i < 8; i++) {
+    ref += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return ref;
+}
+
+router.get("/appointments", async (req, res): Promise<void> => {
   const appointments = await db
     .select({
       id: appointmentsTable.id,
+      bookingRef: appointmentsTable.bookingRef,
       clientName: appointmentsTable.clientName,
       clientEmail: appointmentsTable.clientEmail,
       clientPhone: appointmentsTable.clientPhone,
+      clientWhatsapp: appointmentsTable.clientWhatsapp,
       serviceId: appointmentsTable.serviceId,
       serviceName: servicesTable.name,
       date: appointmentsTable.date,
       time: appointmentsTable.time,
+      totalAmountCents: appointmentsTable.totalAmountCents,
       status: appointmentsTable.status,
       notes: appointmentsTable.notes,
+      policyAgreed: appointmentsTable.policyAgreed,
       createdAt: appointmentsTable.createdAt,
     })
     .from(appointmentsTable)
@@ -35,14 +48,14 @@ router.get("/appointments", async (req, res) => {
   res.json(appointments);
 });
 
-router.post("/appointments", async (req, res) => {
+router.post("/appointments", async (req, res): Promise<void> => {
   const parsed = CreateAppointmentBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
-  const { serviceId, date, ...rest } = parsed.data;
+  const { serviceId, date, policyAgreed, ...rest } = parsed.data;
   const service = await db
     .select()
     .from(servicesTable)
@@ -55,10 +68,20 @@ router.post("/appointments", async (req, res) => {
   }
 
   const dateStr = date instanceof Date ? date.toISOString().split("T")[0] : String(date);
+  const bookingRef = generateBookingRef();
+  const totalAmountCents = service[0].price;
 
   const [appointment] = await db
     .insert(appointmentsTable)
-    .values({ ...rest, serviceId, date: dateStr })
+    .values({
+      ...rest,
+      serviceId,
+      date: dateStr,
+      bookingRef,
+      totalAmountCents,
+      status: "confirmed",
+      policyAgreed: policyAgreed ? "true" : "false",
+    })
     .returning();
 
   res.status(201).json({
@@ -67,7 +90,7 @@ router.post("/appointments", async (req, res) => {
   });
 });
 
-router.get("/appointments/availability", async (req, res) => {
+router.get("/appointments/availability", async (req, res): Promise<void> => {
   const parsed = GetAvailabilityQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -99,7 +122,39 @@ router.get("/appointments/availability", async (req, res) => {
   res.json(slots);
 });
 
-router.get("/appointments/:id", async (req, res) => {
+router.get("/appointments/ref/:ref", async (req, res): Promise<void> => {
+  const ref = req.params.ref as string;
+  const rows = await db
+    .select({
+      id: appointmentsTable.id,
+      bookingRef: appointmentsTable.bookingRef,
+      clientName: appointmentsTable.clientName,
+      clientEmail: appointmentsTable.clientEmail,
+      clientPhone: appointmentsTable.clientPhone,
+      clientWhatsapp: appointmentsTable.clientWhatsapp,
+      serviceId: appointmentsTable.serviceId,
+      serviceName: servicesTable.name,
+      date: appointmentsTable.date,
+      time: appointmentsTable.time,
+      totalAmountCents: appointmentsTable.totalAmountCents,
+      status: appointmentsTable.status,
+      notes: appointmentsTable.notes,
+      policyAgreed: appointmentsTable.policyAgreed,
+      createdAt: appointmentsTable.createdAt,
+    })
+    .from(appointmentsTable)
+    .leftJoin(servicesTable, eq(appointmentsTable.serviceId, servicesTable.id))
+    .where(eq(appointmentsTable.bookingRef, ref));
+
+  if (!rows[0]) {
+    res.status(404).json({ error: "Appointment not found" });
+    return;
+  }
+
+  res.json(rows[0]);
+});
+
+router.get("/appointments/:id", async (req, res): Promise<void> => {
   const parsed = GetAppointmentParams.safeParse(req.params);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid ID" });
@@ -109,15 +164,19 @@ router.get("/appointments/:id", async (req, res) => {
   const rows = await db
     .select({
       id: appointmentsTable.id,
+      bookingRef: appointmentsTable.bookingRef,
       clientName: appointmentsTable.clientName,
       clientEmail: appointmentsTable.clientEmail,
       clientPhone: appointmentsTable.clientPhone,
+      clientWhatsapp: appointmentsTable.clientWhatsapp,
       serviceId: appointmentsTable.serviceId,
       serviceName: servicesTable.name,
       date: appointmentsTable.date,
       time: appointmentsTable.time,
+      totalAmountCents: appointmentsTable.totalAmountCents,
       status: appointmentsTable.status,
       notes: appointmentsTable.notes,
+      policyAgreed: appointmentsTable.policyAgreed,
       createdAt: appointmentsTable.createdAt,
     })
     .from(appointmentsTable)
@@ -132,7 +191,7 @@ router.get("/appointments/:id", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.patch("/appointments/:id", async (req, res) => {
+router.patch("/appointments/:id", async (req, res): Promise<void> => {
   const paramsParsed = UpdateAppointmentParams.safeParse(req.params);
   if (!paramsParsed.success) {
     res.status(400).json({ error: "Invalid ID" });
@@ -165,7 +224,7 @@ router.patch("/appointments/:id", async (req, res) => {
   res.json({ ...updated, serviceName: service[0]?.name ?? "" });
 });
 
-router.delete("/appointments/:id", async (req, res) => {
+router.delete("/appointments/:id", async (req, res): Promise<void> => {
   const parsed = DeleteAppointmentParams.safeParse(req.params);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid ID" });

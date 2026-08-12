@@ -20,15 +20,25 @@ export const HealthCheckResponse = zod.object({
  */
 export const ListAppointmentsResponseItem = zod.object({
   id: zod.number(),
+  bookingRef: zod.string(),
   clientName: zod.string(),
   clientEmail: zod.string(),
   clientPhone: zod.string(),
+  clientWhatsapp: zod.string().nullish(),
   serviceId: zod.number(),
   serviceName: zod.string(),
   date: zod.coerce.date(),
   time: zod.string(),
-  status: zod.enum(["pending", "confirmed", "cancelled", "completed"]),
+  totalAmountCents: zod.number(),
+  status: zod.enum([
+    "pending",
+    "confirmed",
+    "cancelled",
+    "completed",
+    "no-show",
+  ]),
   notes: zod.string().nullish(),
+  policyAgreed: zod.string(),
   createdAt: zod.coerce.date(),
 });
 export const ListAppointmentsResponse = zod.array(ListAppointmentsResponseItem);
@@ -40,10 +50,12 @@ export const CreateAppointmentBody = zod.object({
   clientName: zod.string(),
   clientEmail: zod.string(),
   clientPhone: zod.string(),
+  clientWhatsapp: zod.string().nullish(),
   serviceId: zod.number(),
   date: zod.coerce.date(),
   time: zod.string(),
   notes: zod.string().nullish(),
+  policyAgreed: zod.boolean(),
 });
 
 /**
@@ -55,15 +67,25 @@ export const GetAppointmentParams = zod.object({
 
 export const GetAppointmentResponse = zod.object({
   id: zod.number(),
+  bookingRef: zod.string(),
   clientName: zod.string(),
   clientEmail: zod.string(),
   clientPhone: zod.string(),
+  clientWhatsapp: zod.string().nullish(),
   serviceId: zod.number(),
   serviceName: zod.string(),
   date: zod.coerce.date(),
   time: zod.string(),
-  status: zod.enum(["pending", "confirmed", "cancelled", "completed"]),
+  totalAmountCents: zod.number(),
+  status: zod.enum([
+    "pending",
+    "confirmed",
+    "cancelled",
+    "completed",
+    "no-show",
+  ]),
   notes: zod.string().nullish(),
+  policyAgreed: zod.string(),
   createdAt: zod.coerce.date(),
 });
 
@@ -76,22 +98,32 @@ export const UpdateAppointmentParams = zod.object({
 
 export const UpdateAppointmentBody = zod.object({
   status: zod
-    .enum(["pending", "confirmed", "cancelled", "completed"])
+    .enum(["pending", "confirmed", "cancelled", "completed", "no-show"])
     .optional(),
   notes: zod.string().nullish(),
 });
 
 export const UpdateAppointmentResponse = zod.object({
   id: zod.number(),
+  bookingRef: zod.string(),
   clientName: zod.string(),
   clientEmail: zod.string(),
   clientPhone: zod.string(),
+  clientWhatsapp: zod.string().nullish(),
   serviceId: zod.number(),
   serviceName: zod.string(),
   date: zod.coerce.date(),
   time: zod.string(),
-  status: zod.enum(["pending", "confirmed", "cancelled", "completed"]),
+  totalAmountCents: zod.number(),
+  status: zod.enum([
+    "pending",
+    "confirmed",
+    "cancelled",
+    "completed",
+    "no-show",
+  ]),
   notes: zod.string().nullish(),
+  policyAgreed: zod.string(),
   createdAt: zod.coerce.date(),
 });
 
@@ -115,6 +147,37 @@ export const GetAvailabilityResponseItem = zod.object({
   available: zod.boolean(),
 });
 export const GetAvailabilityResponse = zod.array(GetAvailabilityResponseItem);
+
+/**
+ * @summary Get appointment by booking reference
+ */
+export const GetAppointmentByRefParams = zod.object({
+  ref: zod.coerce.string(),
+});
+
+export const GetAppointmentByRefResponse = zod.object({
+  id: zod.number(),
+  bookingRef: zod.string(),
+  clientName: zod.string(),
+  clientEmail: zod.string(),
+  clientPhone: zod.string(),
+  clientWhatsapp: zod.string().nullish(),
+  serviceId: zod.number(),
+  serviceName: zod.string(),
+  date: zod.coerce.date(),
+  time: zod.string(),
+  totalAmountCents: zod.number(),
+  status: zod.enum([
+    "pending",
+    "confirmed",
+    "cancelled",
+    "completed",
+    "no-show",
+  ]),
+  notes: zod.string().nullish(),
+  policyAgreed: zod.string(),
+  createdAt: zod.coerce.date(),
+});
 
 /**
  * @summary List all clinic services
@@ -157,6 +220,156 @@ export const ListServiceCategoriesResponseItem = zod.object({
 export const ListServiceCategoriesResponse = zod.array(
   ListServiceCategoriesResponseItem,
 );
+
+/**
+ * @summary Admin login with password
+ */
+export const AdminLoginBody = zod.object({
+  password: zod.string(),
+});
+
+export const AdminLoginResponse = zod.object({
+  authenticated: zod.boolean(),
+});
+
+/**
+ * @summary Admin logout
+ */
+export const AdminLogoutResponse = zod.object({
+  authenticated: zod.boolean(),
+});
+
+/**
+ * @summary Check admin authentication status
+ */
+export const AdminMeResponse = zod.object({
+  authenticated: zod.boolean(),
+});
+
+/**
+ * @summary List all appointments (admin)
+ */
+export const AdminListAppointmentsResponseItem = zod.object({
+  id: zod.number(),
+  bookingRef: zod.string(),
+  clientName: zod.string(),
+  clientEmail: zod.string(),
+  clientPhone: zod.string(),
+  clientWhatsapp: zod.string().nullish(),
+  serviceId: zod.number(),
+  serviceName: zod.string(),
+  date: zod.coerce.date(),
+  time: zod.string(),
+  totalAmountCents: zod.number(),
+  status: zod.enum([
+    "pending",
+    "confirmed",
+    "cancelled",
+    "completed",
+    "no-show",
+  ]),
+  notes: zod.string().nullish(),
+  policyAgreed: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const AdminListAppointmentsResponse = zod.array(
+  AdminListAppointmentsResponseItem,
+);
+
+/**
+ * @summary Update appointment (admin)
+ */
+export const AdminUpdateAppointmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminUpdateAppointmentBody = zod.object({
+  status: zod
+    .enum(["pending", "confirmed", "cancelled", "completed", "no-show"])
+    .optional(),
+  notes: zod.string().nullish(),
+});
+
+export const AdminUpdateAppointmentResponse = zod.object({
+  id: zod.number(),
+  bookingRef: zod.string(),
+  clientName: zod.string(),
+  clientEmail: zod.string(),
+  clientPhone: zod.string(),
+  clientWhatsapp: zod.string().nullish(),
+  serviceId: zod.number(),
+  serviceName: zod.string(),
+  date: zod.coerce.date(),
+  time: zod.string(),
+  totalAmountCents: zod.number(),
+  status: zod.enum([
+    "pending",
+    "confirmed",
+    "cancelled",
+    "completed",
+    "no-show",
+  ]),
+  notes: zod.string().nullish(),
+  policyAgreed: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary List all unique clients (admin)
+ */
+export const AdminListClientsResponseItem = zod.object({
+  clientName: zod.string(),
+  clientEmail: zod.string(),
+  clientPhone: zod.string(),
+  clientWhatsapp: zod.string().nullish(),
+  appointmentCount: zod.number(),
+  totalSpentCents: zod.number(),
+  lastVisit: zod.string().nullish(),
+  firstVisit: zod.string().nullish(),
+});
+export const AdminListClientsResponse = zod.array(AdminListClientsResponseItem);
+
+/**
+ * @summary Get admin settings
+ */
+export const AdminGetSettingsResponse = zod.object({
+  googleReviewUrl: zod.string().nullish(),
+  clinicName: zod.string().nullish(),
+  clinicAddress: zod.string().nullish(),
+  clinicPhone: zod.string().nullish(),
+  clinicEmail: zod.string().nullish(),
+  workingHours: zod
+    .string()
+    .nullish()
+    .describe("JSON string of working hours config"),
+});
+
+/**
+ * @summary Update admin settings
+ */
+export const AdminUpdateSettingsBody = zod.object({
+  googleReviewUrl: zod.string().nullish(),
+  clinicName: zod.string().nullish(),
+  clinicAddress: zod.string().nullish(),
+  clinicPhone: zod.string().nullish(),
+  clinicEmail: zod.string().nullish(),
+  workingHours: zod
+    .string()
+    .nullish()
+    .describe("JSON string of working hours config"),
+});
+
+export const AdminUpdateSettingsResponse = zod.object({
+  googleReviewUrl: zod.string().nullish(),
+  clinicName: zod.string().nullish(),
+  clinicAddress: zod.string().nullish(),
+  clinicPhone: zod.string().nullish(),
+  clinicEmail: zod.string().nullish(),
+  workingHours: zod
+    .string()
+    .nullish()
+    .describe("JSON string of working hours config"),
+});
 
 /**
  * @summary List all conversations

@@ -16,6 +16,8 @@ tags:
     description: Clinic services
   - name: openai
     description: OpenAI AI chat and booking assistant operations
+  - name: admin
+    description: Admin management operations
 paths:
   /healthz:
     get:
@@ -157,6 +159,31 @@ paths:
                 items:
                   $ref: "#/components/schemas/AvailableSlot"
 
+  /appointments/ref/{ref}:
+    get:
+      operationId: getAppointmentByRef
+      tags: [appointments]
+      summary: Get appointment by booking reference
+      parameters:
+        - name: ref
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Appointment details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /services:
     get:
       operationId: listServices
@@ -211,6 +238,154 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ServiceCategory"
+
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login with password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAuthResponse"
+        "401":
+          description: Invalid password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/logout:
+    post:
+      operationId: adminLogout
+      tags: [admin]
+      summary: Admin logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAuthResponse"
+
+  /admin/me:
+    get:
+      operationId: adminMe
+      tags: [admin]
+      summary: Check admin authentication status
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAuthResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/appointments:
+    get:
+      operationId: adminListAppointments
+      tags: [admin]
+      summary: List all appointments (admin)
+      responses:
+        "200":
+          description: List of appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+
+  /admin/appointments/{id}:
+    patch:
+      operationId: adminUpdateAppointment
+      tags: [admin]
+      summary: Update appointment (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUpdateAppointmentBody"
+      responses:
+        "200":
+          description: Updated appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/clients:
+    get:
+      operationId: adminListClients
+      tags: [admin]
+      summary: List all unique clients (admin)
+      responses:
+        "200":
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+
+  /admin/settings:
+    get:
+      operationId: adminGetSettings
+      tags: [admin]
+      summary: Get admin settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSettings"
+    put:
+      operationId: adminUpdateSettings
+      tags: [admin]
+      summary: Update admin settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSettings"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSettings"
 
   /openai/conversations:
     get:
@@ -353,12 +528,17 @@ components:
       properties:
         id:
           type: integer
+        bookingRef:
+          type: string
         clientName:
           type: string
         clientEmail:
           type: string
         clientPhone:
           type: string
+        clientWhatsapp:
+          type: string
+          nullable: true
         serviceId:
           type: integer
         serviceName:
@@ -368,17 +548,22 @@ components:
           format: date
         time:
           type: string
+        totalAmountCents:
+          type: integer
         status:
           type: string
-          enum: [pending, confirmed, cancelled, completed]
+          enum: [pending, confirmed, cancelled, completed, no-show]
         notes:
           type: string
           nullable: true
+        policyAgreed:
+          type: string
         createdAt:
           type: string
           format: date-time
       required:
         - id
+        - bookingRef
         - clientName
         - clientEmail
         - clientPhone
@@ -386,7 +571,9 @@ components:
         - serviceName
         - date
         - time
+        - totalAmountCents
         - status
+        - policyAgreed
         - createdAt
 
     CreateAppointmentBody:
@@ -398,6 +585,9 @@ components:
           type: string
         clientPhone:
           type: string
+        clientWhatsapp:
+          type: string
+          nullable: true
         serviceId:
           type: integer
         date:
@@ -408,6 +598,8 @@ components:
         notes:
           type: string
           nullable: true
+        policyAgreed:
+          type: boolean
       required:
         - clientName
         - clientEmail
@@ -415,13 +607,24 @@ components:
         - serviceId
         - date
         - time
+        - policyAgreed
 
     UpdateAppointmentBody:
       type: object
       properties:
         status:
           type: string
-          enum: [pending, confirmed, cancelled, completed]
+          enum: [pending, confirmed, cancelled, completed, no-show]
+        notes:
+          type: string
+          nullable: true
+
+    AdminUpdateAppointmentBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled, completed, no-show]
         notes:
           type: string
           nullable: true
@@ -474,6 +677,74 @@ components:
       required:
         - category
         - count
+
+    AdminLoginBody:
+      type: object
+      properties:
+        password:
+          type: string
+      required:
+        - password
+
+    AdminAuthResponse:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+      required:
+        - authenticated
+
+    Client:
+      type: object
+      properties:
+        clientName:
+          type: string
+        clientEmail:
+          type: string
+        clientPhone:
+          type: string
+        clientWhatsapp:
+          type: string
+          nullable: true
+        appointmentCount:
+          type: integer
+        totalSpentCents:
+          type: integer
+        lastVisit:
+          type: string
+          nullable: true
+        firstVisit:
+          type: string
+          nullable: true
+      required:
+        - clientName
+        - clientEmail
+        - clientPhone
+        - appointmentCount
+        - totalSpentCents
+
+    AdminSettings:
+      type: object
+      properties:
+        googleReviewUrl:
+          type: string
+          nullable: true
+        clinicName:
+          type: string
+          nullable: true
+        clinicAddress:
+          type: string
+          nullable: true
+        clinicPhone:
+          type: string
+          nullable: true
+        clinicEmail:
+          type: string
+          nullable: true
+        workingHours:
+          type: string
+          nullable: true
+          description: JSON string of working hours config
 
     OpenaiConversation:
       type: object

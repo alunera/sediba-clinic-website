@@ -14,15 +14,19 @@ export const servicesTable = pgTable("services", {
 
 export const appointmentsTable = pgTable("appointments", {
   id: serial("id").primaryKey(),
+  bookingRef: text("booking_ref").notNull().unique(),
   clientName: text("client_name").notNull(),
   clientEmail: text("client_email").notNull(),
   clientPhone: text("client_phone").notNull(),
+  clientWhatsapp: text("client_whatsapp"),
   serviceId: integer("service_id").notNull().references(() => servicesTable.id),
-  date: date("date").notNull(),
+  date: date("date", { mode: "string" }).notNull(),
   time: text("time").notNull(),
+  totalAmountCents: integer("total_amount_cents").notNull().default(0),
   status: text("status").notNull().default("pending"),
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  policyAgreed: text("policy_agreed").notNull().default("false"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const insertServiceSchema = createInsertSchema(servicesTable).omit({ id: true });

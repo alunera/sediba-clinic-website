@@ -21,19 +21,24 @@ export const AppointmentStatus = {
   confirmed: "confirmed",
   cancelled: "cancelled",
   completed: "completed",
+  "no-show": "no-show",
 } as const;
 
 export interface Appointment {
   id: number;
+  bookingRef: string;
   clientName: string;
   clientEmail: string;
   clientPhone: string;
+  clientWhatsapp?: string | null;
   serviceId: number;
   serviceName: string;
   date: string;
   time: string;
+  totalAmountCents: number;
   status: AppointmentStatus;
   notes?: string | null;
+  policyAgreed: string;
   createdAt: string;
 }
 
@@ -41,10 +46,12 @@ export interface CreateAppointmentBody {
   clientName: string;
   clientEmail: string;
   clientPhone: string;
+  clientWhatsapp?: string | null;
   serviceId: number;
   date: string;
   time: string;
   notes?: string | null;
+  policyAgreed: boolean;
 }
 
 export type UpdateAppointmentBodyStatus =
@@ -55,10 +62,27 @@ export const UpdateAppointmentBodyStatus = {
   confirmed: "confirmed",
   cancelled: "cancelled",
   completed: "completed",
+  "no-show": "no-show",
 } as const;
 
 export interface UpdateAppointmentBody {
   status?: UpdateAppointmentBodyStatus;
+  notes?: string | null;
+}
+
+export type AdminUpdateAppointmentBodyStatus =
+  (typeof AdminUpdateAppointmentBodyStatus)[keyof typeof AdminUpdateAppointmentBodyStatus];
+
+export const AdminUpdateAppointmentBodyStatus = {
+  pending: "pending",
+  confirmed: "confirmed",
+  cancelled: "cancelled",
+  completed: "completed",
+  "no-show": "no-show",
+} as const;
+
+export interface AdminUpdateAppointmentBody {
+  status?: AdminUpdateAppointmentBodyStatus;
   notes?: string | null;
 }
 
@@ -81,6 +105,35 @@ export interface Service {
 export interface ServiceCategory {
   category: string;
   count: number;
+}
+
+export interface AdminLoginBody {
+  password: string;
+}
+
+export interface AdminAuthResponse {
+  authenticated: boolean;
+}
+
+export interface Client {
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  clientWhatsapp?: string | null;
+  appointmentCount: number;
+  totalSpentCents: number;
+  lastVisit?: string | null;
+  firstVisit?: string | null;
+}
+
+export interface AdminSettings {
+  googleReviewUrl?: string | null;
+  clinicName?: string | null;
+  clinicAddress?: string | null;
+  clinicPhone?: string | null;
+  clinicEmail?: string | null;
+  /** JSON string of working hours config */
+  workingHours?: string | null;
 }
 
 export interface OpenaiConversation {

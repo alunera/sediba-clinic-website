@@ -1,0 +1,1 @@
+- [api-zod index.ts codegen clobber](api-zod-index-clobber.md) — orval codegen overwrites lib/api-zod/src/index.ts with a broken double-export; must reset after every codegen run
