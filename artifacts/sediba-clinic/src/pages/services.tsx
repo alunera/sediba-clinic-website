@@ -199,10 +199,14 @@ export default function Services() {
           <SectionDivider label="Body & Wellness" />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-            {/* Body massage image */}
+            <div className="lg:col-span-3">
+              {BODY.map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
+            </div>
+
+            {/* Body massage image — right */}
             <motion.div
-              className="lg:col-span-2 sticky top-36 order-last lg:order-first"
-              initial={{ opacity: 0, x: -20 }}
+              className="lg:col-span-2 sticky top-36"
+              initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -219,10 +223,6 @@ export default function Services() {
                 Body · Wellness · Restore
               </p>
             </motion.div>
-
-            <div className="lg:col-span-3">
-              {BODY.map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
-            </div>
           </div>
         </motion.section>
 
@@ -237,14 +237,10 @@ export default function Services() {
           <SectionDivider label="Hands & Feet" />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-            <div className="lg:col-span-3">
-              {HANDS_FEET.map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
-            </div>
-
-            {/* Hands portrait */}
+            {/* Hands portrait — left */}
             <motion.div
               className="lg:col-span-2 sticky top-36"
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -261,6 +257,10 @@ export default function Services() {
                 Hands · Precision · Care
               </p>
             </motion.div>
+
+            <div className="lg:col-span-3">
+              {HANDS_FEET.map((t, i) => <TreatmentRow key={t.name} {...t} idx={i} />)}
+            </div>
           </div>
         </motion.section>
 
