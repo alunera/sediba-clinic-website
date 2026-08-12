@@ -1,0 +1,1215 @@
+# SEDIBA WELLNESS — WEBSITE → BOOKING → CRM → AI → BUSINESS MANAGEMENT SYSTEM
+
+## IMPORTANT CONTEXT
+
+There is ALREADY an existing Sediba Wellness website.
+
+Existing website:
+
+https://sediba-aesthetic-upgrade.replit.app/
+
+Services page:
+
+https://sediba-aesthetic-upgrade.replit.app/services
+
+**DO NOT build a completely separate website.**
+
+The existing Sediba Wellness website is the customer-facing front end.
+
+The new system must be integrated into the existing website so that the customer experiences one seamless Sediba Wellness journey.
+
+The goal is:
+
+**Website → Treatment → Booking → Payment → Client Profile → Appointment → Automated Communication → Follow-up → Reviews → Rebooking → Business Reporting**
+
+The booking system should feel like a natural extension of the existing Sediba website.
+
+---
+
+# 1. CORE ARCHITECTURE
+
+Build the system as two connected layers:
+
+## CUSTOMER-FACING LAYER
+
+The existing Sediba Wellness website.
+
+This includes:
+
+* Home
+* About
+* Services
+* Individual treatment information
+* Gallery
+* Contact
+* Booking
+
+## BUSINESS MANAGEMENT LAYER
+
+A secure admin application/dashboard connected to the website database.
+
+This includes:
+
+* Calendar
+* Appointments
+* Clients
+* Payments
+* Treatments
+* Products
+* Inventory
+* Expenses
+* Revenue
+* Reports
+* AI receptionist
+* Automations
+* Reviews
+* Settings
+
+The customer should NOT see the admin system.
+
+---
+
+# 2. EXISTING WEBSITE → BOOKING FLOW
+
+Do not replace the existing services experience.
+
+Instead, enhance it.
+
+Every bookable service on the existing website should have a:
+
+**BOOK NOW**
+
+button.
+
+Example:
+
+FACIALS
+
+→ Treatment
+
+→ Treatment details
+
+→ Price
+
+→ Duration
+
+→ Add-ons
+
+→ **BOOK NOW**
+
+When the customer clicks BOOK NOW, they should be taken into the booking flow.
+
+The transition should be seamless and maintain the Sediba Wellness branding.
+
+---
+
+# 3. TREATMENT SELECTION
+
+When the customer selects a treatment, pass the selected treatment into the booking system.
+
+For example:
+
+```text
+Selected Treatment:
+Signature Facial
+
+Duration:
+60 minutes
+
+Price:
+RXXX
+
+Category:
+Facials
+```
+
+The booking system should retrieve this information from the central service database.
+
+DO NOT duplicate treatment information manually across multiple parts of the application.
+
+There should be ONE source of truth for:
+
+* Treatment name
+* Category
+* Description
+* Duration
+* Price
+* Images
+* Add-ons
+* Preparation
+* Aftercare
+* Availability
+
+The website and booking system should both retrieve this information from the same data source.
+
+---
+
+# 4. BOOKING FLOW
+
+Create the following customer journey:
+
+### STEP 1 — SERVICE
+
+Customer arrives from the website.
+
+Example:
+
+`/services/signature-facial`
+
+Customer clicks:
+
+**BOOK NOW**
+
+---
+
+### STEP 2 — DATE & TIME
+
+Display a clean booking calendar.
+
+Customer selects:
+
+* Date
+* Available time
+
+Only show times that are actually available according to the owner's calendar.
+
+Do NOT show unavailable times.
+
+---
+
+### STEP 3 — OPTIONAL ADD-ONS
+
+If the treatment has configured add-ons, show:
+
+**Enhance Your Treatment**
+
+Example:
+
+Main Treatment
+R800
+
+Add-on A
+
+* R150
+
+Add-on B
+
+* R200
+
+Customer can select optional add-ons.
+
+The system recalculates the total automatically.
+
+---
+
+### STEP 4 — CLIENT DETAILS
+
+Collect:
+
+* First name
+* Last name
+* Email
+* Mobile number
+* WhatsApp number
+* Optional notes
+
+For a new client, create a new client profile.
+
+For an existing client, identify the existing client rather than creating a duplicate.
+
+---
+
+### STEP 5 — BOOKING POLICIES
+
+Before payment, clearly display the relevant:
+
+* Cancellation policy
+* Rescheduling policy
+* Deposit/payment requirement
+* Appointment requirements
+
+Require the customer to acknowledge the relevant policy.
+
+---
+
+### STEP 6 — PAYMENT
+
+Sediba Wellness requires **100% payment/deposit to secure an appointment**.
+
+Therefore:
+
+**No successful payment = no confirmed appointment.**
+
+The payment process should:
+
+1. Calculate booking total.
+2. Send customer to payment.
+3. Process payment.
+4. Confirm successful payment.
+5. Create confirmed appointment.
+6. Create/update client record.
+7. Send confirmation.
+
+If payment fails:
+
+* Do not confirm appointment.
+* Allow customer to retry.
+* Release the temporary slot after a configurable timeout.
+
+---
+
+# 5. CONFIRMATION PAGE
+
+After successful payment:
+
+Display:
+
+# YOUR APPOINTMENT IS CONFIRMED
+
+Show:
+
+* Client name
+* Treatment
+* Date
+* Time
+* Duration
+* Amount paid
+* Location
+* Booking reference
+* Clinic contact details
+
+Buttons:
+
+**Add to Calendar**
+
+**Manage My Appointment**
+
+**Contact Sediba Wellness**
+
+---
+
+# 6. AUTOMATIC BOOKING CONFIRMATION
+
+Immediately after successful payment:
+
+Send confirmation through configured communication channels.
+
+Email:
+
+"Your Sediba Wellness appointment is confirmed."
+
+WhatsApp:
+
+"Your appointment at Sediba Wellness has been confirmed."
+
+The communication system must be designed so WhatsApp can be connected through an appropriate API/provider.
+
+---
+
+# 7. OWNER CALENDAR
+
+The admin dashboard must contain a calendar.
+
+The owner controls:
+
+* Working days
+* Working hours
+* Breaks
+* Days off
+* Holidays
+* Blocked dates
+* Blocked times
+
+The system must NEVER book outside the configured availability.
+
+The owner must be able to:
+
+* Add appointment
+* Edit appointment
+* Reschedule
+* Cancel
+* Block time
+* Mark completed
+* Mark no-show
+
+The AI can suggest available appointments.
+
+The AI cannot override the owner's calendar.
+
+This is a critical requirement because Sediba Wellness is intentionally operating as a solo practice and the owner wants control over her working schedule.
+
+---
+
+# 8. CUSTOMER → CRM CONNECTION
+
+Every booking automatically connects the website visitor to the CRM.
+
+Example:
+
+Customer:
+
+Jane Smith
+
+Books:
+
+Signature Facial
+
+The system automatically creates:
+
+```text
+CLIENT PROFILE
+
+Jane Smith
+Phone
+Email
+WhatsApp
+
+First Visit:
+12 August 2026
+
+Treatment:
+Signature Facial
+
+Amount:
+RXXX
+
+Status:
+Confirmed
+```
+
+Future bookings should be added to the same client profile.
+
+---
+
+# 9. CLIENT PROFILE
+
+The admin should be able to open a client and immediately see:
+
+### Personal Information
+
+* Name
+* Email
+* Phone
+* WhatsApp
+
+### Appointment History
+
+* Previous appointments
+* Upcoming appointments
+* Cancelled appointments
+* No-shows
+
+### Financial History
+
+* Total spent
+* Payments
+* Refunds
+
+### Treatment History
+
+* Treatments received
+* Add-ons
+* Products purchased
+
+### Practitioner Notes
+
+Private notes.
+
+### Photos
+
+Before/after images.
+
+### Communication
+
+* WhatsApp
+* Email
+* Automated messages
+* Follow-ups
+
+---
+
+# 10. WEBSITE BOOKING + AI RECEPTIONIST
+
+The AI receptionist should not exist separately from the booking system.
+
+It should connect directly to the same:
+
+* Services database
+* Calendar
+* Client database
+* Booking engine
+* Payment system
+
+This means a customer could ask:
+
+"Do you have any facial appointments next Thursday?"
+
+The AI checks the actual Sediba calendar.
+
+It responds with available options.
+
+Example:
+
+"I have 10:00, 12:30 and 15:00 available."
+
+The customer chooses:
+
+"12:30."
+
+The AI starts the booking process.
+
+The customer completes payment.
+
+The appointment is added to the SAME calendar used by the website.
+
+---
+
+# 11. AI KNOWLEDGE BASE
+
+Create a central knowledge base for the AI.
+
+Include:
+
+* About Sediba Wellness
+* Treatments
+* Prices
+* Treatment durations
+* Preparation
+* Aftercare
+* FAQs
+* Booking policies
+* Cancellation policy
+* Payment policy
+* Opening hours
+* Location
+* Contact information
+
+The AI must use this database instead of inventing information.
+
+If it doesn't know something:
+
+"Let me connect you with Sediba Wellness."
+
+---
+
+# 12. WHATSAPP FLOW
+
+WhatsApp should eventually connect directly to the same AI receptionist and booking engine.
+
+Example:
+
+CUSTOMER:
+
+"Hi, I'd like to book a facial."
+
+AI:
+
+"Absolutely. I can help you with that. We offer [available facial services]. Would you like to see the options?"
+
+Customer chooses.
+
+AI:
+
+"Great. What day would you prefer?"
+
+AI checks calendar.
+
+Customer selects time.
+
+AI:
+
+"That time is available. Your booking total is RXXX and payment is required to secure the appointment."
+
+Customer pays.
+
+System creates appointment.
+
+Customer receives:
+
+"Your Sediba Wellness appointment is confirmed."
+
+This should be the same booking record that appears in the admin dashboard.
+
+---
+
+# 13. AUTOMATED APPOINTMENT JOURNEY
+
+Once an appointment is confirmed, automatically trigger the appropriate workflow.
+
+### Immediately
+
+Booking confirmation.
+
+### Configurable period before appointment
+
+Reminder.
+
+### Day of appointment
+
+Final reminder.
+
+### After appointment
+
+Thank-you message.
+
+### After configured delay
+
+Google review request.
+
+### Later
+
+Rebooking/reminder based on treatment cycle.
+
+Example:
+
+```text
+BOOKED
+ ↓
+PAYMENT CONFIRMED
+ ↓
+CONFIRMATION
+ ↓
+REMINDER
+ ↓
+APPOINTMENT
+ ↓
+MARK COMPLETED
+ ↓
+FOLLOW-UP
+ ↓
+GOOGLE REVIEW
+ ↓
+REBOOKING REMINDER
+```
+
+---
+
+# 14. GOOGLE REVIEW AUTOMATION
+
+When an appointment is marked COMPLETED:
+
+Trigger an automated review request.
+
+Example:
+
+"Thank you for visiting Sediba Wellness. We hope you enjoyed your treatment. We'd love to hear about your experience."
+
+Button:
+
+**LEAVE A GOOGLE REVIEW**
+
+The Google review URL must be configurable from Admin Settings.
+
+---
+
+# 15. ABANDONED BOOKING
+
+Track customers who:
+
+1. Select a treatment.
+2. Select a date/time.
+3. Enter their details.
+4. Do not complete payment.
+
+If technically possible and legally appropriate, create an abandoned booking record.
+
+Allow automated follow-up.
+
+Example:
+
+"We noticed you were booking an appointment with Sediba Wellness but didn't complete your booking. If you'd still like to secure your appointment, you can continue here."
+
+Do not spam customers.
+
+---
+
+# 16. ADMIN DASHBOARD
+
+Create one central dashboard.
+
+Dashboard should show:
+
+### TODAY
+
+Appointments
+
+Revenue
+
+New clients
+
+Upcoming appointments
+
+Outstanding actions
+
+### QUICK ACTIONS
+
+* New Appointment
+
+* New Client
+
+* Block Calendar
+
+* Add Treatment
+
+* Add Expense
+
+---
+
+# 17. CALENDAR
+
+Admin calendar views:
+
+* Day
+* Week
+* Month
+
+Each appointment should display:
+
+* Client
+* Treatment
+* Time
+* Payment status
+* Appointment status
+
+Clicking an appointment opens the appointment record.
+
+---
+
+# 18. TREATMENT MANAGEMENT
+
+Admin can manage the services displayed on the website.
+
+Create:
+
+**Treatment Manager**
+
+Fields:
+
+* Name
+* Category
+* Description
+* Price
+* Duration
+* Image
+* Preparation
+* Aftercare
+* Add-ons
+* Active/inactive
+
+When the owner updates a treatment here, the website should automatically reflect the change.
+
+This prevents the website and booking system from having separate treatment databases.
+
+---
+
+# 19. PRODUCTS & INVENTORY
+
+Create a future-ready inventory system.
+
+Track:
+
+* Product
+* Supplier
+* Cost price
+* Selling price
+* Stock
+* Reorder level
+
+Dashboard:
+
+**LOW STOCK**
+
+**TOP SELLING PRODUCTS**
+
+**PRODUCT REVENUE**
+
+**PRODUCT PROFIT**
+
+The meeting notes specifically identify stock-taking and reporting on top-selling products as requirements.
+
+---
+
+# 20. BOOKKEEPING
+
+Create a financial section.
+
+Track:
+
+### INCOME
+
+Treatment payments
+
+Product sales
+
+Other income
+
+### EXPENSES
+
+Expense
+
+Category
+
+Amount
+
+Date
+
+Notes
+
+Receipt
+
+### REPORTING
+
+Revenue
+
+Expenses
+
+Gross profit
+
+Net profit
+
+Treatment revenue
+
+Product revenue
+
+---
+
+# 21. REPORTING
+
+Admin reports should include:
+
+### Booking Report
+
+* Number of bookings
+* Completed
+* Cancelled
+* No-show
+* Rescheduled
+
+### Revenue Report
+
+* Daily
+* Weekly
+* Monthly
+* Custom period
+
+### Treatment Report
+
+* Most booked treatments
+* Revenue by treatment
+* Revenue by category
+
+### Client Report
+
+* New clients
+* Returning clients
+* Client retention
+* Total client spend
+
+### Product Report
+
+* Best-selling products
+* Product revenue
+* Product profit
+* Low-stock items
+
+This addresses the owner's requirement for more useful bookkeeping/reporting than the existing system provided.
+
+---
+
+# 22. BEFORE & AFTER GALLERY
+
+Connect before/after images to the CRM.
+
+Admin can upload:
+
+Before image
+
+After image
+
+Treatment
+
+Date
+
+Notes
+
+Consent status
+
+Only images with appropriate consent can be displayed publicly.
+
+The website gallery should pull approved images from the system.
+
+---
+
+# 23. WEBSITE INTEGRATION REQUIREMENT
+
+IMPORTANT:
+
+Do not create a separate visual identity for the booking system.
+
+Reuse:
+
+* Existing Sediba logo
+* Existing typography
+* Existing colour palette
+* Existing buttons
+* Existing design language
+* Existing navigation where appropriate
+
+The customer should feel:
+
+"I am still on the Sediba Wellness website."
+
+NOT:
+
+"I've been redirected to another booking company."
+
+---
+
+# 24. URL STRUCTURE
+
+Suggested structure:
+
+```text
+/
+ /about
+ /services
+ /services/[service]
+ /gallery
+ /contact
+ /book
+ /book/[service]
+ /booking-confirmation
+ /manage-booking
+```
+
+Admin:
+
+```text
+/admin
+/admin/dashboard
+/admin/calendar
+/admin/appointments
+/admin/clients
+/admin/services
+/admin/products
+/admin/inventory
+/admin/payments
+/admin/expenses
+/admin/reports
+/admin/messages
+/admin/ai
+/admin/automations
+/admin/reviews
+/admin/settings
+```
+
+The exact routing can be adapted to the existing application's architecture.
+
+---
+
+# 25. SINGLE DATABASE / SINGLE SOURCE OF TRUTH
+
+This is extremely important.
+
+Do NOT create separate disconnected systems for:
+
+* Website
+* Booking
+* CRM
+* AI
+* Calendar
+* Payments
+
+They must all communicate with the same backend/database.
+
+For example:
+
+```text
+SERVICE DATABASE
+       │
+       ├──────── Website
+       │
+       ├──────── Booking Engine
+       │
+       └──────── AI Receptionist
+
+CLIENT DATABASE
+       │
+       ├──────── Website booking
+       ├──────── WhatsApp
+       ├──────── AI
+       └──────── Admin CRM
+
+CALENDAR
+       │
+       ├──────── Website bookings
+       ├──────── AI bookings
+       └──────── Admin bookings
+```
+
+This is what makes it a true all-in-one system.
+
+---
+
+# 26. SECURITY
+
+Implement:
+
+* Secure admin authentication
+* Role-based access
+* Protected client data
+* Secure payment handling
+* Secure API keys
+* Environment variables
+* Database security
+* Audit logs
+* Consent management
+
+Never expose private client information in the public website.
+
+---
+
+# 27. IMPORTANT: DO NOT BREAK THE EXISTING WEBSITE
+
+Before making changes:
+
+1. Inspect the existing application.
+2. Identify the framework and architecture.
+3. Identify the existing service components.
+4. Identify existing routes.
+5. Identify existing assets.
+6. Identify existing booking-related components if any.
+7. Preserve the existing design.
+8. Extend the existing application rather than rebuilding unnecessarily.
+
+Do not remove working website functionality.
+
+Do not replace existing service content with placeholder content.
+
+Do not invent treatment prices.
+
+Do not invent treatment durations.
+
+Use the existing service information and the final service list supplied by Sediba Wellness.
+
+---
+
+# 28. DEVELOPMENT APPROACH
+
+Build this in stages.
+
+## STAGE 1
+
+Connect existing website services to booking.
+
+Website:
+
+Service → Book Now → Booking Flow
+
+## STAGE 2
+
+Build:
+
+Calendar + Availability + Client Database + Payment
+
+## STAGE 3
+
+Build:
+
+Admin Dashboard + Appointment Management
+
+## STAGE 4
+
+Build:
+
+WhatsApp + AI Receptionist + Reminders
+
+## STAGE 5
+
+Build:
+
+CRM + Follow-ups + Reviews
+
+## STAGE 6
+
+Build:
+
+Inventory + Bookkeeping + Reporting
+
+Do not attempt to build every advanced feature before the core booking workflow works.
+
+---
+
+# 29. THE MOST IMPORTANT USER JOURNEY
+
+The final system must make this journey work perfectly:
+
+### CUSTOMER
+
+Visits Sediba website
+
+↓
+
+Browses Services
+
+↓
+
+Chooses treatment
+
+↓
+
+Clicks BOOK NOW
+
+↓
+
+Selects date
+
+↓
+
+Selects available time
+
+↓
+
+Adds optional add-on
+
+↓
+
+Enters details
+
+↓
+
+Agrees to booking policy
+
+↓
+
+Pays 100%
+
+↓
+
+Appointment confirmed
+
+↓
+
+Confirmation sent
+
+↓
+
+Reminder sent
+
+↓
+
+Customer attends
+
+↓
+
+Appointment marked completed
+
+↓
+
+Follow-up sent
+
+↓
+
+Google review requested
+
+↓
+
+Rebooking reminder sent
+
+---
+
+# 30. THE BUSINESS OWNER JOURNEY
+
+The owner should be able to:
+
+Login
+
+↓
+
+See today's appointments
+
+↓
+
+Open client profile
+
+↓
+
+View treatment history
+
+↓
+
+See payment
+
+↓
+
+Add notes
+
+↓
+
+Mark appointment completed
+
+↓
+
+System automatically triggers follow-up
+
+↓
+
+View revenue
+
+↓
+
+View reports
+
+↓
+
+Manage calendar
+
+↓
+
+Block future days
+
+↓
+
+Manage services
+
+↓
+
+Manage products
+
+↓
+
+Manage AI/automations
+
+Everything should be accessible from one admin dashboard.
+
+---
+
+# FINAL PRODUCT VISION
+
+Do not think of this as:
+
+"A booking page."
+
+Think of it as:
+
+**SEDIBA WELLNESS DIGITAL FRONT DESK + CLIENT MANAGEMENT SYSTEM**
+
+The existing website is the front door.
+
+The booking engine is the receptionist.
+
+The AI is the 24/7 assistant.
+
+The CRM is the client memory.
+
+The calendar is the owner's control centre.
+
+The automation engine handles reminders and follow-ups.
+
+The payment system secures bookings.
+
+The reporting system shows how the business is performing.
+
+Everything connects into one system.
+
+The ultimate objective is to allow Sediba Wellness to move away from fragmented third-party tools and operate its core booking, client communication, CRM and business-management functions from one integrated platform. This aligns directly with the decision made in the August 7 meeting to replace disparate software with an all-in-one system integrated into the website.
