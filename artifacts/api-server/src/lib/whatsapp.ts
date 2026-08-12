@@ -1,18 +1,18 @@
 /**
  * WhatsApp notification service.
  *
- * Currently running as a STUB — messages are logged to the console instead of
- * being delivered. To go live, replace the `sendWhatsAppMessage` function body
- * with a real provider call (Twilio or WhatsApp Business Cloud API) and set the
- * required environment variables:
+ * When all three Twilio environment variables are set the service delivers real
+ * WhatsApp messages via the Twilio API.  When any of them is absent the service
+ * falls back to stub mode: the message is logged as a warning and no HTTP call
+ * is made to Twilio.
  *
- *  Twilio:
- *    TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM
- *
- *  WhatsApp Business Cloud API:
- *    WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID
+ *  Required env vars for live mode:
+ *    TWILIO_ACCOUNT_SID    – Twilio account SID
+ *    TWILIO_AUTH_TOKEN     – Twilio auth token
+ *    TWILIO_WHATSAPP_FROM  – sender number registered in Twilio (e.g. +14155238886)
  */
 
+import twilio from "twilio";
 import { db, appointmentsTable, servicesTable } from "@workspace/db";
 import { isNull, isNotNull, and, eq } from "drizzle-orm";
 import { logger } from "./logger";
@@ -96,23 +96,30 @@ function buildReminderMessage(appt: AppointmentDetails): string {
 
 /**
  * Low-level send function.
- * Replace this body to wire in a real provider.
+ *
+ * Uses Twilio when all three required env vars are present.
+ * Falls back to a warning log (stub mode) when any credential is missing so
+ * the server can run in development / CI without Twilio access.
  */
-async function sendWhatsAppMessage(to: string, body: string): Promise<void> {
-  // --- STUB ---
-  // In production, call Twilio or WhatsApp Business Cloud API here.
-  // Example (Twilio):
-  //   const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-  //   await client.messages.create({
-  //     from: `whatsapp:${process.env.TWILIO_WHATSAPP_FROM}`,
-  //     to: `whatsapp:${to}`,
-  //     body,
-  //   });
+export async function sendWhatsAppMessage(to: string, body: string): Promise<void> {
+  const sid  = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const from  = process.env.TWILIO_WHATSAPP_FROM;
 
-  logger.info(
-    { to, preview: body.slice(0, 80) },
-    "[WhatsApp STUB] Would send message",
-  );
+  if (!sid || !token || !from) {
+    logger.warn(
+      { to, preview: body.slice(0, 80) },
+      "[WhatsApp STUB] Twilio credentials absent — message not sent",
+    );
+    return;
+  }
+
+  const client = twilio(sid, token);
+  await client.messages.create({
+    from: `whatsapp:${from}`,
+    to:   `whatsapp:${to}`,
+    body,
+  });
 }
 
 /**
