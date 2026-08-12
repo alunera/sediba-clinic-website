@@ -13,6 +13,7 @@ import {
 import {
   sendBookingConfirmation,
   scheduleReminderMessage,
+  computeReminderTime,
 } from "../lib/whatsapp";
 
 const router = Router();
@@ -75,6 +76,13 @@ router.post("/appointments", async (req, res): Promise<void> => {
   const bookingRef = generateBookingRef();
   const totalAmountCents = service[0].price;
 
+  // Compute the reminder timestamp before the insert so it is persisted
+  // atomically with the booking — no separate update needed afterwards.
+  const reminderScheduledFor =
+    rest.clientWhatsapp && rest.time
+      ? computeReminderTime(dateStr, rest.time) ?? undefined
+      : undefined;
+
   const [appointment] = await db
     .insert(appointmentsTable)
     .values({
@@ -85,10 +93,12 @@ router.post("/appointments", async (req, res): Promise<void> => {
       totalAmountCents,
       status: "confirmed",
       policyAgreed: policyAgreed ? "true" : "false",
+      reminderScheduledFor,
     })
     .returning();
 
   const apptDetails = {
+    appointmentId: appointment.id,
     bookingRef: appointment.bookingRef,
     clientName: appointment.clientName,
     clientWhatsapp: appointment.clientWhatsapp,
@@ -97,9 +107,13 @@ router.post("/appointments", async (req, res): Promise<void> => {
     time: appointment.time,
   };
 
-  // Send confirmation and schedule 24h reminder — failures are non-blocking
+  // Send confirmation — failure is non-blocking
   void sendBookingConfirmation(apptDetails);
-  scheduleReminderMessage(apptDetails);
+
+  // Enqueue the in-process timer (reminderScheduledFor is already in the DB)
+  if (reminderScheduledFor) {
+    scheduleReminderMessage(apptDetails, reminderScheduledFor);
+  }
 
   res.status(201).json({
     ...appointment,

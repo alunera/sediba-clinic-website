@@ -27,6 +27,10 @@ export const appointmentsTable = pgTable("appointments", {
   notes: text("notes"),
   policyAgreed: text("policy_agreed").notNull().default("false"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  /** When the 24-hour reminder is due to be sent (null = no reminder needed). */
+  reminderScheduledFor: timestamp("reminder_scheduled_for", { withTimezone: true }),
+  /** When the 24-hour reminder was actually sent (null = not yet sent). */
+  reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
 });
 
 export const insertServiceSchema = createInsertSchema(servicesTable).omit({ id: true });

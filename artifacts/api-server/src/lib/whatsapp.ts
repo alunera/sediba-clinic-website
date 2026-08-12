@@ -13,9 +13,12 @@
  *    WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID
  */
 
+import { db, appointmentsTable, servicesTable } from "@workspace/db";
+import { isNull, isNotNull, and, eq } from "drizzle-orm";
 import { logger } from "./logger";
 
 export interface AppointmentDetails {
+  appointmentId: number;
   bookingRef: string;
   clientName: string;
   clientWhatsapp: string | null | undefined;
@@ -156,34 +159,59 @@ function safeSetTimeout(callback: () => void, delayMs: number): void {
     setTimeout(callback, delayMs);
   } else {
     // Wait MAX_SAFE_TIMEOUT_MS, then recurse with the remaining delay
-    setTimeout(() => safeSetTimeout(callback, delayMs - MAX_SAFE_TIMEOUT_MS), MAX_SAFE_TIMEOUT_MS);
+    setTimeout(
+      () => safeSetTimeout(callback, delayMs - MAX_SAFE_TIMEOUT_MS),
+      MAX_SAFE_TIMEOUT_MS,
+    );
   }
 }
 
 /**
- * Schedule a reminder 24 hours before the appointment.
- * Uses a chained in-process timer that handles delays of any size correctly.
- * In production, replace with a persistent job queue (e.g. pg-boss, BullMQ)
- * so reminders survive server restarts — see follow-up task #5.
+ * Fire the reminder for a given appointment: send the WhatsApp message and
+ * stamp `reminderSentAt` in the database so the reminder is never re-sent.
  */
-export function scheduleReminderMessage(appt: AppointmentDetails): void {
-  if (!appt.clientWhatsapp) {
-    return;
+async function fireReminder(appt: AppointmentDetails): Promise<void> {
+  try {
+    const message = buildReminderMessage(appt);
+    await sendWhatsAppMessage(appt.clientWhatsapp as string, message);
+    logger.info({ bookingRef: appt.bookingRef }, "[WhatsApp] Reminder sent");
+  } catch (err) {
+    logger.error(
+      { err, bookingRef: appt.bookingRef },
+      "[WhatsApp] Failed to send reminder",
+    );
   }
 
-  // Parse appointment datetime in local server time
-  const [year, month, day] = appt.date.split("-").map(Number);
-  const [hour, minute] = appt.time.split(":").map(Number);
-  const appointmentAt = new Date(year, month - 1, day, hour, minute, 0);
-  const reminderAt = new Date(appointmentAt.getTime() - 24 * 60 * 60 * 1000);
-  const now = Date.now();
-  const delay = reminderAt.getTime() - now;
+  // Always stamp sentAt so we don't retry on the next restart, even on failure.
+  try {
+    await db
+      .update(appointmentsTable)
+      .set({ reminderSentAt: new Date() })
+      .where(eq(appointmentsTable.id, appt.appointmentId));
+  } catch (dbErr) {
+    logger.error(
+      { dbErr, bookingRef: appt.bookingRef },
+      "[WhatsApp] Failed to stamp reminderSentAt",
+    );
+  }
+}
+
+/**
+ * Enqueue a reminder in memory. The reminder time must already be persisted in
+ * the database before calling this — use `scheduleReminderMessage` for new
+ * bookings, or `rehydrateReminders` on startup to re-queue existing ones.
+ */
+function enqueueReminder(appt: AppointmentDetails, reminderAt: Date): void {
+  const delay = reminderAt.getTime() - Date.now();
 
   if (delay <= 0) {
+    // Past-due: fire immediately (covers the case where the server was down
+    // when the reminder was supposed to fire).
     logger.info(
       { bookingRef: appt.bookingRef },
-      "[WhatsApp] Appointment is within 24 hours — skipping reminder",
+      "[WhatsApp] Reminder is past-due — firing immediately",
     );
+    void fireReminder(appt);
     return;
   }
 
@@ -193,22 +221,107 @@ export function scheduleReminderMessage(appt: AppointmentDetails): void {
       reminderAt: reminderAt.toISOString(),
       delayMs: delay,
     },
-    "[WhatsApp] Reminder scheduled",
+    "[WhatsApp] Reminder queued",
   );
 
-  safeSetTimeout(async () => {
-    try {
-      const message = buildReminderMessage(appt);
-      await sendWhatsAppMessage(appt.clientWhatsapp as string, message);
-      logger.info(
-        { bookingRef: appt.bookingRef },
-        "[WhatsApp] Reminder sent",
+  safeSetTimeout(() => { void fireReminder(appt); }, delay);
+}
+
+/**
+ * Compute the time at which the 24-hour reminder should fire for an
+ * appointment described by `date` ("YYYY-MM-DD") and `time` ("HH:MM").
+ *
+ * Returns `null` if the reminder window has already passed (i.e. the
+ * appointment is within 24 hours from now), so callers can skip scheduling.
+ *
+ * Exported so the appointment-creation route can persist the timestamp
+ * atomically in the same DB insert, before calling `scheduleReminderMessage`.
+ */
+export function computeReminderTime(date: string, time: string): Date | null {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  const appointmentAt = new Date(year, month - 1, day, hour, minute, 0);
+  const reminderAt = new Date(appointmentAt.getTime() - 24 * 60 * 60 * 1000);
+  return reminderAt.getTime() > Date.now() ? reminderAt : null;
+}
+
+/**
+ * Enqueue the in-process reminder timer for a new booking.
+ *
+ * The caller is responsible for persisting `reminderScheduledFor` in the
+ * database **before** calling this function (ideally in the same insert that
+ * creates the appointment). This function only schedules the in-memory timer;
+ * it performs no DB writes.
+ *
+ * Does nothing if `clientWhatsapp` is absent or if `reminderAt` is in the
+ * past (which should not happen for new bookings but is safe to handle).
+ */
+export function scheduleReminderMessage(
+  appt: AppointmentDetails,
+  reminderAt: Date,
+): void {
+  if (!appt.clientWhatsapp) {
+    return;
+  }
+  enqueueReminder(appt, reminderAt);
+}
+
+/**
+ * Re-queue all pending reminders from the database.
+ *
+ * Call once on server startup. Finds every appointment whose reminder has been
+ * scheduled but not yet sent, joins with the services table for the service
+ * name, and enqueues each one. Past-due reminders are fired immediately.
+ */
+export async function rehydrateReminders(): Promise<void> {
+  logger.info("[WhatsApp] Rehydrating pending reminders from database…");
+
+  try {
+    // Fetch appointments that have a scheduled reminder but haven't been sent yet
+    const pending = await db
+      .select({
+        id: appointmentsTable.id,
+        bookingRef: appointmentsTable.bookingRef,
+        clientName: appointmentsTable.clientName,
+        clientWhatsapp: appointmentsTable.clientWhatsapp,
+        serviceName: servicesTable.name,
+        date: appointmentsTable.date,
+        time: appointmentsTable.time,
+        reminderScheduledFor: appointmentsTable.reminderScheduledFor,
+      })
+      .from(appointmentsTable)
+      .leftJoin(servicesTable, eq(appointmentsTable.serviceId, servicesTable.id))
+      .where(
+        and(
+          isNotNull(appointmentsTable.reminderScheduledFor),
+          isNull(appointmentsTable.reminderSentAt),
+        ),
       );
-    } catch (err) {
-      logger.error(
-        { err, bookingRef: appt.bookingRef },
-        "[WhatsApp] Failed to send reminder",
-      );
+
+    logger.info(
+      { count: pending.length },
+      "[WhatsApp] Pending reminders found",
+    );
+
+    for (const row of pending) {
+      if (!row.clientWhatsapp || !row.reminderScheduledFor) continue;
+
+      const appt: AppointmentDetails = {
+        appointmentId: row.id,
+        bookingRef: row.bookingRef,
+        clientName: row.clientName,
+        clientWhatsapp: row.clientWhatsapp,
+        serviceName: row.serviceName ?? "your treatment",
+        date: row.date,
+        time: row.time,
+      };
+
+      enqueueReminder(appt, new Date(row.reminderScheduledFor));
     }
-  }, delay);
+  } catch (err) {
+    logger.error(
+      { err },
+      "[WhatsApp] Failed to rehydrate reminders — in-process reminders are unaffected",
+    );
+  }
 }
