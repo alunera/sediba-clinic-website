@@ -83,16 +83,21 @@ router.post("/appointments", async (req, res): Promise<void> => {
       ? computeReminderTime(dateStr, rest.time) ?? undefined
       : undefined;
 
+  // Pull appointmentType out before spreading so the Zod-parsed type doesn't
+  // conflict with the DB column type. It defaults to "treatment" if omitted.
+  const { appointmentType, ...restInsert } = rest as typeof rest & { appointmentType?: string };
+
   const [appointment] = await db
     .insert(appointmentsTable)
     .values({
-      ...rest,
+      ...restInsert,
       serviceId,
       date: dateStr,
       bookingRef,
       totalAmountCents,
       status: "confirmed",
       policyAgreed: policyAgreed ? "true" : "false",
+      appointmentType: appointmentType ?? "treatment",
       reminderScheduledFor,
     })
     .returning();

@@ -24,6 +24,14 @@ export const AppointmentStatus = {
   "no-show": "no-show",
 } as const;
 
+export type AppointmentAppointmentType =
+  (typeof AppointmentAppointmentType)[keyof typeof AppointmentAppointmentType];
+
+export const AppointmentAppointmentType = {
+  treatment: "treatment",
+  consultation: "consultation",
+} as const;
+
 export interface Appointment {
   id: number;
   bookingRef: string;
@@ -39,8 +47,17 @@ export interface Appointment {
   status: AppointmentStatus;
   notes?: string | null;
   policyAgreed: string;
+  appointmentType: AppointmentAppointmentType;
   createdAt: string;
 }
+
+export type CreateAppointmentBodyAppointmentType =
+  (typeof CreateAppointmentBodyAppointmentType)[keyof typeof CreateAppointmentBodyAppointmentType];
+
+export const CreateAppointmentBodyAppointmentType = {
+  treatment: "treatment",
+  consultation: "consultation",
+} as const;
 
 export interface CreateAppointmentBody {
   clientName: string;
@@ -52,6 +69,7 @@ export interface CreateAppointmentBody {
   time: string;
   notes?: string | null;
   policyAgreed: boolean;
+  appointmentType?: CreateAppointmentBodyAppointmentType;
 }
 
 export type UpdateAppointmentBodyStatus =

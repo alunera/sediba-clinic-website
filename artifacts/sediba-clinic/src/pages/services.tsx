@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 
 /* ─── Treatment data from the official treatment menu ─────────────────────── */
 
@@ -67,17 +68,12 @@ function TreatmentRow({ name, sub, price, idx }: { name: string; sub: string; pr
         </span>
         <span className="block text-muted-foreground text-xs mt-0.5 font-light tracking-wide">{sub}</span>
       </div>
-      <a
-        href="https://sediba-wellness-clinic.salonbridge.website/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-5 shrink-0"
-      >
+      <Link href="/book" className="flex items-center gap-5 shrink-0">
         <span className="font-medium text-sm text-foreground tracking-wider">{price}</span>
         <span className="uppercase tracking-widest text-[10px] text-muted-foreground hover:text-primary transition-colors">
           Book
         </span>
-      </a>
+      </Link>
     </motion.div>
   );
 }
@@ -287,14 +283,12 @@ export default function Services() {
               <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">30 min</p>
               <p className="font-serif text-3xl text-foreground">R350</p>
             </div>
-            <a
-              href="https://sediba-wellness-clinic.salonbridge.website/"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/book-consultation"
               className="inline-block border border-foreground px-8 py-3 text-xs uppercase tracking-[0.2em] text-foreground hover:bg-foreground hover:text-background transition-colors"
             >
               Book Consultation
-            </a>
+            </Link>
           </div>
         </motion.div>
 

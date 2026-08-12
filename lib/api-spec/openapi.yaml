@@ -558,6 +558,9 @@ components:
           nullable: true
         policyAgreed:
           type: string
+        appointmentType:
+          type: string
+          enum: [treatment, consultation]
         createdAt:
           type: string
           format: date-time
@@ -574,6 +577,7 @@ components:
         - totalAmountCents
         - status
         - policyAgreed
+        - appointmentType
         - createdAt
 
     CreateAppointmentBody:
@@ -600,6 +604,9 @@ components:
           nullable: true
         policyAgreed:
           type: boolean
+        appointmentType:
+          type: string
+          enum: [treatment, consultation]
       required:
         - clientName
         - clientEmail

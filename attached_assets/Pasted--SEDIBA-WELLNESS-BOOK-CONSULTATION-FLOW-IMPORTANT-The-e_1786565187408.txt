@@ -1,0 +1,719 @@
+# SEDIBA WELLNESS — BOOK CONSULTATION FLOW
+
+## IMPORTANT
+
+The existing Sediba Wellness website is already built.
+
+Website:
+
+https://sediba-aesthetic-upgrade.replit.app/
+
+The new system must **extend the existing website**, not create a separate standalone booking website.
+
+One of the primary CTAs on the website is:
+
+**BOOK CONSULTATION**
+
+This button must have its own dedicated workflow and must NOT simply send the customer into the standard treatment-booking flow.
+
+The consultation is the entry point for clients who are unsure which treatment they need or who require an assessment before a treatment can be recommended.
+
+The consultation flow must connect directly to the same:
+
+* Booking system
+* Calendar
+* Client database/CRM
+* Payment system
+* AI receptionist
+* WhatsApp automation
+* Appointment system
+* Follow-up system
+
+---
+
+# 1. BOOK CONSULTATION BUTTON
+
+When a visitor clicks:
+
+**BOOK CONSULTATION**
+
+open a dedicated consultation booking flow.
+
+Do not redirect them to an unrelated third-party booking page.
+
+The experience should remain visually consistent with the existing Sediba Wellness website.
+
+---
+
+# 2. CONSULTATION INTRODUCTION
+
+Start with a simple, premium introduction.
+
+Example:
+
+## Book Your Consultation
+
+Not sure which treatment is right for you?
+
+Book a consultation with Sediba Wellness so we can better understand your concerns, goals and needs and determine the most appropriate next step.
+
+CTA:
+
+**CONTINUE**
+
+The consultation should feel personalised and professional, not like a generic salon booking form.
+
+---
+
+# 3. CONSULTATION PRE-QUALIFICATION QUESTIONS
+
+Before selecting an appointment time, collect a small amount of information so the practitioner has context before the consultation.
+
+Do not make the form excessively long.
+
+Ask:
+
+### What would you like help with?
+
+Options can include:
+
+* Skin concerns
+* Acne
+* Pigmentation
+* Ageing / anti-ageing
+* Skin health
+* Treatment recommendation
+* Product recommendation
+* Other
+
+Allow multiple selections where appropriate.
+
+---
+
+### Tell us a little more
+
+Provide a text field:
+
+**"Tell us a little about what you'd like help with."**
+
+This information must be saved to the client's CRM profile and attached to the consultation appointment.
+
+---
+
+### Have you visited Sediba Wellness before?
+
+Options:
+
+* Yes, I'm an existing client
+* No, this will be my first visit
+
+If the client is existing, attempt to match them to their existing CRM profile using their contact details.
+
+Do not create duplicate client records.
+
+---
+
+# 4. CLIENT DETAILS
+
+Collect:
+
+* First name
+* Last name
+* Email
+* Mobile number
+* WhatsApp number
+
+Optional:
+
+* Additional notes
+
+If the person already exists in the CRM, retrieve their existing profile.
+
+If they are new, create a new client record.
+
+---
+
+# 5. CONSULTATION CALENDAR
+
+After the required information has been collected, show the consultation calendar.
+
+The system must check the **same central calendar used by the rest of Sediba Wellness**.
+
+Only display genuine available consultation slots.
+
+The practitioner must control:
+
+* Working days
+* Working hours
+* Days off
+* Holidays
+* Blocked dates
+* Blocked times
+
+The system must never schedule a consultation outside the owner's availability.
+
+The AI must also respect these restrictions.
+
+---
+
+# 6. CONSULTATION APPOINTMENT TYPE
+
+Create a dedicated appointment type:
+
+**Consultation**
+
+The consultation should be stored separately from normal treatment appointments while still using the same calendar and appointment database.
+
+The appointment record should contain:
+
+```text
+Appointment Type: Consultation
+
+Client: Jane Smith
+
+Reason:
+Pigmentation / treatment recommendation
+
+Client Notes:
+[Information submitted by client]
+
+Date:
+20 August 2026
+
+Time:
+10:00
+
+Payment:
+Paid
+
+Status:
+Confirmed
+```
+
+The consultation duration and price must be configurable from the admin dashboard.
+
+Do NOT hard-code the consultation price.
+
+---
+
+# 7. CONSULTATION PAYMENT
+
+If Sediba Wellness requires a consultation payment/deposit, payment must be collected before the appointment is confirmed.
+
+The system should support:
+
+**Select time → Enter details → Payment → Confirmation**
+
+Rule:
+
+**No successful payment = no confirmed consultation appointment.**
+
+If payment fails:
+
+* Do not confirm the appointment.
+* Allow the customer to retry.
+* Release the temporary slot after a configurable period.
+
+The consultation price should be managed from:
+
+**Admin → Settings → Consultation**
+
+---
+
+# 8. CONSULTATION CONFIRMATION
+
+After successful payment, show:
+
+# YOUR CONSULTATION IS CONFIRMED
+
+Display:
+
+* Client name
+* Consultation type
+* Date
+* Time
+* Duration
+* Amount paid
+* Location
+* Booking reference
+
+Buttons:
+
+**ADD TO CALENDAR**
+
+**MANAGE APPOINTMENT**
+
+**CONTACT SEDIBA WELLNESS**
+
+---
+
+# 9. AUTOMATIC CONFIRMATION
+
+Immediately after confirmation:
+
+Send the client a confirmation through the configured communication channels.
+
+Email:
+
+**Your Sediba Wellness consultation is confirmed.**
+
+WhatsApp:
+
+**Your consultation at Sediba Wellness has been confirmed.**
+
+The system should be structured so WhatsApp can be connected through an appropriate WhatsApp API/provider.
+
+---
+
+# 10. CONSULTATION CRM RECORD
+
+The consultation must automatically create or update the client's CRM record.
+
+Example:
+
+```text
+CLIENT PROFILE
+
+Jane Smith
+
+New Client
+
+Concern:
+Pigmentation
+
+Additional Information:
+Client reports uneven pigmentation and wants advice
+on suitable treatment options.
+
+Upcoming Appointment:
+Consultation
+20 August 2026
+10:00
+
+Payment:
+Paid
+```
+
+The practitioner should be able to open the profile before the consultation and understand why the client booked.
+
+---
+
+# 11. CONSULTATION REMINDERS
+
+The consultation should enter the same automated reminder system as treatment appointments.
+
+Example:
+
+### Immediately after booking
+
+Booking confirmation.
+
+### Configurable period before appointment
+
+Reminder.
+
+### Day of consultation
+
+Final reminder.
+
+The reminder system should identify the appointment as a:
+
+**CONSULTATION**
+
+rather than a treatment.
+
+---
+
+# 12. CONSULTATION DAY — PRACTITIONER VIEW
+
+When the practitioner opens the day's calendar, the consultation should appear clearly.
+
+Example:
+
+**10:00 — CONSULTATION**
+
+Jane Smith
+
+Concern:
+
+Pigmentation
+
+Status:
+
+Confirmed / Paid
+
+Clicking the appointment should open the client's profile.
+
+---
+
+# 13. CONSULTATION NOTES
+
+After or during the consultation, the practitioner should be able to record private notes.
+
+Create a dedicated section:
+
+## Consultation Notes
+
+Fields:
+
+* Client concerns
+* Practitioner observations
+* Recommended next step
+* Recommended treatment
+* Recommended products
+* Follow-up recommendation
+* Additional notes
+
+These notes are private and must not be displayed publicly.
+
+The system should maintain the consultation record in the client's history.
+
+---
+
+# 14. RECOMMENDED TREATMENT
+
+After the consultation, the practitioner should be able to select a treatment from the existing Sediba treatment database.
+
+Example:
+
+**Recommended Treatment**
+
+Signature Facial
+
+Duration:
+
+60 minutes
+
+Price:
+
+RXXX
+
+The practitioner should be able to select:
+
+**BOOK RECOMMENDED TREATMENT**
+
+This should launch the normal booking flow with the recommended treatment already selected.
+
+The client should NOT have to start searching through all treatments again.
+
+---
+
+# 15. CONSULTATION → TREATMENT FLOW
+
+The ideal journey is:
+
+```text
+BOOK CONSULTATION
+        ↓
+CONSULTATION QUESTIONS
+        ↓
+CLIENT DETAILS
+        ↓
+SELECT CONSULTATION DATE/TIME
+        ↓
+PAY
+        ↓
+CONSULTATION CONFIRMED
+        ↓
+CRM CLIENT PROFILE
+        ↓
+REMINDERS
+        ↓
+CONSULTATION
+        ↓
+PRACTITIONER NOTES
+        ↓
+RECOMMENDED TREATMENT
+        ↓
+BOOK RECOMMENDED TREATMENT
+        ↓
+TREATMENT APPOINTMENT
+        ↓
+FOLLOW-UP
+        ↓
+GOOGLE REVIEW
+        ↓
+REBOOKING
+```
+
+This should be treated as one continuous customer journey.
+
+---
+
+# 16. AI RECEPTIONIST + CONSULTATIONS
+
+The AI receptionist should understand consultations as a separate appointment type.
+
+Example customer:
+
+> "I'm not sure what treatment I need. I have pigmentation and my skin has been breaking out."
+
+AI response:
+
+> "A consultation may be a good place to start. I can help you book one so the practitioner can better understand your concerns and recommend the most appropriate treatment."
+
+The AI can then:
+
+1. Ask the consultation pre-qualification questions.
+2. Collect client details.
+3. Check the real Sediba calendar.
+4. Suggest available consultation times.
+5. Create the booking.
+6. Send the customer to payment.
+7. Confirm the consultation after successful payment.
+
+The AI must NOT diagnose the customer.
+
+It should not claim that the customer has a medical condition.
+
+It should only collect information and facilitate the consultation.
+
+---
+
+# 17. WHATSAPP CONSULTATION FLOW
+
+The same consultation booking system should work through WhatsApp once the WhatsApp integration is connected.
+
+Example:
+
+Customer:
+
+> Hi, I'm not sure what treatment I need.
+
+AI:
+
+> I'd be happy to help you book a consultation with Sediba Wellness. Before we schedule it, may I ask what you'd like help with?
+
+Customer answers.
+
+AI saves the response to the CRM.
+
+AI checks calendar.
+
+AI:
+
+> We have consultation appointments available on Thursday at 10:00, 12:30 and 15:00. Which would suit you?
+
+Customer selects.
+
+AI provides payment instructions/link.
+
+Payment succeeds.
+
+System creates:
+
+**CONSULTATION — CONFIRMED**
+
+The same appointment must appear in the admin calendar.
+
+---
+
+# 18. CONSULTATION FOLLOW-UP
+
+Once the consultation is marked completed, trigger the appropriate workflow.
+
+Possible workflow:
+
+**Consultation completed**
+
+↓
+
+Practitioner selects recommended treatment
+
+↓
+
+System sends follow-up
+
+Example:
+
+> Thank you for visiting Sediba Wellness. Based on your consultation, we've recommended [treatment]. You can use the link below to secure your appointment.
+
+CTA:
+
+**BOOK MY TREATMENT**
+
+The button should open the booking system with the recommended treatment pre-selected.
+
+---
+
+# 19. CONSULTATION ABANDONMENT
+
+Track users who begin the consultation booking process but do not complete it.
+
+For example:
+
+Visitor:
+
+* Clicks Book Consultation
+* Completes consultation questions
+* Selects a time
+* Does not complete payment
+
+If appropriate and legally permitted, create an abandoned consultation booking record and trigger a gentle follow-up.
+
+Example:
+
+> We noticed you started booking your consultation with Sediba Wellness but didn't complete your booking. If you'd still like to secure your appointment, you can continue here.
+
+Do not send excessive follow-ups.
+
+---
+
+# 20. ADMIN CONSULTATION MANAGEMENT
+
+Add a section in the admin dashboard:
+
+**Consultations**
+
+The practitioner should be able to see:
+
+* Upcoming consultations
+* Completed consultations
+* Cancelled consultations
+* Consultation revenue
+* New consultation clients
+* Consultation-to-treatment conversion
+
+Each consultation should link directly to the client's CRM profile.
+
+---
+
+# 21. CONSULTATION CONVERSION REPORTING
+
+Track what happens after consultations.
+
+Important metrics:
+
+### Consultations booked
+
+How many consultations were scheduled?
+
+### Consultations completed
+
+How many actually happened?
+
+### Treatment conversion
+
+How many consultation clients subsequently booked a treatment?
+
+### Consultation revenue
+
+How much revenue came from consultations?
+
+### Recommended treatments
+
+Which treatments are most frequently recommended?
+
+This allows Sediba Wellness to understand whether consultations are generating treatment bookings.
+
+---
+
+# 22. WEBSITE CTA STRUCTURE
+
+The existing website may have multiple CTAs.
+
+Make sure they have different purposes.
+
+### BOOK CONSULTATION
+
+→ Dedicated consultation flow
+
+### BOOK NOW
+
+→ Standard treatment booking flow
+
+### VIEW SERVICES
+
+→ Services page
+
+### CONTACT US
+
+→ Contact options / enquiry
+
+### WHATSAPP
+
+→ AI/WhatsApp receptionist when integration is available
+
+Do not make every CTA send users to the same booking page.
+
+---
+
+# 23. IMPORTANT — SAME SYSTEM
+
+The consultation system must NOT be a separate application.
+
+It must use the same:
+
+* Database
+* Client CRM
+* Calendar
+* Payment system
+* Appointment system
+* AI
+* WhatsApp integration
+* Notification system
+* Admin dashboard
+* Reporting system
+
+For example:
+
+```text
+                    SEDIBA WEBSITE
+                          │
+            ┌─────────────┴─────────────┐
+            │                           │
+      BOOK CONSULTATION             BOOK NOW
+            │                           │
+            ▼                           ▼
+     CONSULTATION FLOW           TREATMENT FLOW
+            │                           │
+            └─────────────┬─────────────┘
+                          ▼
+                    SAME DATABASE
+                          │
+        ┌─────────────────┼──────────────────┐
+        ▼                 ▼                  ▼
+       CRM             CALENDAR           PAYMENTS
+        │                 │                  │
+        └─────────────────┼──────────────────┘
+                          ▼
+                    AUTOMATIONS
+                          │
+             ┌────────────┼─────────────┐
+             ▼            ▼             ▼
+          WhatsApp      Follow-up      Reviews
+```
+
+---
+
+# 24. DO NOT BREAK THE EXISTING WEBSITE
+
+Before implementing this:
+
+1. Inspect the existing Sediba Wellness website.
+2. Identify the current "Book Consultation" button.
+3. Identify the existing "Book Now" buttons.
+4. Identify how the services are currently structured.
+5. Preserve the current website design.
+6. Preserve the current navigation.
+7. Preserve existing service content.
+8. Do not replace real service information with placeholders.
+9. Extend the existing website instead of rebuilding it unnecessarily.
+
+The consultation flow should feel like a natural part of the current Sediba Wellness website.
+
+---
+
+# FINAL OBJECTIVE
+
+When a visitor clicks:
+
+**BOOK CONSULTATION**
+
+the system should not simply open a calendar.
+
+It should begin a complete client journey:
+
+**Visitor → Consultation enquiry → Client information → Calendar → Payment → Confirmed consultation → CRM → Reminder → Practitioner consultation → Treatment recommendation → Treatment booking → Follow-up → Review → Rebooking**
+
+This consultation journey must connect seamlessly to the wider Sediba Wellness all-in-one business management system.

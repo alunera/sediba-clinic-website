@@ -14,6 +14,7 @@ import Book from "@/pages/book";
 import AiAssistant from "@/pages/ai-assistant";
 import About from "@/pages/about";
 import BookingConfirmation from "@/pages/booking-confirmation";
+import BookConsultation from "@/pages/book-consultation";
 
 // Admin Pages
 import { AdminLayout } from "@/components/layout/admin-layout";
@@ -49,6 +50,7 @@ function Router() {
               <Route path="/" component={Home} />
               <Route path="/services" component={Services} />
               <Route path="/book" component={Book} />
+              <Route path="/book-consultation" component={BookConsultation} />
               <Route path="/booking-confirmation" component={BookingConfirmation} />
               <Route path="/ai-assistant" component={AiAssistant} />
               <Route path="/about" component={About} />

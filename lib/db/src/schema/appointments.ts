@@ -26,6 +26,7 @@ export const appointmentsTable = pgTable("appointments", {
   status: text("status").notNull().default("pending"),
   notes: text("notes"),
   policyAgreed: text("policy_agreed").notNull().default("false"),
+  appointmentType: text("appointment_type").notNull().default("treatment"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   /** When the 24-hour reminder is due to be sent (null = no reminder needed). */
   reminderScheduledFor: timestamp("reminder_scheduled_for", { withTimezone: true }),

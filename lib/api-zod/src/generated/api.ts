@@ -39,6 +39,7 @@ export const ListAppointmentsResponseItem = zod.object({
   ]),
   notes: zod.string().nullish(),
   policyAgreed: zod.string(),
+  appointmentType: zod.enum(["treatment", "consultation"]),
   createdAt: zod.coerce.date(),
 });
 export const ListAppointmentsResponse = zod.array(ListAppointmentsResponseItem);
@@ -56,6 +57,7 @@ export const CreateAppointmentBody = zod.object({
   time: zod.string(),
   notes: zod.string().nullish(),
   policyAgreed: zod.boolean(),
+  appointmentType: zod.enum(["treatment", "consultation"]).optional(),
 });
 
 /**
@@ -86,6 +88,7 @@ export const GetAppointmentResponse = zod.object({
   ]),
   notes: zod.string().nullish(),
   policyAgreed: zod.string(),
+  appointmentType: zod.enum(["treatment", "consultation"]),
   createdAt: zod.coerce.date(),
 });
 
@@ -124,6 +127,7 @@ export const UpdateAppointmentResponse = zod.object({
   ]),
   notes: zod.string().nullish(),
   policyAgreed: zod.string(),
+  appointmentType: zod.enum(["treatment", "consultation"]),
   createdAt: zod.coerce.date(),
 });
 
@@ -176,6 +180,7 @@ export const GetAppointmentByRefResponse = zod.object({
   ]),
   notes: zod.string().nullish(),
   policyAgreed: zod.string(),
+  appointmentType: zod.enum(["treatment", "consultation"]),
   createdAt: zod.coerce.date(),
 });
 
@@ -270,6 +275,7 @@ export const AdminListAppointmentsResponseItem = zod.object({
   ]),
   notes: zod.string().nullish(),
   policyAgreed: zod.string(),
+  appointmentType: zod.enum(["treatment", "consultation"]),
   createdAt: zod.coerce.date(),
 });
 export const AdminListAppointmentsResponse = zod.array(
@@ -311,6 +317,7 @@ export const AdminUpdateAppointmentResponse = zod.object({
   ]),
   notes: zod.string().nullish(),
   policyAgreed: zod.string(),
+  appointmentType: zod.enum(["treatment", "consultation"]),
   createdAt: zod.coerce.date(),
 });
 

@@ -110,11 +110,11 @@ export function Navbar() {
             </a>
           </div>
 
-          <a href="https://sediba-wellness-clinic.salonbridge.website/" target="_blank" rel="noopener noreferrer">
+          <Link href="/book-consultation">
             <Button variant="default" className="rounded-none px-8 tracking-wider uppercase text-xs">
               Book Consultation
             </Button>
-          </a>
+          </Link>
         </nav>
 
         {/* Mobile Toggle */}
@@ -150,15 +150,14 @@ export function Navbar() {
               <TikTokIcon size={18} />
             </a>
           </div>
-          <a href="https://sediba-wellness-clinic.salonbridge.website/" target="_blank" rel="noopener noreferrer" className="block">
+          <Link href="/book-consultation" onClick={() => setIsMobileMenuOpen(false)} className="block">
             <Button
               variant="default"
               className="rounded-none w-full tracking-wider uppercase text-xs"
-              onClick={() => setIsMobileMenuOpen(false)}
             >
               Book Consultation
             </Button>
-          </a>
+          </Link>
         </div>
       )}
     </header>
