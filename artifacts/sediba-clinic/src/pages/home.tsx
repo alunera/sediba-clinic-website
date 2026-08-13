@@ -199,9 +199,9 @@ export default function Home() {
           className="w-full h-[60vh] md:h-[75vh] overflow-hidden"
         >
           <img
-            src="/clinic-interior.png"
-            alt="Sediba Aesthetic & Wellness Clinic interior"
-            className="w-full h-full object-cover object-top"
+            src="/aesthetic-treatment.jpg"
+            alt="Aesthetic treatment at Sediba Wellness Clinic"
+            className="w-full h-full object-cover object-[center_20%]"
           />
         </motion.div>
       </section>
