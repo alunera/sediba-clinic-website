@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { appointmentsTable, servicesTable, availabilitySlotsTable } from "@workspace/db";
-import { and, eq, gte, lte, ne } from "drizzle-orm";
+import { and, eq, gte, lte, ne, sql } from "drizzle-orm";
 import {
   CreateAppointmentBody,
   GetAppointmentParams,
@@ -15,6 +15,7 @@ import {
   computeReminderTime,
 } from "../lib/whatsapp";
 import { clinicToday, isPastSlot } from "../lib/clinic-time";
+import { requireAdmin } from "../middlewares/admin-auth";
 
 const router = Router();
 
@@ -80,32 +81,6 @@ router.post("/appointments", async (req, res): Promise<void> => {
     return;
   }
 
-  const slotConfigured = await db
-    .select({ id: availabilitySlotsTable.id })
-    .from(availabilitySlotsTable)
-    .where(and(eq(availabilitySlotsTable.date, dateStr), eq(availabilitySlotsTable.time, rest.time)))
-    .limit(1);
-  if (!slotConfigured[0]) {
-    res.status(409).json({ error: "This time slot is not available. Please choose another slot." });
-    return;
-  }
-
-  const conflict = await db
-    .select({ id: appointmentsTable.id })
-    .from(appointmentsTable)
-    .where(
-      and(
-        eq(appointmentsTable.date, dateStr),
-        eq(appointmentsTable.time, rest.time),
-        ne(appointmentsTable.status, "cancelled")
-      )
-    )
-    .limit(1);
-  if (conflict[0]) {
-    res.status(409).json({ error: "This time slot has just been booked. Please choose another slot." });
-    return;
-  }
-
   const bookingRef = generateBookingRef();
   const totalAmountCents = service[0].price;
 
@@ -120,22 +95,60 @@ router.post("/appointments", async (req, res): Promise<void> => {
   // conflict with the DB column type. It defaults to "treatment" if omitted.
   const { appointmentType, ...restInsert } = rest as typeof rest & { appointmentType?: string };
 
-  let appointment;
+  // Validation + insert run in one transaction under a per-slot advisory
+  // lock so an admin removing the slot (or another booking) cannot
+  // interleave between the checks and the insert. The partial unique index
+  // appointments_active_slot_uq is the final backstop.
+  let appointment: typeof appointmentsTable.$inferSelect | undefined;
+  let conflictError: string | null = null;
   try {
-    [appointment] = await db
-      .insert(appointmentsTable)
-      .values({
-        ...restInsert,
-        serviceId,
-        date: dateStr,
-        bookingRef,
-        totalAmountCents,
-        status: "confirmed",
-        policyAgreed: policyAgreed ? "true" : "false",
-        appointmentType: appointmentType ?? "treatment",
-        reminderScheduledFor,
-      })
-      .returning();
+    appointment = await db.transaction(async (tx) => {
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext(${`slot:${dateStr} ${rest.time}`}))`
+      );
+
+      const slotConfigured = await tx
+        .select({ id: availabilitySlotsTable.id })
+        .from(availabilitySlotsTable)
+        .where(and(eq(availabilitySlotsTable.date, dateStr), eq(availabilitySlotsTable.time, rest.time)))
+        .limit(1);
+      if (!slotConfigured[0]) {
+        conflictError = "This time slot is not available. Please choose another slot.";
+        return undefined;
+      }
+
+      const conflict = await tx
+        .select({ id: appointmentsTable.id })
+        .from(appointmentsTable)
+        .where(
+          and(
+            eq(appointmentsTable.date, dateStr),
+            eq(appointmentsTable.time, rest.time),
+            ne(appointmentsTable.status, "cancelled")
+          )
+        )
+        .limit(1);
+      if (conflict[0]) {
+        conflictError = "This time slot has just been booked. Please choose another slot.";
+        return undefined;
+      }
+
+      const [created] = await tx
+        .insert(appointmentsTable)
+        .values({
+          ...restInsert,
+          serviceId,
+          date: dateStr,
+          bookingRef,
+          totalAmountCents,
+          status: "confirmed",
+          policyAgreed: policyAgreed ? "true" : "false",
+          appointmentType: appointmentType ?? "treatment",
+          reminderScheduledFor,
+        })
+        .returning();
+      return created;
+    });
   } catch (err: unknown) {
     // Unique index appointments_active_slot_uq: two clients raced for the
     // same slot — the second insert fails instead of double booking.
@@ -144,6 +157,11 @@ router.post("/appointments", async (req, res): Promise<void> => {
       return;
     }
     throw err;
+  }
+
+  if (!appointment) {
+    res.status(409).json({ error: conflictError ?? "This time slot is not available. Please choose another slot." });
+    return;
   }
 
   const apptDetails = {
@@ -313,7 +331,7 @@ router.get("/appointments/:id", async (req, res): Promise<void> => {
   res.json(rows[0]);
 });
 
-router.patch("/appointments/:id", async (req, res): Promise<void> => {
+router.patch("/appointments/:id", requireAdmin, async (req, res): Promise<void> => {
   const paramsParsed = UpdateAppointmentParams.safeParse(req.params);
   if (!paramsParsed.success) {
     res.status(400).json({ error: "Invalid ID" });
@@ -346,7 +364,7 @@ router.patch("/appointments/:id", async (req, res): Promise<void> => {
   res.json({ ...updated, serviceName: service[0]?.name ?? "" });
 });
 
-router.delete("/appointments/:id", async (req, res): Promise<void> => {
+router.delete("/appointments/:id", requireAdmin, async (req, res): Promise<void> => {
   const parsed = DeleteAppointmentParams.safeParse(req.params);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid ID" });

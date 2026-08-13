@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
 import { 
   useListServices, 
   getListServicesQueryKey,
@@ -90,7 +91,7 @@ export default function Book() {
   const availableDatesParams = { month: monthStr };
   const { data: availableDatesData, isLoading: isLoadingDates } = useGetAvailableDates(
     availableDatesParams,
-    { query: { queryKey: getGetAvailableDatesQueryKey(availableDatesParams) } }
+    { query: { queryKey: getGetAvailableDatesQueryKey(availableDatesParams), refetchOnWindowFocus: "always" } }
   );
   const availableDates = useMemo(
     () => new Set(availableDatesData?.dates ?? []),
@@ -105,6 +106,7 @@ export default function Book() {
   );
 
   const createAppointment = useCreateAppointment();
+  const queryClient = useQueryClient();
 
   const handleBook = () => {
     if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone || !policyAgreed) {
@@ -133,9 +135,15 @@ export default function Book() {
         setLocation(`/booking-confirmation?ref=${data.bookingRef}`);
       },
       onError: () => {
+        // The slot may have just been taken or removed — refresh availability
+        // so the calendar and time grid reflect the current state.
+        queryClient.invalidateQueries({ queryKey: getGetAvailableDatesQueryKey(availableDatesParams) });
+        if (dateStr) {
+          queryClient.invalidateQueries({ queryKey: getGetAvailabilityQueryKey(availabilityParams) });
+        }
         toast({
           title: "Booking Failed",
-          description: "There was an error securing your reservation. Please try again.",
+          description: "This time may no longer be available. Please pick another slot and try again.",
           variant: "destructive"
         });
       }
@@ -262,10 +270,7 @@ export default function Book() {
                         setSelectedDate(date);
                         setSelectedTime(null);
                       }}
-                      disabled={(date) =>
-                        date < new Date(new Date().setHours(0, 0, 0, 0)) ||
-                        !availableDates.has(format(date, "yyyy-MM-dd"))
-                      }
+                      disabled={(date) => !availableDates.has(format(date, "yyyy-MM-dd"))}
                       modifiers={{
                         available: (date: Date) => availableDates.has(format(date, "yyyy-MM-dd")),
                       }}

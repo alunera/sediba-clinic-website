@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, availabilitySlotsTable, appointmentsTable } from "@workspace/db";
-import { and, eq, gte, lte, ne, inArray } from "drizzle-orm";
+import { and, eq, gte, lte, ne, inArray, sql } from "drizzle-orm";
 import { AdminAddAvailabilitySlotsBody } from "@workspace/api-zod";
 import { requireAdmin } from "../middlewares/admin-auth";
 
@@ -93,17 +93,34 @@ router.delete("/admin/availability/slots", requireAdmin, async (req, res): Promi
     return;
   }
 
-  const booked = await bookedTimesForDates([date]);
-  if (booked.get(date)?.has(time)) {
+  // Per-slot advisory lock: prevents removing a slot in the window between a
+  // booking's validation and its insert (same lock key as POST /appointments).
+  const removed = await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`slot:${date} ${time}`}))`);
+    const conflict = await tx
+      .select({ id: appointmentsTable.id })
+      .from(appointmentsTable)
+      .where(
+        and(
+          eq(appointmentsTable.date, date),
+          eq(appointmentsTable.time, time),
+          ne(appointmentsTable.status, "cancelled")
+        )
+      )
+      .limit(1);
+    if (conflict[0]) return false;
+    await tx
+      .delete(availabilitySlotsTable)
+      .where(and(eq(availabilitySlotsTable.date, date), eq(availabilitySlotsTable.time, time)));
+    return true;
+  });
+
+  if (!removed) {
     res.status(409).json({
       error: "This slot has a booked appointment. Cancel the appointment first.",
     });
     return;
   }
-
-  await db
-    .delete(availabilitySlotsTable)
-    .where(and(eq(availabilitySlotsTable.date, date), eq(availabilitySlotsTable.time, time)));
 
   res.status(204).send();
 });
@@ -115,22 +132,35 @@ router.delete("/admin/availability/dates/:date", requireAdmin, async (req, res):
     return;
   }
 
-  const booked = await bookedTimesForDates([date]);
-  const bookedSet = booked.get(date) ?? new Set<string>();
+  // Per-date advisory lock plus per-slot locks are overkill here; instead the
+  // whole clear runs in one transaction and re-checks bookings inside it,
+  // taking the same per-slot lock keys as POST /appointments for each removal.
+  const result = await db.transaction(async (tx) => {
+    const existing = await tx
+      .select()
+      .from(availabilitySlotsTable)
+      .where(eq(availabilitySlotsTable.date, date));
 
-  const existing = await db
-    .select()
-    .from(availabilitySlotsTable)
-    .where(eq(availabilitySlotsTable.date, date));
+    for (const s of existing) {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`slot:${date} ${s.time}`}))`);
+    }
 
-  const removable = existing.filter((s) => !bookedSet.has(s.time)).map((s) => s.time);
-  if (removable.length > 0) {
-    await db
-      .delete(availabilitySlotsTable)
-      .where(and(eq(availabilitySlotsTable.date, date), inArray(availabilitySlotsTable.time, removable)));
-  }
+    const bookedRows = await tx
+      .select({ time: appointmentsTable.time })
+      .from(appointmentsTable)
+      .where(and(eq(appointmentsTable.date, date), ne(appointmentsTable.status, "cancelled")));
+    const bookedSet = new Set(bookedRows.map((b) => b.time));
 
-  res.json({ removed: removable.length, bookedRemaining: existing.length - removable.length });
+    const removable = existing.filter((s) => !bookedSet.has(s.time)).map((s) => s.time);
+    if (removable.length > 0) {
+      await tx
+        .delete(availabilitySlotsTable)
+        .where(and(eq(availabilitySlotsTable.date, date), inArray(availabilitySlotsTable.time, removable)));
+    }
+    return { removed: removable.length, bookedRemaining: existing.length - removable.length };
+  });
+
+  res.json(result);
 });
 
 export default router;

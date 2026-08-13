@@ -109,7 +109,7 @@ export default function BookConsultation() {
   const availableDatesParams = { month: monthStr };
   const { data: availableDatesData, isLoading: isLoadingDates } = useGetAvailableDates(
     availableDatesParams,
-    { query: { queryKey: getGetAvailableDatesQueryKey(availableDatesParams) } },
+    { query: { queryKey: getGetAvailableDatesQueryKey(availableDatesParams), refetchOnWindowFocus: "always" } },
   );
   const availableDates = new Set(availableDatesData?.dates ?? []);
 
@@ -427,10 +427,7 @@ export default function BookConsultation() {
                     month={visibleMonth}
                     onMonthChange={(m) => setVisibleMonth(m)}
                     onSelect={(d) => { setSelectedDate(d); setSelectedTime(null); }}
-                    disabled={(d) =>
-                      d < new Date(new Date().setHours(0, 0, 0, 0)) ||
-                      !availableDates.has(format(d, "yyyy-MM-dd"))
-                    }
+                    disabled={(d) => !availableDates.has(format(d, "yyyy-MM-dd"))}
                     modifiers={{
                       available: (d: Date) => availableDates.has(format(d, "yyyy-MM-dd")),
                     }}
