@@ -1,46 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
-
-/* ─── Treatment data from the official treatment menu ─────────────────────── */
-
-const SKIN = [
-  { name: "The Glow",    sub: "Radiance · Hydration · Refresh",              price: "From R1,000" },
-  { name: "The Clarify", sub: "Congestion · Breakouts · Balance",            price: "From R1,000" },
-  { name: "The Brighten",sub: "Pigmentation · Tone · Luminosity",            price: "From R1,000" },
-  { name: "The Firm",    sub: "Fine Lines · Firmness · Collagen",            price: "From R1,000" },
-  { name: "The Calm",    sub: "Sensitivity · Redness · Barrier Support",     price: "From R1,000" },
-  { name: "The Renew",   sub: "Resurfacing · Texture · Skin Renewal",        price: "From R1,000" },
-  { name: "The Lift",    sub: "Firming · Definition · Rejuvenation",         price: "From R1,000" },
-  { name: "The Repair",  sub: "Regeneration · Recovery · Skin Restoration",  price: "From R1,000" },
-];
-
-const ADVANCED = [
-  { name: "The Precision Peel",        sub: "Targeted Resurfacing · Pigmentation · Texture", price: "From R1,250" },
-  { name: "The Collagen Boost",        sub: "Microneedling · Texture · Fine Lines",           price: "From R990"   },
-  { name: "The Regeneration (Exosome)",sub: "Exosome Therapy · Repair · Rejuvenation",        price: "From R2,500" },
-  { name: "The Perfect Polish",        sub: "Dermaplaning · Smoothness · Radiance",           price: "From R850"   },
-  { name: "The Light Therapy",         sub: "LED · Calm · Repair",                            price: "R1,750"      },
-  { name: "The Smooth",                sub: "Laser Hair Removal · All Skin Types",            price: "From R450"   },
-  { name: "The Clear",                 sub: "Laser Tattoo Removal",                           price: "From R450"   },
-  { name: "The Contour",               sub: "Cavitation · Body Contouring",                   price: "From R550"   },
-];
-
-const BODY = [
-  { name: "The Sediba Signature", sub: "Full-Body Relaxation · Restore · Rebalance",     price: "R750" },
-  { name: "The Deep Release",     sub: "Deep Tissue · Muscle Tension · Recovery",        price: "R500" },
-  { name: "The Reset",            sub: "Back · Neck · Shoulders",                        price: "R450" },
-  { name: "The Aroma Ritual",     sub: "Aromatherapy · Relaxation · Wellbeing",          price: "R800" },
-  { name: "Add-On Massage",       sub: "Hand or Foot Massage (Add-On)",                  price: "R350" },
-];
-
-const HANDS_FEET = [
-  { name: "The Manicure",           sub: "Shape · Cuticle Care · Polish",   price: "R350" },
-  { name: "The Gel Manicure",       sub: "Long-Wear · High Shine",          price: "R400" },
-  { name: "The Pedicure",           sub: "Foot Care · Shape · Polish",      price: "R420" },
-  { name: "The Gel Pedicure",       sub: "Long-Wear · High Shine",          price: "R620" },
-  { name: "The Luxury Hand Ritual", sub: "Exfoliate · Nourish · Massage",   price: "R350" },
-  { name: "The Luxury Foot Ritual", sub: "Exfoliate · Restore · Massage",   price: "R350" },
-];
+import { SKIN, ADVANCED, BODY, HANDS_FEET } from "@/lib/treatments";
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 
@@ -68,7 +28,7 @@ function TreatmentRow({ name, sub, price, idx }: { name: string; sub: string; pr
         </span>
         <span className="block text-muted-foreground text-xs mt-0.5 font-light tracking-wide">{sub}</span>
       </div>
-      <Link href="/book" className="flex items-center gap-5 shrink-0">
+      <Link href={`/book?treatment=${encodeURIComponent(name)}`} className="flex items-center gap-5 shrink-0">
         <span className="font-medium text-sm text-foreground tracking-wider">{price}</span>
         <span className="uppercase tracking-widest text-[10px] text-muted-foreground hover:text-primary transition-colors">
           Book

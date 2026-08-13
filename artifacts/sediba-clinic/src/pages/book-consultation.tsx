@@ -486,7 +486,7 @@ export default function BookConsultation() {
                 { label: "Date", value: format(selectedDate, "MMMM d, yyyy") },
                 { label: "Time", value: selectedTime },
                 { label: "Duration", value: `${consultationService.duration} min` },
-                { label: "Amount", value: `R${(consultationService.price / 100).toFixed(2)}` },
+                { label: "Amount", value: `R${consultationService.price.toFixed(2)}` },
                 { label: "Concerns", value: selectedConcerns.join(", ") },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between items-baseline gap-4">

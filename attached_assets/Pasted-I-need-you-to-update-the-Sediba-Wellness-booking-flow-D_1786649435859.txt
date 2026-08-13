@@ -1,0 +1,128 @@
+I need you to update the Sediba Wellness booking flow. DO NOT redesign the website or create a new booking page. Work with the existing live website structure.
+
+CURRENT LIVE PAGES:
+Services: https://sedibawellnessclinic.co.za/services
+Booking: https://sedibawellnessclinic.co.za/book
+
+GOAL:
+
+Create a logical booking journey from the Services page to the existing /book page.
+
+CUSTOMER FLOW:
+
+1. Customer visits /services.
+2. Each treatment/service has its existing "Book" button.
+3. When the customer clicks "Book" for a specific treatment, take them to:
+   /book
+4. The /book page must contain a treatment/service dropdown.
+5. The treatment that the customer clicked on the Services page must already be selected in the dropdown when /book loads.
+6. The customer must still be able to open the dropdown and select a different treatment if they change their mind.
+7. After selecting the treatment, they continue through the existing booking process to select their preferred date/time and provide their details.
+8. Do not create separate booking pages for individual treatments. There should remain ONE booking page: /book.
+
+IMPLEMENTATION:
+
+Use a URL query parameter to pass the selected treatment from the Services page to the booking page.
+
+Example:
+
+/services → Microneedling Book button
+
+should navigate to something like:
+
+/book?treatment=Microneedling
+
+The /book page should read the treatment query parameter and use it to pre-select the matching treatment in the dropdown.
+
+If a customer visits /book directly without a treatment parameter, the dropdown should simply show a neutral placeholder such as:
+
+"Select a treatment"
+
+and allow them to choose from the full treatment list.
+
+TREATMENT DATA:
+
+The booking page must be updated so that its treatment dropdown matches the CURRENT services and prices shown on the Services page.
+
+IMPORTANT:
+- Remove outdated treatments from the booking page.
+- Remove outdated prices.
+- Do not invent new treatments or prices.
+- Use the exact current treatment names and prices already supplied for the Sediba Wellness website.
+- The Services page and Booking page must use the same treatment/service data so they cannot become inconsistent.
+
+PRICING DISPLAY:
+
+Where the booking page displays the selected treatment, show the current price alongside the treatment where appropriate.
+
+The treatment names and prices should match the Services page exactly.
+
+BOOK BUTTONS:
+
+Update every "Book" button on /services so that it passes the correct treatment to /book.
+
+For example:
+
+Book button for Treatment A
+→ /book?treatment=Treatment%20A
+
+Book button for Treatment B
+→ /book?treatment=Treatment%20B
+
+Do not make all Book buttons point to the same generic /book state.
+
+USER EXPERIENCE:
+
+The customer should immediately understand:
+
+"You are booking: [Treatment Name]"
+
+Then:
+
+1. Select/confirm treatment
+2. Select date
+3. Select time
+4. Enter contact details
+5. Confirm booking
+
+Keep the existing visual design, branding, typography, colours, layout and responsive behaviour of the Sediba website.
+
+Do not redesign the Services page or booking page unnecessarily.
+
+MOBILE:
+
+Make sure the treatment dropdown and booking flow work properly on mobile.
+
+IMPORTANT TECHNICAL REQUIREMENTS:
+
+- Inspect the existing code before making changes.
+- Reuse the existing booking components and functionality wherever possible.
+- Do not replace the existing booking system with a different booking platform.
+- Do not break the existing booking functionality.
+- Preserve existing routes and navigation.
+- Make sure direct visits to /book still work.
+- Make sure query parameters are URL-encoded correctly.
+- Make sure a treatment name containing spaces, punctuation or special characters still pre-selects correctly.
+- Make sure an invalid/missing treatment query parameter does not break the booking page; simply show "Select a treatment".
+- Keep the treatment data centralised so the Services page and Booking page can use the same treatment list and prices.
+
+BEFORE FINISHING:
+
+Test all of the following:
+
+1. Click Book on at least 3 different treatments from /services.
+2. Confirm each one opens /book.
+3. Confirm the correct treatment is automatically selected.
+4. Change the treatment manually using the dropdown.
+5. Visit /book directly with no query parameter.
+6. Confirm the booking flow still works.
+7. Test on mobile/responsive layout.
+8. Confirm there are no old treatment names or old prices remaining on the booking page.
+9. Confirm the Services page and Booking page contain exactly the same current treatment names and prices.
+
+Do not deploy or make unrelated changes. After completing the changes, give me a concise summary of:
+- files changed
+- booking flow implemented
+- treatment list/pricing updated
+- tests performed
+- any issues that still need attention.

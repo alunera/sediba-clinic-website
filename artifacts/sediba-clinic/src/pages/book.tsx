@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { 
@@ -14,6 +14,14 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { displayPrice, menuIndex } from "@/lib/treatments";
 
 export default function Book() {
   const [, setLocation] = useLocation();
@@ -22,6 +30,7 @@ export default function Book() {
   // URL params
   const searchParams = new URLSearchParams(window.location.search);
   const defaultServiceId = searchParams.get("service") ? parseInt(searchParams.get("service")!) : null;
+  const treatmentParam = searchParams.get("treatment");
 
   // Form State
   const [step, setStep] = useState(1);
@@ -41,6 +50,37 @@ export default function Book() {
     query: { queryKey: getListServicesQueryKey() }
   });
 
+  // Bookable treatments in official menu order (consultations have their own page)
+  const bookableServices = useMemo(
+    () =>
+      (services ?? [])
+        .filter((s) => s.category !== "consultation")
+        .sort((a, b) => menuIndex(a.name) - menuIndex(b.name)),
+    [services]
+  );
+
+  const selectedService = bookableServices.find((s) => s.id === selectedServiceId);
+
+  // Once services load: validate any legacy ?service=<id> selection, then
+  // pre-select the treatment passed from the Services page (?treatment=Name)
+  useEffect(() => {
+    if (bookableServices.length === 0) return;
+    if (selectedServiceId !== null) {
+      // Clear selections that aren't a bookable treatment (e.g. stale/invalid id)
+      if (!bookableServices.some((s) => s.id === selectedServiceId)) {
+        setSelectedServiceId(null);
+      }
+      return;
+    }
+    if (treatmentParam) {
+      const match = bookableServices.find(
+        (s) => s.name.trim().toLowerCase() === treatmentParam.trim().toLowerCase()
+      );
+      if (match) setSelectedServiceId(match.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookableServices]);
+
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
   const availabilityParams = { date: dateStr, serviceId: selectedServiceId || undefined };
   const { data: availability, isLoading: isLoadingAvailability } = useGetAvailability(
@@ -51,7 +91,7 @@ export default function Book() {
   const createAppointment = useCreateAppointment();
 
   const handleBook = () => {
-    if (!selectedServiceId || !selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone || !policyAgreed) {
+    if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone || !policyAgreed) {
       toast({ title: "Incomplete details", description: "Please fill in all required fields and agree to the policies.", variant: "destructive" });
       return;
     }
@@ -118,40 +158,47 @@ export default function Book() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
               <h2 className="font-serif text-2xl text-foreground mb-6">Select Treatment</h2>
               {isLoadingServices ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map(i => <div key={i} className="h-16 bg-muted animate-pulse border border-border" />)}
-                </div>
+                <div className="h-16 bg-muted animate-pulse border border-border" />
               ) : (
-                <div className="grid gap-4">
-                  {services?.map(service => (
-                    <div 
-                      key={service.id}
-                      onClick={() => setSelectedServiceId(service.id)}
-                      className={`cursor-pointer p-6 border transition-all duration-300 flex justify-between items-center ${
-                        selectedServiceId === service.id 
-                          ? "border-primary bg-primary/5" 
-                          : "border-border hover:border-foreground/30"
-                      }`}
+                <div className="space-y-6">
+                  <div>
+                    <Label className="uppercase tracking-widest text-[10px] text-muted-foreground mb-2 block">
+                      Treatment
+                    </Label>
+                    <Select
+                      value={selectedServiceId !== null ? String(selectedServiceId) : ""}
+                      onValueChange={(v) => setSelectedServiceId(parseInt(v))}
                     >
-                      <div>
-                        <h3 className="font-serif text-lg text-foreground mb-1">{service.name}</h3>
-                        <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                          {service.duration} Min &bull; R{(service.price / 100).toFixed(2)}
-                        </p>
-                      </div>
-                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                        selectedServiceId === service.id ? "border-primary" : "border-border"
-                      }`}>
-                        {selectedServiceId === service.id && <div className="w-2 h-2 rounded-full bg-primary" />}
-                      </div>
+                      <SelectTrigger className="rounded-none border-border bg-background h-14 text-left focus:ring-1 focus:ring-primary">
+                        <SelectValue placeholder="Select a treatment" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-none max-h-[320px]">
+                        {bookableServices.map((service) => (
+                          <SelectItem key={service.id} value={String(service.id)}>
+                            {service.name} &mdash; {displayPrice(service.name, service.price)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {selectedService && (
+                    <div className="p-6 border border-primary bg-primary/5">
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
+                        You are booking
+                      </span>
+                      <h3 className="font-serif text-lg text-foreground mb-1">{selectedService.name}</h3>
+                      <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                        {selectedService.duration} Min &bull; {displayPrice(selectedService.name, selectedService.price)}
+                      </p>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
               <div className="mt-8 flex justify-end">
                 <Button 
                   onClick={() => setStep(2)} 
-                  disabled={!selectedServiceId}
+                  disabled={!selectedService}
                   className="rounded-none uppercase tracking-widest text-xs px-8"
                 >
                   Continue
@@ -380,7 +427,7 @@ export default function Book() {
                   <div className="space-y-4 text-sm">
                     <div>
                       <span className="text-muted-foreground uppercase tracking-widest text-[10px] block mb-1">Appointment Details</span>
-                      <p className="font-medium text-foreground">{services?.find(s => s.id === selectedServiceId)?.name}</p>
+                      <p className="font-medium text-foreground">{selectedService?.name}</p>
                       <p className="text-foreground/80">{selectedDate && format(selectedDate, "MMMM d, yyyy")} at {selectedTime}</p>
                     </div>
                   </div>
@@ -389,7 +436,7 @@ export default function Book() {
                 <div className="flex justify-between items-center pt-6 mt-6 border-t border-border">
                   <span className="text-muted-foreground uppercase tracking-widest text-xs">Total Amount</span>
                   <span className="font-serif text-2xl text-foreground">
-                    R{(services?.find(s => s.id === selectedServiceId)?.price! / 100).toFixed(2)}
+                    {selectedService ? displayPrice(selectedService.name, selectedService.price) : ""}
                   </span>
                 </div>
               </div>
