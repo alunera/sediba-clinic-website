@@ -159,6 +159,33 @@ paths:
                 items:
                   $ref: "#/components/schemas/AvailableSlot"
 
+  /appointments/available-dates:
+    get:
+      operationId: getAvailableDates
+      tags: [appointments]
+      summary: List dates in a month that have at least one open slot
+      parameters:
+        - name: month
+          in: query
+          required: true
+          description: "Month in YYYY-MM format"
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}$'
+      responses:
+        "200":
+          description: Available dates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dates:
+                    type: array
+                    items:
+                      type: string
+                required: [dates]
+
   /appointments/ref/{ref}:
     get:
       operationId: getAppointmentByRef
@@ -341,6 +368,105 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/availability:
+    get:
+      operationId: adminGetAvailability
+      tags: [admin]
+      summary: Get configured availability for a month, with booked flags (admin)
+      parameters:
+        - name: month
+          in: query
+          required: true
+          description: "Month in YYYY-MM format"
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}$'
+      responses:
+        "200":
+          description: Availability per date
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminAvailabilityDay"
+
+  /admin/availability/slots:
+    post:
+      operationId: adminAddAvailabilitySlots
+      tags: [admin]
+      summary: Add available time slots to a date (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminAddSlotsBody"
+      responses:
+        "200":
+          description: Updated day
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAvailabilityDay"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: adminRemoveAvailabilitySlot
+      tags: [admin]
+      summary: Remove a single time slot from a date (admin)
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: time
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Removed
+        "409":
+          description: Slot already booked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/availability/dates/{date}:
+    delete:
+      operationId: adminClearAvailabilityDate
+      tags: [admin]
+      summary: Remove all unbooked slots from a date (admin)
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Result with count of removed slots and remaining booked slots
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  removed:
+                    type: integer
+                  bookedRemaining:
+                    type: integer
+                required: [removed, bookedRemaining]
 
   /admin/clients:
     get:
@@ -694,6 +820,37 @@ components:
       required:
         - time
         - available
+
+    AdminAvailabilityDay:
+      type: object
+      properties:
+        date:
+          type: string
+        slots:
+          type: array
+          items:
+            type: object
+            properties:
+              time:
+                type: string
+              booked:
+                type: boolean
+            required: [time, booked]
+      required: [date, slots]
+
+    AdminAddSlotsBody:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        times:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+      required: [date, times]
 
     Service:
       type: object

@@ -1,0 +1,279 @@
+IMPORTANT ADDITION — REAL APPOINTMENT AVAILABILITY MANAGEMENT
+
+The calendar must NOT use hard-coded available dates.
+
+Sediba Wellness needs a real availability-management system where the salon/consultant can control which dates and times customers are allowed to book.
+
+The consultant should be able to manage availability from the existing admin/back-end system.
+
+CORE REQUIREMENT:
+
+The availability entered/changed by the consultant in the backend must directly control what customers see and can select on the public booking page.
+
+The system should work like this:
+
+CONSULTANT / ADMIN
+↓
+Creates available appointment dates and times
+↓
+Availability is saved in the database
+↓
+CUSTOMER
+↓
+Opens booking page
+↓
+Calendar retrieves current availability from the database
+↓
+Only available dates are selectable
+↓
+Customer selects a date
+↓
+Only available time slots for that date are displayed
+↓
+Customer selects a time
+↓
+Customer completes booking
+↓
+The selected date/time becomes unavailable for another customer once successfully booked
+
+IMPORTANT:
+
+Do NOT hard-code availability into the frontend.
+
+Do NOT create fake available dates just to make the calendar work.
+
+The frontend must read availability dynamically from the backend/database.
+
+ADMIN AVAILABILITY MANAGEMENT:
+
+Inspect the existing admin/back-end functionality and determine whether there is already an availability-management component.
+
+If one exists, reuse and improve it rather than creating a duplicate system.
+
+If it does not exist, implement a simple availability-management section within the existing admin system.
+
+The consultant/admin should be able to:
+
+1. View a calendar of upcoming dates.
+2. Mark a date as available.
+3. Mark a date as unavailable.
+4. Add available time slots to an available date.
+5. Remove individual time slots.
+6. See which time slots are already booked.
+7. Prevent already-booked slots from being offered again.
+8. Modify future availability without changing code.
+
+Example:
+
+Admin selects:
+
+August 20, 2026
+
+and adds:
+
+09:00
+10:30
+13:00
+15:00
+
+The customer-facing calendar should then show August 20 as an available date.
+
+When the customer selects August 20, the frontend should show:
+
+09:00
+10:30
+13:00
+15:00
+
+If the consultant later removes 13:00 from the backend, the customer-facing booking page must stop showing 13:00.
+
+If another customer books 10:30, that slot must no longer be available for another customer.
+
+DATABASE:
+
+Use the existing database architecture.
+
+Before creating anything new, inspect the existing database/schema and booking implementation.
+
+Create or update the minimum required data structures for:
+
+- availability dates
+- availability time slots
+- bookings/reservations
+- booking status
+
+Do not create duplicate booking or availability systems.
+
+AVAILABILITY LOGIC:
+
+The frontend should retrieve availability dynamically.
+
+For each date:
+
+IF the consultant has configured available slots
+→ date is selectable
+
+IF no availability exists
+→ date is unavailable
+
+IF date is in the past
+→ date is unavailable
+
+IF all slots for a date have been booked
+→ date should become unavailable
+
+When a customer selects a date:
+→ retrieve the current available time slots for that date.
+
+Do not rely solely on frontend validation.
+
+The backend must also validate that the selected slot is still available when the booking is submitted.
+
+This is important to prevent two customers from booking the same appointment simultaneously.
+
+BOOKING FLOW:
+
+The complete flow should now be:
+
+1. Customer visits Services page.
+2. Customer clicks Book under a treatment.
+3. Customer arrives at /book?treatment=...
+4. Treatment is pre-selected.
+5. Customer clicks Continue.
+6. Calendar displays real availability retrieved from the backend.
+7. Customer selects an available date.
+8. Available time slots for that date appear.
+9. Customer selects a time.
+10. Customer enters their details.
+11. Backend checks that the selected slot is still available.
+12. Booking is created.
+13. The slot is marked/reserved as booked.
+14. Customer receives the confirmation.
+15. The booked slot disappears from available slots for future customers.
+
+CALENDAR DESIGN:
+
+The calendar should be redesigned to match the current Sediba Wellness website.
+
+It should feel modern, elegant, clean and premium.
+
+Use the existing Sediba website design language rather than introducing a completely different style.
+
+Requirements:
+
+- Modern calendar
+- Clear month navigation
+- Available dates visually distinguishable
+- Unavailable dates muted/disabled
+- Selected date clearly highlighted
+- Mobile-friendly
+- Clean time-slot buttons
+- Clear selected treatment and price
+- Clear selected date
+- Clear selected time
+- Continue button disabled until a valid date and time are selected
+
+BOOKING SUMMARY:
+
+Keep a compact booking summary visible during the appointment-selection process:
+
+Treatment:
+[Selected treatment]
+
+Price:
+[Current treatment price]
+
+Date:
+[Selected date]
+
+Time:
+[Selected time]
+
+Do not lose the selected treatment when navigating between booking steps.
+
+ADMIN EXPERIENCE:
+
+The consultant should not need to edit code to change availability.
+
+For example, if the consultant knows that she is available on:
+
+August 20
+August 22
+August 25
+
+she should be able to enter those dates in the admin interface and the public calendar should automatically update.
+
+If she later decides she is NOT available on August 22, she should be able to remove/block that date in the admin interface and it should immediately become unavailable on the customer-facing calendar.
+
+IMPORTANT — DO NOT ASSUME THE ADMIN SYSTEM:
+
+First inspect the existing admin dashboard, database schema, authentication and booking functionality.
+
+Reuse existing architecture wherever possible.
+
+Do not create a completely separate admin application unless absolutely necessary.
+
+SECURITY / DATA INTEGRITY:
+
+- Customers must not be able to create availability.
+- Only authorised admin/consultant users can manage availability.
+- Backend must validate booking availability.
+- Prevent double booking.
+- Do not expose admin functionality publicly.
+- Do not rely only on frontend checks.
+
+TIMEZONE:
+
+Use the clinic's correct South African timezone (Africa/Johannesburg) consistently for availability, booking and displayed appointment times.
+
+TESTING:
+
+Test the complete system:
+
+ADMIN:
+1. Create an available date.
+2. Add several available time slots.
+3. Confirm the date appears on the customer calendar.
+4. Remove one time slot.
+5. Confirm that slot disappears from the customer calendar.
+6. Block/remove the entire date.
+7. Confirm the date becomes unavailable.
+
+CUSTOMER:
+8. Select a treatment.
+9. Continue to calendar.
+10. Confirm real available dates appear.
+11. Select an available date.
+12. Confirm only the configured time slots appear.
+13. Select a time.
+14. Complete the booking.
+15. Confirm the booking is saved.
+16. Confirm the booked slot is no longer available.
+17. Attempt to book the same slot again and confirm it is rejected.
+
+EDGE CASES:
+18. Direct /book visit.
+19. Invalid treatment parameter.
+20. Past dates.
+21. Date with no availability.
+22. Date where all slots are booked.
+23. Mobile width around 390px.
+24. Refreshing the booking page should not incorrectly lose or duplicate booking state.
+
+IMPORTANT:
+
+Do not push to GitHub or deploy to Netlify yet.
+
+First implement and test this in the Replit environment.
+
+When finished, report:
+
+1. How the consultant manages availability.
+2. Where availability is stored.
+3. How the frontend retrieves availability.
+4. How double booking is prevented.
+5. How booked slots are removed from availability.
+6. What database changes were made.
+7. What files were changed.
+8. What tests were performed.
+9. Any remaining limitations or decisions I need to make before we deploy.

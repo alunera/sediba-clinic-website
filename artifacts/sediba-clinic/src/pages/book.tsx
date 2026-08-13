@@ -6,6 +6,8 @@ import {
   getListServicesQueryKey,
   useGetAvailability,
   getGetAvailabilityQueryKey,
+  useGetAvailableDates,
+  getGetAvailableDatesQueryKey,
   useCreateAppointment
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +39,7 @@ export default function Book() {
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(defaultServiceId);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState<Date>(new Date());
   
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -81,6 +84,19 @@ export default function Book() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookableServices]);
 
+  // Dates in the visible month that still have at least one open slot,
+  // as configured by the clinic in the admin panel.
+  const monthStr = format(visibleMonth, "yyyy-MM");
+  const availableDatesParams = { month: monthStr };
+  const { data: availableDatesData, isLoading: isLoadingDates } = useGetAvailableDates(
+    availableDatesParams,
+    { query: { queryKey: getGetAvailableDatesQueryKey(availableDatesParams) } }
+  );
+  const availableDates = useMemo(
+    () => new Set(availableDatesData?.dates ?? []),
+    [availableDatesData]
+  );
+
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
   const availabilityParams = { date: dateStr, serviceId: selectedServiceId || undefined };
   const { data: availability, isLoading: isLoadingAvailability } = useGetAvailability(
@@ -98,7 +114,7 @@ export default function Book() {
 
     createAppointment.mutate({
       data: {
-        serviceId: selectedServiceId,
+        serviceId: selectedService.id,
         date: format(selectedDate, "yyyy-MM-dd"),
         time: selectedTime,
         clientName,
@@ -207,6 +223,28 @@ export default function Book() {
             </div>
           )}
 
+          {/* Compact booking summary, visible after the treatment is chosen */}
+          {step >= 2 && selectedService && (
+            <div className="mb-8 border border-border bg-muted/20 px-6 py-4 flex flex-wrap gap-x-10 gap-y-2 text-sm">
+              <div>
+                <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Treatment</span>
+                <span className="font-serif text-foreground">{selectedService.name}</span>
+              </div>
+              <div>
+                <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Price</span>
+                <span className="text-foreground">{displayPrice(selectedService.name, selectedService.price)}</span>
+              </div>
+              <div>
+                <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Date</span>
+                <span className="text-foreground">{selectedDate ? format(selectedDate, "d MMM yyyy") : "Not selected"}</span>
+              </div>
+              <div>
+                <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Time</span>
+                <span className="text-foreground">{selectedTime ?? "Not selected"}</span>
+              </div>
+            </div>
+          )}
+
           {/* STEP 2: Date & Time */}
           {step === 2 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
@@ -218,14 +256,30 @@ export default function Book() {
                     <Calendar
                       mode="single"
                       selected={selectedDate}
+                      month={visibleMonth}
+                      onMonthChange={(m) => setVisibleMonth(m)}
                       onSelect={(date) => {
                         setSelectedDate(date);
                         setSelectedTime(null);
                       }}
-                      disabled={(date) => date < new Date(new Date().setHours(0,0,0,0)) || date.getDay() === 0}
+                      disabled={(date) =>
+                        date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                        !availableDates.has(format(date, "yyyy-MM-dd"))
+                      }
+                      modifiers={{
+                        available: (date: Date) => availableDates.has(format(date, "yyyy-MM-dd")),
+                      }}
+                      modifiersClassNames={{
+                        available: "font-semibold [&>button]:bg-primary/10 [&>button]:hover:bg-primary/20",
+                      }}
                       className="font-sans"
                     />
                   </div>
+                  {!isLoadingDates && availableDates.size === 0 && (
+                    <p className="mt-3 text-xs text-muted-foreground text-center">
+                      No availability in {format(visibleMonth, "MMMM yyyy")}. Try another month.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label className="uppercase tracking-widest text-[10px] text-muted-foreground mb-4 block">Available Times</Label>

@@ -21,6 +21,7 @@ import { AdminLayout } from "@/components/layout/admin-layout";
 import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/dashboard";
 import AdminCalendar from "@/pages/admin/calendar";
+import AdminAvailability from "@/pages/admin/availability";
 import AdminAppointments from "@/pages/admin/appointments";
 import AdminClients from "@/pages/admin/clients";
 import AdminSettings from "@/pages/admin/settings";
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/admin" component={() => <AdminLayout><AdminDashboard /></AdminLayout>} />
       <Route path="/admin/dashboard" component={() => <AdminLayout><AdminDashboard /></AdminLayout>} />
       <Route path="/admin/calendar" component={() => <AdminLayout><AdminCalendar /></AdminLayout>} />
+      <Route path="/admin/availability" component={() => <AdminLayout><AdminAvailability /></AdminLayout>} />
       <Route path="/admin/appointments" component={() => <AdminLayout><AdminAppointments /></AdminLayout>} />
       <Route path="/admin/clients" component={() => <AdminLayout><AdminClients /></AdminLayout>} />
       <Route path="/admin/settings" component={() => <AdminLayout><AdminSettings /></AdminLayout>} />

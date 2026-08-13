@@ -109,6 +109,22 @@ export interface AvailableSlot {
   available: boolean;
 }
 
+export type AdminAvailabilityDaySlotsItem = {
+  time: string;
+  booked: boolean;
+};
+
+export interface AdminAvailabilityDay {
+  date: string;
+  slots: AdminAvailabilityDaySlotsItem[];
+}
+
+export interface AdminAddSlotsBody {
+  date: string;
+  /** @minItems 1 */
+  times: string[];
+}
+
 export interface Service {
   id: number;
   name: string;
@@ -211,4 +227,34 @@ export interface OpenaiError {
 export type GetAvailabilityParams = {
   date: string;
   serviceId?: number;
+};
+
+export type GetAvailableDatesParams = {
+  /**
+   * Month in YYYY-MM format
+   * @pattern ^\d{4}-\d{2}$
+   */
+  month: string;
+};
+
+export type GetAvailableDates200 = {
+  dates: string[];
+};
+
+export type AdminGetAvailabilityParams = {
+  /**
+   * Month in YYYY-MM format
+   * @pattern ^\d{4}-\d{2}$
+   */
+  month: string;
+};
+
+export type AdminRemoveAvailabilitySlotParams = {
+  date: string;
+  time: string;
+};
+
+export type AdminClearAvailabilityDate200 = {
+  removed: number;
+  bookedRemaining: number;
 };

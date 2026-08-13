@@ -1,20 +1,20 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { appointmentsTable, servicesTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { appointmentsTable, servicesTable, availabilitySlotsTable } from "@workspace/db";
+import { and, eq, gte, lte, ne } from "drizzle-orm";
 import {
   CreateAppointmentBody,
   GetAppointmentParams,
   UpdateAppointmentParams,
   UpdateAppointmentBody,
   DeleteAppointmentParams,
-  GetAvailabilityQueryParams,
 } from "@workspace/api-zod";
 import {
   sendBookingConfirmation,
   scheduleReminderMessage,
   computeReminderTime,
 } from "../lib/whatsapp";
+import { clinicToday, isPastSlot } from "../lib/clinic-time";
 
 const router = Router();
 
@@ -73,6 +73,39 @@ router.post("/appointments", async (req, res): Promise<void> => {
   }
 
   const dateStr = date instanceof Date ? date.toISOString().split("T")[0] : String(date);
+
+  // ── Availability validation (server-side source of truth) ──────────────
+  if (isPastSlot(dateStr, rest.time)) {
+    res.status(409).json({ error: "This time is in the past. Please choose another slot." });
+    return;
+  }
+
+  const slotConfigured = await db
+    .select({ id: availabilitySlotsTable.id })
+    .from(availabilitySlotsTable)
+    .where(and(eq(availabilitySlotsTable.date, dateStr), eq(availabilitySlotsTable.time, rest.time)))
+    .limit(1);
+  if (!slotConfigured[0]) {
+    res.status(409).json({ error: "This time slot is not available. Please choose another slot." });
+    return;
+  }
+
+  const conflict = await db
+    .select({ id: appointmentsTable.id })
+    .from(appointmentsTable)
+    .where(
+      and(
+        eq(appointmentsTable.date, dateStr),
+        eq(appointmentsTable.time, rest.time),
+        ne(appointmentsTable.status, "cancelled")
+      )
+    )
+    .limit(1);
+  if (conflict[0]) {
+    res.status(409).json({ error: "This time slot has just been booked. Please choose another slot." });
+    return;
+  }
+
   const bookingRef = generateBookingRef();
   const totalAmountCents = service[0].price;
 
@@ -87,20 +120,31 @@ router.post("/appointments", async (req, res): Promise<void> => {
   // conflict with the DB column type. It defaults to "treatment" if omitted.
   const { appointmentType, ...restInsert } = rest as typeof rest & { appointmentType?: string };
 
-  const [appointment] = await db
-    .insert(appointmentsTable)
-    .values({
-      ...restInsert,
-      serviceId,
-      date: dateStr,
-      bookingRef,
-      totalAmountCents,
-      status: "confirmed",
-      policyAgreed: policyAgreed ? "true" : "false",
-      appointmentType: appointmentType ?? "treatment",
-      reminderScheduledFor,
-    })
-    .returning();
+  let appointment;
+  try {
+    [appointment] = await db
+      .insert(appointmentsTable)
+      .values({
+        ...restInsert,
+        serviceId,
+        date: dateStr,
+        bookingRef,
+        totalAmountCents,
+        status: "confirmed",
+        policyAgreed: policyAgreed ? "true" : "false",
+        appointmentType: appointmentType ?? "treatment",
+        reminderScheduledFor,
+      })
+      .returning();
+  } catch (err: unknown) {
+    // Unique index appointments_active_slot_uq: two clients raced for the
+    // same slot — the second insert fails instead of double booking.
+    if (err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "23505") {
+      res.status(409).json({ error: "This time slot has just been booked. Please choose another slot." });
+      return;
+    }
+    throw err;
+  }
 
   const apptDetails = {
     appointmentId: appointment.id,
@@ -127,35 +171,77 @@ router.post("/appointments", async (req, res): Promise<void> => {
 });
 
 router.get("/appointments/availability", async (req, res): Promise<void> => {
-  const parsed = GetAvailabilityQueryParams.safeParse(req.query);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+  // Note: generated GetAvailabilityQueryParams expects a Date object, but
+  // query strings arrive as strings — validate the raw format instead.
+  const dateStr = String(req.query.date ?? "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    res.status(400).json({ error: "date must be YYYY-MM-DD" });
     return;
   }
 
-  const timeSlots = [
-    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-    "11:00", "11:30", "12:00", "13:00", "13:30", "14:00",
-    "14:30", "15:00", "15:30", "16:00", "16:30", "17:00",
-  ];
-
-  const dateStr = parsed.data.date instanceof Date
-    ? parsed.data.date.toISOString().split("T")[0]
-    : String(parsed.data.date);
+  // Slots configured by the clinic admin for this date
+  const configured = await db
+    .select({ time: availabilitySlotsTable.time })
+    .from(availabilitySlotsTable)
+    .where(eq(availabilitySlotsTable.date, dateStr))
+    .orderBy(availabilitySlotsTable.time);
 
   const existing = await db
     .select({ time: appointmentsTable.time })
     .from(appointmentsTable)
-    .where(eq(appointmentsTable.date, dateStr));
+    .where(and(eq(appointmentsTable.date, dateStr), ne(appointmentsTable.status, "cancelled")));
 
   const bookedTimes = new Set(existing.map((a) => a.time));
 
-  const slots = timeSlots.map((time) => ({
+  const slots = configured.map(({ time }) => ({
     time,
-    available: !bookedTimes.has(time),
+    available: !bookedTimes.has(time) && !isPastSlot(dateStr, time),
   }));
 
   res.json(slots);
+});
+
+router.get("/appointments/available-dates", async (req, res): Promise<void> => {
+  const month = String(req.query.month ?? "");
+  if (!/^\d{4}-\d{2}$/.test(month)) {
+    res.status(400).json({ error: "month must be YYYY-MM" });
+    return;
+  }
+
+  const today = clinicToday();
+  const from = `${month}-01` < today ? today : `${month}-01`;
+
+  const configured = await db
+    .select({ date: availabilitySlotsTable.date, time: availabilitySlotsTable.time })
+    .from(availabilitySlotsTable)
+    .where(and(gte(availabilitySlotsTable.date, from), lte(availabilitySlotsTable.date, `${month}-31`)));
+
+  if (configured.length === 0) {
+    res.json({ dates: [] });
+    return;
+  }
+
+  const booked = await db
+    .select({ date: appointmentsTable.date, time: appointmentsTable.time })
+    .from(appointmentsTable)
+    .where(
+      and(
+        gte(appointmentsTable.date, from),
+        lte(appointmentsTable.date, `${month}-31`),
+        ne(appointmentsTable.status, "cancelled")
+      )
+    );
+  const bookedSet = new Set(booked.map((b) => `${b.date} ${b.time}`));
+
+  const dates = [
+    ...new Set(
+      configured
+        .filter((s) => !bookedSet.has(`${s.date} ${s.time}`) && !isPastSlot(s.date, s.time))
+        .map((s) => s.date)
+    ),
+  ].sort();
+
+  res.json({ dates });
 });
 
 router.get("/appointments/ref/:ref", async (req, res): Promise<void> => {

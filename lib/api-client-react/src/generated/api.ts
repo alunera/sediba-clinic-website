@@ -17,10 +17,15 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AdminAddSlotsBody,
   AdminAuthResponse,
+  AdminAvailabilityDay,
+  AdminClearAvailabilityDate200,
   AdminConsultationService,
   AdminConsultationServiceUpdate,
+  AdminGetAvailabilityParams,
   AdminLoginBody,
+  AdminRemoveAvailabilitySlotParams,
   AdminSettings,
   AdminUpdateAppointmentBody,
   Appointment,
@@ -30,6 +35,8 @@ import type {
   CreateOpenaiConversationBody,
   ErrorResponse,
   GetAvailabilityParams,
+  GetAvailableDates200,
+  GetAvailableDatesParams,
   HealthStatus,
   OpenaiConversation,
   OpenaiConversationWithMessages,
@@ -634,6 +641,106 @@ export function useGetAvailability<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetAvailabilityQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List dates in a month that have at least one open slot
+ */
+export const getGetAvailableDatesUrl = (params: GetAvailableDatesParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/appointments/available-dates?${stringifiedParams}`
+    : `/api/appointments/available-dates`;
+};
+
+export const getAvailableDates = async (
+  params: GetAvailableDatesParams,
+  options?: RequestInit,
+): Promise<GetAvailableDates200> => {
+  return customFetch<GetAvailableDates200>(getGetAvailableDatesUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAvailableDatesQueryKey = (
+  params?: GetAvailableDatesParams,
+) => {
+  return [
+    `/api/appointments/available-dates`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetAvailableDatesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAvailableDates>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetAvailableDatesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAvailableDates>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAvailableDatesQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAvailableDates>>
+  > = ({ signal }) => getAvailableDates(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAvailableDates>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAvailableDatesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAvailableDates>>
+>;
+export type GetAvailableDatesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List dates in a month that have at least one open slot
+ */
+
+export function useGetAvailableDates<
+  TData = Awaited<ReturnType<typeof getAvailableDates>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetAvailableDatesParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAvailableDates>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAvailableDatesQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -1362,6 +1469,380 @@ export const useAdminUpdateAppointment = <
   TContext
 > => {
   return useMutation(getAdminUpdateAppointmentMutationOptions(options));
+};
+
+/**
+ * @summary Get configured availability for a month, with booked flags (admin)
+ */
+export const getAdminGetAvailabilityUrl = (
+  params: AdminGetAvailabilityParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/availability?${stringifiedParams}`
+    : `/api/admin/availability`;
+};
+
+export const adminGetAvailability = async (
+  params: AdminGetAvailabilityParams,
+  options?: RequestInit,
+): Promise<AdminAvailabilityDay[]> => {
+  return customFetch<AdminAvailabilityDay[]>(
+    getAdminGetAvailabilityUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getAdminGetAvailabilityQueryKey = (
+  params?: AdminGetAvailabilityParams,
+) => {
+  return [`/api/admin/availability`, ...(params ? [params] : [])] as const;
+};
+
+export const getAdminGetAvailabilityQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetAvailability>>,
+  TError = ErrorType<unknown>,
+>(
+  params: AdminGetAvailabilityParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminGetAvailability>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAdminGetAvailabilityQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof adminGetAvailability>>
+  > = ({ signal }) =>
+    adminGetAvailability(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetAvailability>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminGetAvailabilityQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetAvailability>>
+>;
+export type AdminGetAvailabilityQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get configured availability for a month, with booked flags (admin)
+ */
+
+export function useAdminGetAvailability<
+  TData = Awaited<ReturnType<typeof adminGetAvailability>>,
+  TError = ErrorType<unknown>,
+>(
+  params: AdminGetAvailabilityParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminGetAvailability>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminGetAvailabilityQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add available time slots to a date (admin)
+ */
+export const getAdminAddAvailabilitySlotsUrl = () => {
+  return `/api/admin/availability/slots`;
+};
+
+export const adminAddAvailabilitySlots = async (
+  adminAddSlotsBody: AdminAddSlotsBody,
+  options?: RequestInit,
+): Promise<AdminAvailabilityDay> => {
+  return customFetch<AdminAvailabilityDay>(getAdminAddAvailabilitySlotsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminAddSlotsBody),
+  });
+};
+
+export const getAdminAddAvailabilitySlotsMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminAddAvailabilitySlots>>,
+    TError,
+    { data: BodyType<AdminAddSlotsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminAddAvailabilitySlots>>,
+  TError,
+  { data: BodyType<AdminAddSlotsBody> },
+  TContext
+> => {
+  const mutationKey = ["adminAddAvailabilitySlots"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminAddAvailabilitySlots>>,
+    { data: BodyType<AdminAddSlotsBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return adminAddAvailabilitySlots(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminAddAvailabilitySlotsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminAddAvailabilitySlots>>
+>;
+export type AdminAddAvailabilitySlotsMutationBody = BodyType<AdminAddSlotsBody>;
+export type AdminAddAvailabilitySlotsMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Add available time slots to a date (admin)
+ */
+export const useAdminAddAvailabilitySlots = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminAddAvailabilitySlots>>,
+    TError,
+    { data: BodyType<AdminAddSlotsBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminAddAvailabilitySlots>>,
+  TError,
+  { data: BodyType<AdminAddSlotsBody> },
+  TContext
+> => {
+  return useMutation(getAdminAddAvailabilitySlotsMutationOptions(options));
+};
+
+/**
+ * @summary Remove a single time slot from a date (admin)
+ */
+export const getAdminRemoveAvailabilitySlotUrl = (
+  params: AdminRemoveAvailabilitySlotParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/availability/slots?${stringifiedParams}`
+    : `/api/admin/availability/slots`;
+};
+
+export const adminRemoveAvailabilitySlot = async (
+  params: AdminRemoveAvailabilitySlotParams,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getAdminRemoveAvailabilitySlotUrl(params), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getAdminRemoveAvailabilitySlotMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminRemoveAvailabilitySlot>>,
+    TError,
+    { params: AdminRemoveAvailabilitySlotParams },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminRemoveAvailabilitySlot>>,
+  TError,
+  { params: AdminRemoveAvailabilitySlotParams },
+  TContext
+> => {
+  const mutationKey = ["adminRemoveAvailabilitySlot"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminRemoveAvailabilitySlot>>,
+    { params: AdminRemoveAvailabilitySlotParams }
+  > = (props) => {
+    const { params } = props ?? {};
+
+    return adminRemoveAvailabilitySlot(params, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminRemoveAvailabilitySlotMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminRemoveAvailabilitySlot>>
+>;
+
+export type AdminRemoveAvailabilitySlotMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Remove a single time slot from a date (admin)
+ */
+export const useAdminRemoveAvailabilitySlot = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminRemoveAvailabilitySlot>>,
+    TError,
+    { params: AdminRemoveAvailabilitySlotParams },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminRemoveAvailabilitySlot>>,
+  TError,
+  { params: AdminRemoveAvailabilitySlotParams },
+  TContext
+> => {
+  return useMutation(getAdminRemoveAvailabilitySlotMutationOptions(options));
+};
+
+/**
+ * @summary Remove all unbooked slots from a date (admin)
+ */
+export const getAdminClearAvailabilityDateUrl = (date: string) => {
+  return `/api/admin/availability/dates/${date}`;
+};
+
+export const adminClearAvailabilityDate = async (
+  date: string,
+  options?: RequestInit,
+): Promise<AdminClearAvailabilityDate200> => {
+  return customFetch<AdminClearAvailabilityDate200>(
+    getAdminClearAvailabilityDateUrl(date),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getAdminClearAvailabilityDateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminClearAvailabilityDate>>,
+    TError,
+    { date: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminClearAvailabilityDate>>,
+  TError,
+  { date: string },
+  TContext
+> => {
+  const mutationKey = ["adminClearAvailabilityDate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminClearAvailabilityDate>>,
+    { date: string }
+  > = (props) => {
+    const { date } = props ?? {};
+
+    return adminClearAvailabilityDate(date, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminClearAvailabilityDateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminClearAvailabilityDate>>
+>;
+
+export type AdminClearAvailabilityDateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Remove all unbooked slots from a date (admin)
+ */
+export const useAdminClearAvailabilityDate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminClearAvailabilityDate>>,
+    TError,
+    { date: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminClearAvailabilityDate>>,
+  TError,
+  { date: string },
+  TContext
+> => {
+  return useMutation(getAdminClearAvailabilityDateMutationOptions(options));
 };
 
 /**

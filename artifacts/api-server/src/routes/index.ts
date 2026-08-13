@@ -4,6 +4,7 @@ import appointmentsRouter from "./appointments";
 import servicesRouter from "./services";
 import openaiRouter from "./openai";
 import adminRouter from "./admin";
+import adminAvailabilityRouter from "./admin-availability";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(appointmentsRouter);
 router.use(servicesRouter);
 router.use(openaiRouter);
 router.use(adminRouter);
+router.use(adminAvailabilityRouter);
 
 export default router;

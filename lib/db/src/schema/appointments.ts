@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, date, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -33,6 +33,22 @@ export const appointmentsTable = pgTable("appointments", {
   /** When the 24-hour reminder was actually sent (null = not yet sent). */
   reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
 });
+
+/**
+ * Bookable time slots configured by the clinic admin. A calendar date is
+ * available to customers iff it has at least one slot not taken by a
+ * non-cancelled appointment. No rows for a date = date unavailable.
+ */
+export const availabilitySlotsTable = pgTable(
+  "availability_slots",
+  {
+    id: serial("id").primaryKey(),
+    date: date("date", { mode: "string" }).notNull(),
+    time: text("time").notNull(), // "HH:MM", 24h, Africa/Johannesburg
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("availability_slots_date_time_uq").on(t.date, t.time)]
+);
 
 export const insertServiceSchema = createInsertSchema(servicesTable).omit({ id: true });
 export const insertAppointmentSchema = createInsertSchema(appointmentsTable).omit({ id: true, createdAt: true });

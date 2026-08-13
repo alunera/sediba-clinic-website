@@ -153,6 +153,22 @@ export const GetAvailabilityResponseItem = zod.object({
 export const GetAvailabilityResponse = zod.array(GetAvailabilityResponseItem);
 
 /**
+ * @summary List dates in a month that have at least one open slot
+ */
+export const getAvailableDatesQueryMonthRegExp = new RegExp("^\\d{4}-\\d{2}$");
+
+export const GetAvailableDatesQueryParams = zod.object({
+  month: zod.coerce
+    .string()
+    .regex(getAvailableDatesQueryMonthRegExp)
+    .describe("Month in YYYY-MM format"),
+});
+
+export const GetAvailableDatesResponse = zod.object({
+  dates: zod.array(zod.string()),
+});
+
+/**
  * @summary Get appointment by booking reference
  */
 export const GetAppointmentByRefParams = zod.object({
@@ -319,6 +335,77 @@ export const AdminUpdateAppointmentResponse = zod.object({
   policyAgreed: zod.string(),
   appointmentType: zod.enum(["treatment", "consultation"]),
   createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get configured availability for a month, with booked flags (admin)
+ */
+export const adminGetAvailabilityQueryMonthRegExp = new RegExp(
+  "^\\d{4}-\\d{2}$",
+);
+
+export const AdminGetAvailabilityQueryParams = zod.object({
+  month: zod.coerce
+    .string()
+    .regex(adminGetAvailabilityQueryMonthRegExp)
+    .describe("Month in YYYY-MM format"),
+});
+
+export const AdminGetAvailabilityResponseItem = zod.object({
+  date: zod.string(),
+  slots: zod.array(
+    zod.object({
+      time: zod.string(),
+      booked: zod.boolean(),
+    }),
+  ),
+});
+export const AdminGetAvailabilityResponse = zod.array(
+  AdminGetAvailabilityResponseItem,
+);
+
+/**
+ * @summary Add available time slots to a date (admin)
+ */
+export const adminAddAvailabilitySlotsBodyTimesItemRegExp = new RegExp(
+  "^([01]\\d|2[0-3]):[0-5]\\d$",
+);
+
+export const AdminAddAvailabilitySlotsBody = zod.object({
+  date: zod.coerce.date(),
+  times: zod
+    .array(zod.string().regex(adminAddAvailabilitySlotsBodyTimesItemRegExp))
+    .min(1),
+});
+
+export const AdminAddAvailabilitySlotsResponse = zod.object({
+  date: zod.string(),
+  slots: zod.array(
+    zod.object({
+      time: zod.string(),
+      booked: zod.boolean(),
+    }),
+  ),
+});
+
+/**
+ * @summary Remove a single time slot from a date (admin)
+ */
+export const AdminRemoveAvailabilitySlotQueryParams = zod.object({
+  date: zod.date(),
+  time: zod.coerce.string(),
+});
+
+/**
+ * @summary Remove all unbooked slots from a date (admin)
+ */
+export const AdminClearAvailabilityDateParams = zod.object({
+  date: zod.date(),
+});
+
+export const AdminClearAvailabilityDateResponse = zod.object({
+  removed: zod.number(),
+  bookedRemaining: zod.number(),
 });
 
 /**

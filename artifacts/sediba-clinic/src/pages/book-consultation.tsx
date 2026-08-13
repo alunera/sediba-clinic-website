@@ -5,6 +5,8 @@ import {
   useListServices,
   getListServicesQueryKey,
   useGetAvailability,
+  useGetAvailableDates,
+  getGetAvailableDatesQueryKey,
   getGetAvailabilityQueryKey,
   useCreateAppointment,
 } from "@workspace/api-client-react";
@@ -101,6 +103,15 @@ export default function BookConsultation() {
   const consultationService = services?.find(
     (s) => s.category === "consultation" || s.name.toLowerCase().includes("consultation"),
   );
+
+  const [visibleMonth, setVisibleMonth] = useState<Date>(new Date());
+  const monthStr = format(visibleMonth, "yyyy-MM");
+  const availableDatesParams = { month: monthStr };
+  const { data: availableDatesData, isLoading: isLoadingDates } = useGetAvailableDates(
+    availableDatesParams,
+    { query: { queryKey: getGetAvailableDatesQueryKey(availableDatesParams) } },
+  );
+  const availableDates = new Set(availableDatesData?.dates ?? []);
 
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
   const availabilityParams = { date: dateStr, serviceId: consultationService?.id };
@@ -413,11 +424,27 @@ export default function BookConsultation() {
                   <Calendar
                     mode="single"
                     selected={selectedDate}
+                    month={visibleMonth}
+                    onMonthChange={(m) => setVisibleMonth(m)}
                     onSelect={(d) => { setSelectedDate(d); setSelectedTime(null); }}
-                    disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0)) || d.getDay() === 0}
+                    disabled={(d) =>
+                      d < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                      !availableDates.has(format(d, "yyyy-MM-dd"))
+                    }
+                    modifiers={{
+                      available: (d: Date) => availableDates.has(format(d, "yyyy-MM-dd")),
+                    }}
+                    modifiersClassNames={{
+                      available: "font-semibold [&>button]:bg-primary/10 [&>button]:hover:bg-primary/20",
+                    }}
                     className="border border-border rounded-none"
                   />
                 </div>
+                {!isLoadingDates && availableDates.size === 0 && (
+                  <p className="text-xs text-muted-foreground text-center mb-6">
+                    No availability in {format(visibleMonth, "MMMM yyyy")}. Try another month.
+                  </p>
+                )}
 
                 {selectedDate && (
                   <div>
