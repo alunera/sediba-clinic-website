@@ -1,6 +1,14 @@
 [build]
   publish = "artifacts/sediba-clinic/dist/public"
 
+# Proxy all API calls to the Replit-hosted backend (bookings, admin, AI assistant)
+[[redirects]]
+  from = "/api/*"
+  to = "https://sediba-aesthetic-upgrade.replit.app/api/:splat"
+  status = 200
+  force = true
+
+# SPA fallback: serve index.html for all page routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
