@@ -64,6 +64,8 @@ import {
   computeReminderTime,
   scheduleReminderMessage,
 } from "../lib/whatsapp";
+import { db } from "@workspace/db";
+import { logger } from "../lib/logger";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -152,15 +154,85 @@ describe("rehydrateReminders", () => {
     expect(vi.getTimerCount()).toBeGreaterThan(0);
   });
 
-  it("fires a past-due reminder immediately without waiting for a timer", async () => {
-    // reminderScheduledFor is in the past → should fire right away
+  it("fires a past-due reminder immediately without waiting for a timer (server was down during reminder window, appointment still upcoming)", async () => {
+    // reminderScheduledFor is in the past but the appointment is still in the
+    // future — the server missed the scheduled fire time, so the reminder must
+    // go out immediately on rehydration rather than being silently skipped.
     const pastDue = new Date(Date.now() - 5 * 60 * 1000); // 5 min ago
-    mockPendingRows = [makeRow({ reminderScheduledFor: pastDue })];
+    mockPendingRows = [
+      makeRow({
+        reminderScheduledFor: pastDue,
+        date: "2099-12-31", // appointment is in the far future
+        time: "10:00",
+      }),
+    ];
 
     await rehydrateReminders();
 
     // No long-running timer should be pending — immediate path was taken
     expect(vi.getTimerCount()).toBe(0);
+
+    // The logger must have recorded the "past-due" branch, not the "skip" branch
+    const infoMock = vi.mocked(logger.info);
+    const pastDueCall = infoMock.mock.calls.find(
+      ([, msg]) => typeof msg === "string" && /past-due/i.test(msg),
+    );
+    expect(pastDueCall).toBeDefined();
+
+    // The "appointment already passed" skip log must NOT appear
+    const skipCall = infoMock.mock.calls.find(
+      ([, msg]) => typeof msg === "string" && /already passed/i.test(msg),
+    );
+    expect(skipCall).toBeUndefined();
+  });
+
+  it("skips reminder and stamps reminderSentAt when both reminder time and appointment have passed", async () => {
+    // Simulate a long server outage: the reminder window AND the appointment
+    // itself are both in the past.  Sending a belated reminder now would confuse
+    // the client — rehydrateReminders must skip it and mark it sent so it is
+    // never retried.
+    const longPastReminder = new Date(Date.now() - 25 * 60 * 60 * 1000); // 25 h ago
+    mockPendingRows = [
+      makeRow({
+        reminderScheduledFor: longPastReminder,
+        date: "2020-06-15", // appointment well in the past
+        time: "09:00",
+      }),
+    ];
+
+    await rehydrateReminders();
+
+    // No timer should have been scheduled
+    expect(vi.getTimerCount()).toBe(0);
+
+    // The skip branch must log the "already passed" message
+    const infoMock = vi.mocked(logger.info);
+    const skipCall = infoMock.mock.calls.find(
+      ([, msg]) => typeof msg === "string" && /already passed/i.test(msg),
+    );
+    expect(skipCall).toBeDefined();
+
+    // db.update must have been called to stamp reminderSentAt
+    expect(vi.mocked(db.update)).toHaveBeenCalledOnce();
+  });
+
+  it("stamps reminderSentAt only for the expired appointment, not for future ones", async () => {
+    // Mixed batch: one appointment already passed, one still upcoming.
+    const longPastReminder = new Date(Date.now() - 25 * 60 * 60 * 1000);
+    const futureReminder   = new Date(Date.now() + 2 * 60 * 60 * 1000);
+
+    mockPendingRows = [
+      makeRow({ id: 1, bookingRef: "SWC-PAST",   reminderScheduledFor: longPastReminder, date: "2020-06-15", time: "09:00" }),
+      makeRow({ id: 2, bookingRef: "SWC-FUTURE",  reminderScheduledFor: futureReminder,   date: "2099-12-31", time: "10:00" }),
+    ];
+
+    await rehydrateReminders();
+
+    // Exactly one timer for the upcoming reminder
+    expect(vi.getTimerCount()).toBe(1);
+
+    // db.update called once — only for the expired appointment (not for the future one)
+    expect(vi.mocked(db.update)).toHaveBeenCalledOnce();
   });
 
   it("handles multiple pending reminders independently", async () => {
