@@ -379,6 +379,38 @@ export const AdminUpdateSettingsResponse = zod.object({
 });
 
 /**
+ * @summary Get consultation service price and duration
+ */
+export const AdminGetConsultationServiceResponse = zod.object({
+  id: zod.number(),
+  durationMinutes: zod.number().describe("Consultation duration in minutes"),
+  priceRands: zod.number().describe("Consultation price in Rands"),
+});
+
+/**
+ * @summary Update consultation service price and duration
+ */
+
+export const adminUpdateConsultationServiceBodyPriceRandsMin = 0;
+
+export const AdminUpdateConsultationServiceBody = zod.object({
+  durationMinutes: zod
+    .number()
+    .min(1)
+    .describe("Consultation duration in minutes"),
+  priceRands: zod
+    .number()
+    .min(adminUpdateConsultationServiceBodyPriceRandsMin)
+    .describe("Consultation price in Rands"),
+});
+
+export const AdminUpdateConsultationServiceResponse = zod.object({
+  id: zod.number(),
+  durationMinutes: zod.number().describe("Consultation duration in minutes"),
+  priceRands: zod.number().describe("Consultation price in Rands"),
+});
+
+/**
  * @summary List all conversations
  */
 export const ListOpenaiConversationsResponseItem = zod.object({

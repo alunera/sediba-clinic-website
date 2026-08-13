@@ -154,6 +154,27 @@ export interface AdminSettings {
   workingHours?: string | null;
 }
 
+export interface AdminConsultationService {
+  id: number;
+  /** Consultation duration in minutes */
+  durationMinutes: number;
+  /** Consultation price in Rands */
+  priceRands: number;
+}
+
+export interface AdminConsultationServiceUpdate {
+  /**
+   * Consultation duration in minutes
+   * @minimum 1
+   */
+  durationMinutes: number;
+  /**
+   * Consultation price in Rands
+   * @minimum 0
+   */
+  priceRands: number;
+}
+
 export interface OpenaiConversation {
   id: number;
   title: string;

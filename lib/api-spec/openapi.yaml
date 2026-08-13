@@ -387,6 +387,54 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdminSettings"
 
+  /admin/consultation:
+    get:
+      operationId: adminGetConsultationService
+      tags: [admin]
+      summary: Get consultation service price and duration
+      responses:
+        "200":
+          description: Consultation service details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminConsultationService"
+        "404":
+          description: Consultation service not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: adminUpdateConsultationService
+      tags: [admin]
+      summary: Update consultation service price and duration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminConsultationServiceUpdate"
+      responses:
+        "200":
+          description: Updated consultation service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminConsultationService"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Consultation service not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /openai/conversations:
     get:
       operationId: listOpenaiConversations
@@ -752,6 +800,37 @@ components:
           type: string
           nullable: true
           description: JSON string of working hours config
+
+    AdminConsultationService:
+      type: object
+      properties:
+        id:
+          type: integer
+        durationMinutes:
+          type: integer
+          description: Consultation duration in minutes
+        priceRands:
+          type: number
+          description: Consultation price in Rands
+      required:
+        - id
+        - durationMinutes
+        - priceRands
+
+    AdminConsultationServiceUpdate:
+      type: object
+      properties:
+        durationMinutes:
+          type: integer
+          description: Consultation duration in minutes
+          minimum: 1
+        priceRands:
+          type: number
+          description: Consultation price in Rands
+          minimum: 0
+      required:
+        - durationMinutes
+        - priceRands
 
     OpenaiConversation:
       type: object

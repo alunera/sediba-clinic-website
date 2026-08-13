@@ -18,6 +18,8 @@ import type {
 
 import type {
   AdminAuthResponse,
+  AdminConsultationService,
+  AdminConsultationServiceUpdate,
   AdminLoginBody,
   AdminSettings,
   AdminUpdateAppointmentBody,
@@ -1596,6 +1598,177 @@ export const useAdminUpdateSettings = <
   TContext
 > => {
   return useMutation(getAdminUpdateSettingsMutationOptions(options));
+};
+
+/**
+ * @summary Get consultation service price and duration
+ */
+export const getAdminGetConsultationServiceUrl = () => {
+  return `/api/admin/consultation`;
+};
+
+export const adminGetConsultationService = async (
+  options?: RequestInit,
+): Promise<AdminConsultationService> => {
+  return customFetch<AdminConsultationService>(
+    getAdminGetConsultationServiceUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getAdminGetConsultationServiceQueryKey = () => {
+  return [`/api/admin/consultation`] as const;
+};
+
+export const getAdminGetConsultationServiceQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetConsultationService>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetConsultationService>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAdminGetConsultationServiceQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof adminGetConsultationService>>
+  > = ({ signal }) =>
+    adminGetConsultationService({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetConsultationService>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminGetConsultationServiceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetConsultationService>>
+>;
+export type AdminGetConsultationServiceQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get consultation service price and duration
+ */
+
+export function useAdminGetConsultationService<
+  TData = Awaited<ReturnType<typeof adminGetConsultationService>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetConsultationService>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminGetConsultationServiceQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update consultation service price and duration
+ */
+export const getAdminUpdateConsultationServiceUrl = () => {
+  return `/api/admin/consultation`;
+};
+
+export const adminUpdateConsultationService = async (
+  adminConsultationServiceUpdate: AdminConsultationServiceUpdate,
+  options?: RequestInit,
+): Promise<AdminConsultationService> => {
+  return customFetch<AdminConsultationService>(
+    getAdminUpdateConsultationServiceUrl(),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(adminConsultationServiceUpdate),
+    },
+  );
+};
+
+export const getAdminUpdateConsultationServiceMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateConsultationService>>,
+    TError,
+    { data: BodyType<AdminConsultationServiceUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminUpdateConsultationService>>,
+  TError,
+  { data: BodyType<AdminConsultationServiceUpdate> },
+  TContext
+> => {
+  const mutationKey = ["adminUpdateConsultationService"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminUpdateConsultationService>>,
+    { data: BodyType<AdminConsultationServiceUpdate> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return adminUpdateConsultationService(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminUpdateConsultationServiceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminUpdateConsultationService>>
+>;
+export type AdminUpdateConsultationServiceMutationBody =
+  BodyType<AdminConsultationServiceUpdate>;
+export type AdminUpdateConsultationServiceMutationError =
+  ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update consultation service price and duration
+ */
+export const useAdminUpdateConsultationService = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminUpdateConsultationService>>,
+    TError,
+    { data: BodyType<AdminConsultationServiceUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminUpdateConsultationService>>,
+  TError,
+  { data: BodyType<AdminConsultationServiceUpdate> },
+  TContext
+> => {
+  return useMutation(getAdminUpdateConsultationServiceMutationOptions(options));
 };
 
 /**

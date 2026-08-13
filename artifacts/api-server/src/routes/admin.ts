@@ -166,4 +166,68 @@ router.put("/admin/settings", requireAdmin, async (req, res): Promise<void> => {
   res.json(settings);
 });
 
+/* ── Admin Consultation Service ───────────────────────────────────────────── */
+
+router.get("/admin/consultation", requireAdmin, async (req, res): Promise<void> => {
+  const [service] = await db
+    .select()
+    .from(servicesTable)
+    .where(eq(servicesTable.category, "consultation"))
+    .limit(1);
+
+  if (!service) {
+    res.status(404).json({ error: "Consultation service not found" });
+    return;
+  }
+
+  res.json({
+    id: service.id,
+    durationMinutes: service.duration,
+    priceRands: service.price / 100,
+  });
+});
+
+router.put("/admin/consultation", requireAdmin, async (req, res): Promise<void> => {
+  const { durationMinutes, priceRands } = req.body as { durationMinutes?: unknown; priceRands?: unknown };
+
+  const duration = Number(durationMinutes);
+  const priceRandsNum = Number(priceRands);
+
+  if (!Number.isFinite(duration) || duration < 1) {
+    res.status(400).json({ error: "durationMinutes must be a positive integer" });
+    return;
+  }
+  if (!Number.isFinite(priceRandsNum) || priceRandsNum < 0) {
+    res.status(400).json({ error: "priceRands must be a non-negative number" });
+    return;
+  }
+
+  const priceCents = Math.round(priceRandsNum * 100);
+
+  const [existing] = await db
+    .select({ id: servicesTable.id })
+    .from(servicesTable)
+    .where(eq(servicesTable.category, "consultation"))
+    .limit(1);
+
+  if (!existing) {
+    res.status(404).json({ error: "Consultation service not found" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(servicesTable)
+    .set({ duration: Math.round(duration), price: priceCents })
+    .where(eq(servicesTable.id, existing.id))
+    .returning();
+
+  logger.info({ id: existing.id, duration, priceCents }, "Consultation service updated");
+
+  res.json({
+    id: updated!.id,
+    durationMinutes: updated!.duration,
+    priceRands: updated!.price / 100,
+  });
+});
+
 export default router;
