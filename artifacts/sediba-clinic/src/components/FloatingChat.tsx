@@ -93,7 +93,7 @@ export function FloatingChat() {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: "assistant",
-          content: "I apologise — I encountered an issue. Please try again."
+          content: "I apologise. I encountered an issue. Please try again."
         };
         return updated;
       });
@@ -115,7 +115,7 @@ export function FloatingChat() {
             className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full overflow-hidden shadow-xl border-2 border-primary hover:scale-105 transition-transform duration-300"
             aria-label="Chat with Sedi"
           >
-            <img src="/sedi-avatar.jpg" alt="Sedi — AI Concierge" className="w-full h-full object-cover object-top" />
+            <img src="/sedi-avatar.jpg" alt="Sedi, AI Concierge" className="w-full h-full object-cover object-top" />
           </motion.button>
         )}
       </AnimatePresence>

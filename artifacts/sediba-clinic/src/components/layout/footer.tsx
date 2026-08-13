@@ -34,7 +34,7 @@ export function Footer() {
           <div className="col-span-1 md:col-span-2">
             <h2 className="font-serif text-3xl tracking-widest uppercase mb-4">SEDIBA</h2>
             <p className="text-white/60 text-sm max-w-sm leading-relaxed mb-6">
-              A sanctuary for the senses — where we bring together a blend of classic clinical treatments, trusted advice, and spa tranquility; all wrapped up in modern luxury.
+              A sanctuary for the senses, where we bring together a blend of classic clinical treatments, trusted advice, and spa tranquility, all wrapped up in modern luxury.
             </p>
             <div className="flex items-center gap-4">
               <a

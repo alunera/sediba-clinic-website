@@ -19,7 +19,7 @@ const principles = [
 
 const steps = [
   { num: "01", text: "Schedule an appointment by email, online, WhatsApp or call us." },
-  { num: "02", text: "One-on-one consultation — establishing your skin concern by analysing your skin, lifestyle and treatment history." },
+  { num: "02", text: "One-on-one consultation: establishing your skin concern by analysing your skin, lifestyle and treatment history." },
   { num: "03", text: "Treatment plan and home care prescribed products to maintain your healthy skin." },
   { num: "04", text: "Your skin journey begins." },
 ];
@@ -48,16 +48,16 @@ export default function About() {
             </h1>
             <div className="space-y-6 text-muted-foreground font-light leading-relaxed">
               <p>
-                We bring together a blend of classic clinical treatments, trusted advice, and spa tranquility — all wrapped up in modern luxury.
+                We bring together a blend of classic clinical treatments, trusted advice, and spa tranquility, all wrapped up in modern luxury.
               </p>
               <p>
                 At Sediba Wellness Clinic you can expect to be greeted by the cream of the crop health and skincare therapists, massage specialists, and nail technicians. Our team has amassed years of experience, and are best placed to deliver excellent service, and offer you advice that supports your wellness goals.
               </p>
               <p>
-                We offer supporting product ranges from leading brands, including <strong className="text-foreground font-medium">Dermalogica</strong>, <strong className="text-foreground font-medium">DMK</strong>, <strong className="text-foreground font-medium">Depelive</strong> and <strong className="text-foreground font-medium">CND</strong>. These brands are inspired by nature and propelled by science — vegan friendly, cruelty free, and environmentally conscious.
+                We offer supporting product ranges from leading brands, including <strong className="text-foreground font-medium">Dermalogica</strong>, <strong className="text-foreground font-medium">DMK</strong>, <strong className="text-foreground font-medium">Depelive</strong> and <strong className="text-foreground font-medium">CND</strong>. These brands are inspired by nature and propelled by science: vegan friendly, cruelty free, and environmentally conscious.
               </p>
               <p>
-                Our clinic is fully kitted out with three comfortable treatment rooms, as well as a manicure and pedicure zone that is partially hidden — ensuring that you enjoy absolute comfort and privacy.
+                Our clinic is fully kitted out with three comfortable treatment rooms, as well as a manicure and pedicure zone that is partially hidden, ensuring that you enjoy absolute comfort and privacy.
               </p>
               <p>
                 The highlight of every Sediba experience is that we take great care and intention in walking you through your urban retreat away from the pressures of modern life. Every colour, sound, scent, and texture has been carefully selected to enhance your experience and treatment results. We want you to always walk out feeling pampered, revitalised, and at your very best.
@@ -164,12 +164,12 @@ export default function About() {
                 <h4 className="font-sans uppercase tracking-[0.2em] text-[10px] text-primary mb-2 mt-8">Hours</h4>
                 <div className="text-muted-foreground text-sm space-y-2">
                   <div className="flex justify-between">
-                    <span>Monday – Friday</span>
-                    <span>09:00 – 18:00</span>
+                    <span>Monday to Friday</span>
+                    <span>09:00 to 18:00</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Saturday</span>
-                    <span>10:00 – 15:00</span>
+                    <span>10:00 to 15:00</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Sunday</span>

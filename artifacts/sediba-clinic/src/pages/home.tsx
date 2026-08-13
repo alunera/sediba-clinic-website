@@ -22,7 +22,7 @@ const googleReviews = [
     name: "Sarah B.",
     rating: 5,
     date: "2 months ago",
-    text: "A truly world-class clinic right here in Midrand. The Botox results are so natural — exactly what I wanted. The whole experience feels nothing like a medical appointment; it's more like a spa retreat.",
+    text: "A truly world-class clinic right here in Midrand. The Botox results are so natural, exactly what I wanted. The whole experience feels nothing like a medical appointment; it's more like a spa retreat.",
     avatar: "SB",
   },
   {
@@ -110,7 +110,7 @@ export default function Home() {
               A sanctuary for the senses
             </h2>
             <p className="text-muted-foreground leading-relaxed md:text-lg font-light">
-              Where we bring together a blend of classic clinical treatments, trusted advice, and spa tranquility — all wrapped up in modern luxury. At Sediba, we believe self-care is an investment, not an indulgence.
+              Where we bring together a blend of classic clinical treatments, trusted advice, and spa tranquility, all wrapped up in modern luxury. At Sediba, we believe self-care is an investment, not an indulgence.
             </p>
           </motion.div>
         </div>

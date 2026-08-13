@@ -199,7 +199,7 @@ export default function BookConsultation() {
             </h2>
             <p className="text-muted-foreground font-light leading-relaxed mb-6">
               Book a consultation with Sediba Wellness so we can better understand your
-              concerns, goals and needs — and determine the most appropriate next step for
+              concerns, goals and needs, and determine the most appropriate next step for
               your skin and wellness journey.
             </p>
             <p className="text-muted-foreground font-light leading-relaxed mb-10">

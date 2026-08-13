@@ -135,7 +135,7 @@ export default function Services() {
               <div className="relative overflow-hidden aspect-[3/4]">
                 <img
                   src="/glass-skin.jpg"
-                  alt="Glass skin result — radiant complexion"
+                  alt="Glass skin result: radiant complexion"
                   className="w-full h-full object-cover object-top"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
