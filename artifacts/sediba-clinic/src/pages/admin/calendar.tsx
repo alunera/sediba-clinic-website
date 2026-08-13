@@ -56,6 +56,8 @@ export default function AdminCalendar() {
     }
   };
 
+  const isConsultation = (appt: Appointment) => appt.appointmentType === 'consultation';
+
   return (
     <div className="h-[calc(100vh-6rem)] flex flex-col md:flex-row gap-6 animate-in fade-in">
       
@@ -107,9 +109,10 @@ export default function AdminCalendar() {
                 
                 <div className="mt-2 space-y-1">
                   {dayAppts.slice(0, 3).map(appt => (
-                    <div key={appt.id} className="flex items-center gap-1.5 text-xs truncate px-1 rounded-sm bg-muted/50">
-                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getStatusColor(appt.status)}`} />
+                    <div key={appt.id} className={`flex items-center gap-1.5 text-xs truncate px-1 rounded-sm ${isConsultation(appt) ? "bg-amber-500/15" : "bg-muted/50"}`}>
+                      <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isConsultation(appt) ? "bg-amber-500" : getStatusColor(appt.status)}`} />
                       <span className="truncate">{appt.time} {appt.clientName}</span>
+                      {isConsultation(appt) && <span className="flex-shrink-0 text-[8px] uppercase tracking-wider font-semibold text-amber-600">C</span>}
                     </div>
                   ))}
                   {dayAppts.length > 3 && (
@@ -135,7 +138,12 @@ export default function AdminCalendar() {
               <ChevronLeft className="w-3 h-3" /> Back
             </button>
             
-            <h3 className="font-serif text-xl mb-4">Appointment Details</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <h3 className="font-serif text-xl">Appointment Details</h3>
+              {isConsultation(selectedAppointment) && (
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-amber-600 bg-amber-500/15 px-2 py-1 rounded-sm border border-amber-400/30">Consultation</span>
+              )}
+            </div>
             
             <div className="space-y-4 text-sm flex-1">
               <div>
@@ -146,9 +154,18 @@ export default function AdminCalendar() {
               </div>
               
               <div>
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">Treatment</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
+                  {isConsultation(selectedAppointment) ? "Consultation Service" : "Treatment"}
+                </span>
                 <p>{selectedAppointment.serviceName}</p>
               </div>
+
+              {isConsultation(selectedAppointment) && selectedAppointment.notes && (
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">Concern / Notes</span>
+                  <p className="text-sm bg-amber-500/5 border border-amber-400/20 px-3 py-2 leading-relaxed">{selectedAppointment.notes}</p>
+                </div>
+              )}
               
               <div>
                 <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">Date & Time</span>
@@ -186,11 +203,16 @@ export default function AdminCalendar() {
                   <div 
                     key={appt.id}
                     onClick={() => setSelectedAppointment(appt)}
-                    className="p-3 border border-border cursor-pointer hover:border-primary transition-colors"
+                    className={`p-3 border cursor-pointer transition-colors hover:border-primary ${isConsultation(appt) ? "border-amber-400/50 bg-amber-500/5" : "border-border"}`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-medium text-sm">{appt.time}</span>
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor(appt.status)}`} />
+                      <div className="flex items-center gap-1.5">
+                        {isConsultation(appt) && (
+                          <span className="text-[9px] uppercase tracking-wider font-semibold text-amber-600 bg-amber-500/15 px-1.5 py-0.5 rounded-sm">Consult</span>
+                        )}
+                        <div className={`w-2 h-2 rounded-full ${isConsultation(appt) ? "bg-amber-500" : getStatusColor(appt.status)}`} />
+                      </div>
                     </div>
                     <p className="text-sm font-medium">{appt.clientName}</p>
                     <p className="text-xs text-muted-foreground truncate">{appt.serviceName}</p>

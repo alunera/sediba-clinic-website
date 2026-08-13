@@ -104,7 +104,8 @@ export default function AdminAppointments() {
               <tr>
                 <th className="px-6 py-4 font-normal">Ref</th>
                 <th className="px-6 py-4 font-normal">Client</th>
-                <th className="px-6 py-4 font-normal">Treatment</th>
+                <th className="px-6 py-4 font-normal">Type</th>
+                <th className="px-6 py-4 font-normal">Service</th>
                 <th className="px-6 py-4 font-normal">Date & Time</th>
                 <th className="px-6 py-4 font-normal">Amount</th>
                 <th className="px-6 py-4 font-normal">Status</th>
@@ -114,7 +115,7 @@ export default function AdminAppointments() {
             <tbody className="divide-y divide-border">
               {filteredAppointments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                     No appointments found for this filter.
                   </td>
                 </tr>
@@ -125,6 +126,13 @@ export default function AdminAppointments() {
                     <td className="px-6 py-4">
                       <div className="font-medium">{appt.clientName}</div>
                       <div className="text-xs text-muted-foreground">{appt.clientPhone}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {appt.appointmentType === 'consultation' ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border bg-amber-500/15 text-amber-700 border-amber-400/30">Consultation</span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border bg-primary/10 text-primary border-primary/20">Treatment</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">{appt.serviceName}</td>
                     <td className="px-6 py-4">

@@ -21,6 +21,8 @@ export default function AdminDashboard() {
     const today = new Date();
     
     const todaysAppointments = appointments.filter(a => isToday(parseISO(a.date)));
+    const todaysConsultations = todaysAppointments.filter(a => a.appointmentType === 'consultation');
+    const todaysTreatments = todaysAppointments.filter(a => a.appointmentType !== 'consultation');
     const todaysRevenue = todaysAppointments
       .filter(a => a.status === 'confirmed' || a.status === 'completed')
       .reduce((sum, a) => sum + a.totalAmountCents, 0);
@@ -34,6 +36,8 @@ export default function AdminDashboard() {
 
     return {
       todayCount: todaysAppointments.length,
+      todayConsultations: todaysConsultations.length,
+      todayTreatments: todaysTreatments.length,
       todayRevenue: todaysRevenue,
       totalClients: clients.length,
       newClientsThisWeek
@@ -88,10 +92,14 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-card border border-border p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-muted-foreground uppercase tracking-widest text-[10px]">Today's Appointments</span>
-            <CalendarIcon className="w-4 h-4 text-primary" />
+            <span className="text-muted-foreground uppercase tracking-widest text-[10px]">Consultations Today</span>
+            <CalendarIcon className="w-4 h-4 text-amber-500" />
           </div>
-          <span className="font-serif text-4xl">{stats.todayCount}</span>
+          <span className="font-serif text-4xl">{stats.todayConsultations}</span>
+          <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+            <span>Treatments</span>
+            <span className="font-medium text-foreground">{stats.todayTreatments}</span>
+          </div>
         </div>
 
         <div className="bg-card border border-border p-6 flex flex-col justify-between">
@@ -131,14 +139,15 @@ export default function AdminDashboard() {
               <tr>
                 <th className="px-6 py-4 font-normal">Date & Time</th>
                 <th className="px-6 py-4 font-normal">Client</th>
-                <th className="px-6 py-4 font-normal">Treatment</th>
+                <th className="px-6 py-4 font-normal">Type</th>
+                <th className="px-6 py-4 font-normal">Service</th>
                 <th className="px-6 py-4 font-normal">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {upcomingAppointments.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
                     No upcoming appointments.
                   </td>
                 </tr>
@@ -150,6 +159,13 @@ export default function AdminDashboard() {
                       <div className="text-xs text-muted-foreground">{appt.time}</div>
                     </td>
                     <td className="px-6 py-4">{appt.clientName}</td>
+                    <td className="px-6 py-4">
+                      {appt.appointmentType === 'consultation' ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border bg-amber-500/15 text-amber-700 border-amber-400/30">Consultation</span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border bg-primary/10 text-primary border-primary/20">Treatment</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">{appt.serviceName}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border ${getStatusColor(appt.status)}`}>
