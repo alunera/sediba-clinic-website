@@ -14,7 +14,7 @@ import {
   scheduleReminderMessage,
   computeReminderTime,
 } from "../lib/whatsapp";
-import { clinicToday, isPastSlot } from "../lib/clinic-time";
+import { clinicToday, isPastSlot, monthEnd } from "../lib/clinic-time";
 import { requireAdmin } from "../middlewares/admin-auth";
 
 const router = Router();
@@ -232,7 +232,7 @@ router.get("/appointments/available-dates", async (req, res): Promise<void> => {
   const configured = await db
     .select({ date: availabilitySlotsTable.date, time: availabilitySlotsTable.time })
     .from(availabilitySlotsTable)
-    .where(and(gte(availabilitySlotsTable.date, from), lte(availabilitySlotsTable.date, `${month}-31`)));
+    .where(and(gte(availabilitySlotsTable.date, from), lte(availabilitySlotsTable.date, monthEnd(month))));
 
   if (configured.length === 0) {
     res.json({ dates: [] });
@@ -245,7 +245,7 @@ router.get("/appointments/available-dates", async (req, res): Promise<void> => {
     .where(
       and(
         gte(appointmentsTable.date, from),
-        lte(appointmentsTable.date, `${month}-31`),
+        lte(appointmentsTable.date, monthEnd(month)),
         ne(appointmentsTable.status, "cancelled")
       )
     );

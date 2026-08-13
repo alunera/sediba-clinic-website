@@ -25,6 +25,13 @@ export function clinicNowTime(): string {
   }).format(new Date());
 }
 
+/** Last day of a "YYYY-MM" month as "YYYY-MM-DD" (handles 28/29/30/31-day months). */
+export function monthEnd(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return `${month}-${String(lastDay).padStart(2, "0")}`;
+}
+
 /** True if the given date ("YYYY-MM-DD") + time ("HH:MM") is in the past, clinic time. */
 export function isPastSlot(date: string, time: string): boolean {
   const today = clinicToday();

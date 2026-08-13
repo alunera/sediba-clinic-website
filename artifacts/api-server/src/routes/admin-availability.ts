@@ -3,6 +3,7 @@ import { db, availabilitySlotsTable, appointmentsTable } from "@workspace/db";
 import { and, eq, gte, lte, ne, inArray, sql } from "drizzle-orm";
 import { AdminAddAvailabilitySlotsBody } from "@workspace/api-zod";
 import { requireAdmin } from "../middlewares/admin-auth";
+import { monthEnd } from "../lib/clinic-time";
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.get("/admin/availability", requireAdmin, async (req, res): Promise<void> 
   const slots = await db
     .select()
     .from(availabilitySlotsTable)
-    .where(and(gte(availabilitySlotsTable.date, `${month}-01`), lte(availabilitySlotsTable.date, `${month}-31`)))
+    .where(and(gte(availabilitySlotsTable.date, `${month}-01`), lte(availabilitySlotsTable.date, monthEnd(month))))
     .orderBy(availabilitySlotsTable.date, availabilitySlotsTable.time);
 
   const dates = [...new Set(slots.map((s) => s.date))];
