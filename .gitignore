@@ -2,6 +2,7 @@
 
 # compiled output
 dist
+!lib/db/dist
 tmp
 out-tsc
 *.tsbuildinfo
