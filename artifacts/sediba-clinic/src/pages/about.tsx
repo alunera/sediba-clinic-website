@@ -22,7 +22,7 @@ const principles = [
 ];
 
 const steps = [
-  { num: "01", text: "Schedule an appointment by email, online, WhatsApp or call us." },
+  { num: "01", text: "Schedule an appointment by email, online or call us." },
   { num: "02", text: "One-on-one consultation: establishing your skin concern by analysing your skin, lifestyle and treatment history." },
   { num: "03", text: "Treatment plan and home care prescribed products to maintain your healthy skin." },
   { num: "04", text: "Your skin journey begins." },
@@ -201,15 +201,10 @@ export default function About() {
                   </Link>
                 </div>
                 <div>
-                  <h4 className="font-sans uppercase tracking-[0.2em] text-[10px] text-primary mb-2">WhatsApp</h4>
-                  <a
-                    href="https://wa.me/27814566402"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-foreground text-lg hover:text-primary transition-colors"
-                  >
-                    Chat on WhatsApp
-                  </a>
+                  <h4 className="font-sans uppercase tracking-[0.2em] text-[10px] text-primary mb-2">Sedi Assistant</h4>
+                  <Link href="/ai-assistant" className="text-foreground text-lg hover:text-primary transition-colors">
+                    Chat to Sedi for all the questions you need
+                  </Link>
                 </div>
               </div>
             </motion.div>
