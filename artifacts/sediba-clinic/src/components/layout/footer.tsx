@@ -97,8 +97,8 @@ export function Footer() {
             <h3 className="font-serif text-lg tracking-widest uppercase mb-6 text-primary">Contact</h3>
             <ul className="space-y-4 text-white/80 text-sm">
               <li>Hertford Office Park</li>
-              <li>90 Bekker Road, Vorna Valley</li>
-              <li>Midrand, South Africa</li>
+              <li>Building M</li>
+              <li>Waterfall, Midrand</li>
               <li className="pt-4">
                 <a href="mailto:info@sedibawellnessclinic.co.za" className="hover:text-primary transition-colors">
                   info@sedibawellnessclinic.co.za

@@ -4,16 +4,20 @@ import { Button } from "@/components/ui/button";
 
 const principles = [
   {
-    title: "Expertise",
-    desc: "We remain curious and constantly seek to acquire and build deep knowledge, skills and critical experience in our specialised fields, and areas of service delivery.",
+    title: "Experienced",
+    desc: "Years of hands-on aesthetic, skin and body experience.",
   },
   {
-    title: "Proven Results",
-    desc: "We strive to find the best personalised care for your specific wellbeing aims and/or concerns, in order to enhance your treatment results and experience.",
+    title: "Personalised",
+    desc: "Your treatment is prescribed according to your skin, goals and progress.",
   },
   {
-    title: "Service Excellence",
-    desc: "Our professional staff are committed to providing the safest and most effective care and service.",
+    title: "Results-focused",
+    desc: "We measure success through real skin transformation.",
+  },
+  {
+    title: "Holistic 360 Approach",
+    desc: "Skin, body and wellbeing are treated as part of the same experience, combining gut support and hormonal support.",
   },
 ];
 
@@ -44,23 +48,17 @@ export default function About() {
           >
             <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-6 block">Our Story</span>
             <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-8 leading-tight">
-              A sanctuary for the senses
+              Care begins with experience
             </h1>
             <div className="space-y-6 text-muted-foreground font-light leading-relaxed">
               <p>
-                We bring together a blend of classic clinical treatments, trusted advice, and spa tranquility, all wrapped up in modern luxury.
+                At Sediba Aesthetic and Wellness Clinic care begins with experience.
               </p>
               <p>
-                At Sediba Wellness Clinic you can expect to be greeted by the cream of the crop health and skincare therapists, massage specialists, and nail technicians. Our team has amassed years of experience, and are best placed to deliver excellent service, and offer you advice that supports your wellness goals.
+                Every skin is different. Every concern has a story. And every treatment should have a purpose.
               </p>
               <p>
-                We offer supporting product ranges from leading brands, including <strong className="text-foreground font-medium">Dermalogica</strong>, <strong className="text-foreground font-medium">DMK</strong>, <strong className="text-foreground font-medium">Depelive</strong> and <strong className="text-foreground font-medium">CND</strong>. These brands are inspired by nature and propelled by science: vegan friendly, cruelty free, and environmentally conscious.
-              </p>
-              <p>
-                Our clinic is fully kitted out with three comfortable treatment rooms, as well as a manicure and pedicure zone that is partially hidden, ensuring that you enjoy absolute comfort and privacy.
-              </p>
-              <p>
-                The highlight of every Sediba experience is that we take great care and intention in walking you through your urban retreat away from the pressures of modern life. Every colour, sound, scent, and texture has been carefully selected to enhance your experience and treatment results. We want you to always walk out feeling pampered, revitalised, and at your very best.
+                Our approach combines professional skin knowledge, advanced aesthetic treatments and restorative wellness to create personalised treatment pathways designed around you.
               </p>
             </div>
           </motion.div>
@@ -78,13 +76,10 @@ export default function About() {
             className="text-center mb-16"
           >
             <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-4 block">What Drives Us</span>
-            <h2 className="font-serif text-4xl">Our Guiding Principles</h2>
-            <p className="text-white/60 mt-4 font-light max-w-xl mx-auto">
-              Sediba Wellness Clinic was founded on three principles:
-            </p>
+            <h2 className="font-serif text-4xl">Why Sediba</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
             {principles.map((p, i) => (
               <motion.div
                 key={i}
@@ -157,8 +152,8 @@ export default function About() {
                 <p className="font-serif text-xl mb-4">Sediba Aesthetic & Wellness Clinic</p>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                   Hertford Office Park<br />
-                  90 Bekker Road, Vorna Valley<br />
-                  Midrand, South Africa
+                  Building M<br />
+                  Waterfall, Midrand
                 </p>
                 <p className="text-xs text-muted-foreground italic">Free parking available on premises.</p>
                 <h4 className="font-sans uppercase tracking-[0.2em] text-[10px] text-primary mb-2 mt-8">Hours</h4>

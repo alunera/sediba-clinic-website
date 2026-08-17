@@ -8,14 +8,14 @@ const googleReviews = [
     name: "Thandi M.",
     rating: 5,
     date: "3 weeks ago",
-    text: "Absolutely phenomenal experience from start to finish. The team is highly professional and the environment is so serene and luxurious. My skin has never looked better after the HydraFacial treatment.",
+    text: "Absolutely phenomenal experience from start to finish. The team is highly professional and the environment is so serene and luxurious. My skin has never looked better after the Lumifusion treatment.",
     avatar: "TM",
   },
   {
     name: "Priya N.",
     rating: 5,
     date: "1 month ago",
-    text: "I've been coming to Sediba for a few months now and the results speak for themselves. The staff are incredibly knowledgeable and always make me feel at ease. Highly recommend the IV Drip Therapy.",
+    text: "I've been coming to Sediba for a few months now and the results speak for themselves. The staff are incredibly knowledgeable and always make me feel at ease. Highly recommend the Microneedling treatment.",
     avatar: "PN",
   },
   {
