@@ -1,0 +1,336 @@
+SEDIBA WELLNESS — PHASE 2C
+100% DEPOSIT / PAYMENT TO SECURE BOOKINGS
+
+We are now working on Phase 2C of the Sediba Wellness booking system.
+
+IMPORTANT:
+The following functionality is already implemented and working:
+
+- Sediba website
+- Services page
+- Current treatment menu and pricing
+- Book buttons
+- Treatment pre-selection
+- Booking page
+- Consultant-controlled availability
+- Available dates
+- Available time slots
+
+DO NOT rebuild or replace these systems.
+
+The next requirement is PAYMENT.
+
+BUSINESS REQUIREMENT:
+
+Sediba Wellness requires a 100% deposit/payment to secure an appointment.
+
+The appointment must NOT be considered confirmed until the required payment has successfully been completed.
+
+This requirement comes directly from the Sediba client discussion, where the owner specifically requested 100% deposit payment to prevent time-wasters.
+
+GOAL:
+
+Add a secure payment step to the existing booking flow.
+
+CURRENT FLOW:
+
+Services
+→ Treatment
+→ Availability calendar
+→ Date
+→ Time
+→ Customer details
+
+UPDATE THE FLOW TO:
+
+Services
+→ Treatment
+→ Availability
+→ Date
+→ Time
+→ Customer details
+→ Booking summary
+→ PAYMENT
+→ Payment successful
+→ Appointment confirmed
+
+PAYMENT REQUIREMENT:
+
+The customer must pay 100% of the treatment price shown on the Services/Booking system.
+
+Use the existing treatment pricing already implemented.
+
+DO NOT create a second pricing system.
+
+The payment amount must be retrieved from the same central treatment data already used by the booking system.
+
+BOOKING STATUS:
+
+Implement clear booking/payment states.
+
+At minimum:
+
+- Pending Payment
+- Payment Successful / Paid
+- Payment Failed
+- Cancelled
+
+A booking should only become CONFIRMED after successful payment.
+
+PAYMENT FLOW:
+
+1. Customer selects treatment.
+2. Customer selects available date.
+3. Customer selects available time.
+4. Customer enters required customer details.
+5. Customer sees a final booking summary:
+
+Treatment:
+[Name]
+
+Price:
+[R amount]
+
+Date:
+[Date]
+
+Time:
+[Time]
+
+6. Customer proceeds to payment.
+7. Customer completes payment.
+8. Backend verifies successful payment.
+9. Booking is marked as Paid/Confirmed.
+10. Customer receives confirmation.
+
+IMPORTANT:
+
+Do not mark a booking as confirmed simply because the customer reached the payment page.
+
+The backend must verify the payment result.
+
+AVAILABILITY / SLOT PROTECTION:
+
+The payment system must work correctly with the existing availability system.
+
+We must avoid double booking.
+
+Consider the following scenario:
+
+Customer A selects:
+
+20 August
+10:30
+
+Customer A proceeds to payment.
+
+Another customer must not be able to successfully book the same slot at the same time.
+
+Implement appropriate temporary reservation/locking behaviour if required by the payment provider.
+
+If payment fails or the customer abandons payment, the temporary reservation should eventually be released according to a sensible timeout.
+
+Do not permanently block appointment slots because someone simply opened the payment page.
+
+PAYMENT PROVIDER:
+
+FIRST inspect the existing project to determine whether a payment provider/integration already exists.
+
+If one already exists:
+→ reuse it.
+
+If no payment provider exists:
+→ DO NOT invent or hard-code payment credentials.
+
+Determine the cleanest integration approach and tell me which payment provider/API credentials are required before implementing production payments.
+
+Because Sediba is a South African business, the solution should be appropriate for South African payments.
+
+Use environment variables for all secret/API credentials.
+
+Never hard-code:
+
+- API keys
+- Secret keys
+- Payment credentials
+
+ADMIN:
+
+The consultant/admin should eventually be able to see:
+
+Customer
+Treatment
+Date
+Time
+Amount
+Payment status
+Booking status
+
+For this task, implement the minimum admin/payment status functionality necessary without redesigning the entire CRM.
+
+BOOKING CONFIRMATION:
+
+After successful payment, show the customer a professional confirmation page.
+
+Include:
+
+✓ Booking confirmed
+
+Treatment
+Date
+Time
+Amount paid
+
+Include clear next-step information.
+
+If the existing booking confirmation system already exists, extend it rather than creating a duplicate system.
+
+ERROR HANDLING:
+
+Handle:
+
+- Payment failed
+- Payment cancelled
+- Payment declined
+- Customer closes payment window
+- Payment succeeds but confirmation callback/webhook is delayed
+- Duplicate payment attempt
+- Expired payment session
+- Slot no longer available
+
+Do not show a booking as confirmed when payment has not actually been verified.
+
+WEBHOOK / BACKEND VERIFICATION:
+
+If the selected payment provider supports webhooks:
+
+Use the provider's webhook/server-side confirmation mechanism to verify successful payments.
+
+Do not rely only on the customer's browser redirect to determine whether payment succeeded.
+
+DATABASE:
+
+Before making database changes:
+
+1. Inspect the existing booking schema.
+2. Inspect existing treatment/pricing data.
+3. Inspect existing availability data.
+4. Reuse existing structures where possible.
+
+Add only the fields/tables necessary for payment tracking.
+
+Do not create duplicate booking systems.
+
+TESTING:
+
+Test the complete flow.
+
+TEST 1:
+Customer selects a treatment.
+
+Confirm the correct price appears.
+
+TEST 2:
+Customer selects an available date and time.
+
+Confirm the correct date/time appears in the booking summary.
+
+TEST 3:
+Customer reaches payment.
+
+Confirm the correct treatment price is charged/displayed.
+
+TEST 4:
+Successful test payment.
+
+Confirm:
+
+- Payment status = Paid
+- Booking status = Confirmed
+- Appointment is saved
+- Slot is no longer available to another customer
+- Confirmation is displayed
+
+TEST 5:
+Failed payment.
+
+Confirm:
+
+- Booking is NOT confirmed
+- Payment status reflects failure
+- Customer receives an appropriate message
+- Appointment slot is handled correctly
+
+TEST 6:
+Cancelled payment.
+
+Confirm:
+
+- Booking is not falsely confirmed
+- Slot is released appropriately
+
+TEST 7:
+Double booking.
+
+Attempt to book the same date/time from another session.
+
+Confirm the system prevents the second booking.
+
+TEST 8:
+Mobile.
+
+Test the entire payment/booking flow at approximately 390px width.
+
+DESIGN:
+
+The payment step must match the current Sediba Wellness aesthetic.
+
+Do not introduce a generic-looking checkout page.
+
+Keep it:
+
+- Clean
+- Elegant
+- Premium
+- Simple
+- Mobile-friendly
+
+IMPORTANT:
+
+Do NOT push to GitHub yet.
+
+Do NOT deploy to Netlify yet.
+
+Do NOT modify unrelated parts of the website.
+
+First inspect the existing code and tell me:
+
+1. What payment functionality already exists.
+2. What payment provider you recommend/use.
+3. What credentials/configuration are required.
+4. What database changes are needed.
+5. How you will protect appointment slots during payment.
+
+Then implement Phase 2C.
+
+After implementation:
+
+- Run tests.
+- Run the production build.
+- Test successful payment using a test/sandbox environment where available.
+- Test failed/cancelled payment.
+- Test double-booking protection.
+- Confirm the existing availability system still works.
+
+At the end, report:
+
+1. Files changed.
+2. Database changes.
+3. Payment provider/integration used.
+4. Booking/payment states implemented.
+5. How payment verification works.
+6. How slot locking works.
+7. Tests performed and results.
+8. Any credentials/configuration I still need to provide.
+
+WAIT FOR MY APPROVAL BEFORE PUSHING TO GITHUB.
