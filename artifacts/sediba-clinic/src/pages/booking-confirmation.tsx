@@ -1,15 +1,39 @@
 import { useLocation } from "wouter";
 import { format } from "date-fns";
-import { 
-  useGetAppointmentByRef, 
-  getGetAppointmentByRefQueryKey 
+import {
+  useGetAppointmentByRef,
+  getGetAppointmentByRefQueryKey,
+  useGetPaymentStatus,
+  getGetPaymentStatusQueryKey,
+  useInitiatePayment,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
+/** Build and auto-submit a hidden form that redirects to PayFast. */
+function redirectToPayfast(url: string, fields: Record<string, string>) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = url;
+  for (const [name, value] of Object.entries(fields)) {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
 
 export default function BookingConfirmation() {
   const [, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const ref = searchParams.get("ref");
+  const paymentParam = searchParams.get("payment"); // return | cancelled | retry | null
+  const queryClient = useQueryClient();
+  const [retrying, setRetrying] = useState(false);
 
   const { data: appointment, isLoading, isError } = useGetAppointmentByRef(ref || "", {
     query: {
@@ -17,6 +41,36 @@ export default function BookingConfirmation() {
       queryKey: getGetAppointmentByRefQueryKey(ref || "")
     }
   });
+
+  // While the booking awaits payment verification, poll the payment status —
+  // the PayFast webhook may land seconds after the client returns.
+  const awaitingPayment =
+    !!appointment && (appointment.status === "pending_payment" || appointment.status === "payment_failed");
+  const statusParams = { ref: ref || "" };
+  const { data: paymentStatus } = useGetPaymentStatus(statusParams, {
+    query: {
+      enabled: !!ref && awaitingPayment,
+      queryKey: getGetPaymentStatusQueryKey(statusParams),
+      refetchInterval: 3000,
+    },
+  });
+
+  // When polling reports the booking flipped to confirmed, refresh it.
+  useEffect(() => {
+    if (paymentStatus && appointment && paymentStatus.bookingStatus !== appointment.status) {
+      queryClient.invalidateQueries({ queryKey: getGetAppointmentByRefQueryKey(ref || "") });
+    }
+  }, [paymentStatus, appointment, queryClient, ref]);
+
+  const initiatePayment = useInitiatePayment();
+  const handleRetryPayment = () => {
+    if (!ref) return;
+    setRetrying(true);
+    initiatePayment.mutate({ data: { bookingRef: ref } }, {
+      onSuccess: (payment) => redirectToPayfast(payment.url, payment.fields),
+      onError: () => setRetrying(false),
+    });
+  };
 
   if (!ref) {
     return (
@@ -49,11 +103,78 @@ export default function BookingConfirmation() {
     );
   }
 
+  // ── Payment-state screens ────────────────────────────────────────────────
+  if (appointment.status === "pending_payment" || appointment.status === "payment_failed") {
+    const failed = appointment.status === "payment_failed" || paymentParam === "cancelled";
+    return (
+      <div className="min-h-screen pt-32 pb-24 bg-background flex flex-col items-center">
+        <div className="container max-w-2xl px-6 text-center">
+          <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-4 block">
+            {failed ? "Payment Incomplete" : "Awaiting Payment"}
+          </span>
+          <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+            {failed ? "Your Payment Was Not Completed" : "Verifying Your Payment"}
+          </h1>
+          <p className="text-muted-foreground font-light mb-8">
+            {failed
+              ? "Your slot is still reserved for a short while. Complete payment now to secure your appointment."
+              : "One moment — we're confirming your payment with our payment partner. This page updates automatically."}
+          </p>
+
+          <div className="bg-card border border-border p-8 mb-8">
+            <span className="uppercase tracking-widest text-[10px] text-muted-foreground block mb-2">Booking Reference</span>
+            <span className="font-mono text-2xl tracking-[0.2em] block mb-6">{appointment.bookingRef}</span>
+            <div className="flex justify-between items-center border-t border-border pt-6">
+              <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">Amount Due</span>
+              <span className="font-serif text-xl">R{(appointment.totalAmountCents / 100).toFixed(2)}</span>
+            </div>
+          </div>
+
+          {!failed && (
+            <div className="flex items-center justify-center gap-3 mb-8 text-muted-foreground text-sm">
+              <span className="inline-block h-2 w-2 rounded-full bg-primary animate-pulse" />
+              Checking payment status…
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button
+              onClick={handleRetryPayment}
+              disabled={retrying || initiatePayment.isPending}
+              className="rounded-none uppercase tracking-widest text-xs px-10 py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {retrying ? "Redirecting..." : failed ? "Complete Payment" : "Reopen Payment Page"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/")}
+              className="rounded-none uppercase tracking-widest text-xs px-8 border-border"
+            >
+              Return Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (appointment.status === "cancelled") {
+    return (
+      <div className="min-h-screen pt-32 pb-24 bg-background flex flex-col items-center justify-center text-center px-6">
+        <h1 className="font-serif text-3xl mb-4">Booking No Longer Active</h1>
+        <p className="text-muted-foreground mb-8 max-w-md">
+          This reservation ({appointment.bookingRef}) was cancelled — unpaid bookings are released after 30 minutes.
+          Please make a new booking.
+        </p>
+        <Button onClick={() => setLocation("/book")} className="rounded-none uppercase tracking-widest text-xs px-8">
+          Book Again
+        </Button>
+      </div>
+    );
+  }
+
   const handleCalendarDownload = () => {
     // Generate a basic .ics file content
-    const dateStr = appointment.date.replace(/-/g, "");
-    const timeStr = appointment.time.replace(":", "") + "00";
-    // This is a naive implementation; real world needs timezone handling
     const startObj = new Date(`${appointment.date}T${appointment.time}`);
     // Assume 60 min duration for calendar invite if we don't have duration in the appointment object
     const endObj = new Date(startObj.getTime() + 60 * 60 * 1000); 
@@ -118,7 +239,7 @@ export default function BookingConfirmation() {
             </div>
             
             <div className="flex justify-between items-center pt-6 border-t border-border">
-              <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">Total Amount</span>
+              <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">Amount Paid</span>
               <span className="font-serif text-xl">R{(appointment.totalAmountCents / 100).toFixed(2)}</span>
             </div>
           </div>

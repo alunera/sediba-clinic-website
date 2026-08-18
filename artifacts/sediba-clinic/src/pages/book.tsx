@@ -9,7 +9,8 @@ import {
   getGetAvailabilityQueryKey,
   useGetAvailableDates,
   getGetAvailableDatesQueryKey,
-  useCreateAppointment
+  useCreateAppointment,
+  useInitiatePayment
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -106,7 +107,25 @@ export default function Book() {
   );
 
   const createAppointment = useCreateAppointment();
+  const initiatePayment = useInitiatePayment();
+  const [redirecting, setRedirecting] = useState(false);
   const queryClient = useQueryClient();
+
+  /** Build and auto-submit a hidden form that redirects to PayFast. */
+  const redirectToPayfast = (url: string, fields: Record<string, string>) => {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = url;
+    for (const [name, value] of Object.entries(fields)) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+    document.body.appendChild(form);
+    form.submit();
+  };
 
   const handleBook = () => {
     if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone || !policyAgreed) {
@@ -128,6 +147,26 @@ export default function Book() {
       }
     }, {
       onSuccess: (data) => {
+        if (data.status === "pending_payment") {
+          // Slot is reserved — now take the client to secure payment.
+          setRedirecting(true);
+          initiatePayment.mutate({ data: { bookingRef: data.bookingRef } }, {
+            onSuccess: (payment) => {
+              toast({
+                title: "Slot Reserved",
+                description: "Redirecting you to our secure payment partner…",
+              });
+              redirectToPayfast(payment.url, payment.fields);
+            },
+            onError: () => {
+              setRedirecting(false);
+              // Slot stays reserved briefly — send them to the confirmation
+              // page where payment can be retried.
+              setLocation(`/booking-confirmation?ref=${data.bookingRef}&payment=retry`);
+            },
+          });
+          return;
+        }
         toast({
           title: "Reservation Confirmed",
           description: "Your appointment has been successfully booked.",
@@ -510,10 +549,14 @@ export default function Book() {
                 </Button>
                 <Button 
                   onClick={handleBook} 
-                  disabled={createAppointment.isPending}
+                  disabled={createAppointment.isPending || redirecting}
                   className="rounded-none uppercase tracking-widest text-xs px-10 py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  {createAppointment.isPending ? "Confirming..." : "Confirm Booking"}
+                  {redirecting
+                    ? "Redirecting to Payment..."
+                    : createAppointment.isPending
+                      ? "Reserving..."
+                      : "Proceed to Secure Payment"}
                 </Button>
               </div>
             </div>

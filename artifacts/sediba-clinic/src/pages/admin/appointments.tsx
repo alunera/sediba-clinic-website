@@ -8,7 +8,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type StatusTab = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
+type StatusTab = 'all' | 'pending' | 'pending_payment' | 'payment_failed' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
 
 export default function AdminAppointments() {
   const queryClient = useQueryClient();
@@ -47,6 +47,8 @@ export default function AdminAppointments() {
   const getStatusColor = (status: string) => {
     switch(status) {
       case 'pending': return "bg-muted text-muted-foreground border-border";
+      case 'pending_payment': return "bg-amber-500/20 text-amber-700 border-amber-500/30";
+      case 'payment_failed': return "bg-destructive/20 text-destructive border-destructive/30";
       case 'confirmed': return "bg-primary/20 text-primary border-primary/30";
       case 'completed': return "bg-green-500/20 text-green-700 border-green-500/30";
       case 'cancelled': return "bg-destructive/20 text-destructive border-destructive/30";
@@ -60,6 +62,8 @@ export default function AdminAppointments() {
     { id: 'confirmed', label: 'Confirmed' },
     { id: 'completed', label: 'Completed' },
     { id: 'pending', label: 'Pending' },
+    { id: 'pending_payment', label: 'Awaiting Payment' },
+    { id: 'payment_failed', label: 'Payment Failed' },
     { id: 'cancelled', label: 'Cancelled' },
     { id: 'no-show', label: 'No-Show' }
   ];
@@ -155,6 +159,8 @@ export default function AdminAppointments() {
                         </SelectTrigger>
                         <SelectContent className="rounded-none border-border">
                           <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="pending_payment">Awaiting Payment</SelectItem>
+                          <SelectItem value="payment_failed">Payment Failed</SelectItem>
                           <SelectItem value="confirmed">Confirmed</SelectItem>
                           <SelectItem value="completed">Completed</SelectItem>
                           <SelectItem value="cancelled">Cancelled</SelectItem>

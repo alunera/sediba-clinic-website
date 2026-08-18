@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { runSchemaMigrations } from "./lib/migrations";
 import { rehydrateReminders } from "./lib/whatsapp";
+import { releaseExpiredPendingBookings } from "./routes/payments";
 
 const rawPort = process.env["PORT"];
 
@@ -31,6 +32,13 @@ runSchemaMigrations()
 
       // Re-queue any reminders that were pending when the server last stopped.
       void rehydrateReminders();
+
+      // Periodically release slots held by abandoned unpaid bookings.
+      setInterval(() => {
+        releaseExpiredPendingBookings().catch((err) =>
+          logger.error({ err }, "[Payments] Expiry sweep failed")
+        );
+      }, 60_000);
     });
   })
   .catch((err) => {

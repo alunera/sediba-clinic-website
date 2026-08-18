@@ -37,11 +37,15 @@ import type {
   GetAvailabilityParams,
   GetAvailableDates200,
   GetAvailableDatesParams,
+  GetPaymentStatusParams,
   HealthStatus,
+  InitiatePaymentBody,
   OpenaiConversation,
   OpenaiConversationWithMessages,
   OpenaiError,
   OpenaiMessage,
+  PaymentFormResponse,
+  PaymentStatusResponse,
   SendOpenaiMessageBody,
   Service,
   ServiceCategory,
@@ -1300,6 +1304,189 @@ export function useAdminMe<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getAdminMeQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a PayFast payment attempt for a pending booking
+ */
+export const getInitiatePaymentUrl = () => {
+  return `/api/payments/initiate`;
+};
+
+export const initiatePayment = async (
+  initiatePaymentBody: InitiatePaymentBody,
+  options?: RequestInit,
+): Promise<PaymentFormResponse> => {
+  return customFetch<PaymentFormResponse>(getInitiatePaymentUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(initiatePaymentBody),
+  });
+};
+
+export const getInitiatePaymentMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof initiatePayment>>,
+    TError,
+    { data: BodyType<InitiatePaymentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof initiatePayment>>,
+  TError,
+  { data: BodyType<InitiatePaymentBody> },
+  TContext
+> => {
+  const mutationKey = ["initiatePayment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof initiatePayment>>,
+    { data: BodyType<InitiatePaymentBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return initiatePayment(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type InitiatePaymentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof initiatePayment>>
+>;
+export type InitiatePaymentMutationBody = BodyType<InitiatePaymentBody>;
+export type InitiatePaymentMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Create a PayFast payment attempt for a pending booking
+ */
+export const useInitiatePayment = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof initiatePayment>>,
+    TError,
+    { data: BodyType<InitiatePaymentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof initiatePayment>>,
+  TError,
+  { data: BodyType<InitiatePaymentBody> },
+  TContext
+> => {
+  return useMutation(getInitiatePaymentMutationOptions(options));
+};
+
+/**
+ * @summary Get booking + payment status by booking reference
+ */
+export const getGetPaymentStatusUrl = (params: GetPaymentStatusParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/payments/status?${stringifiedParams}`
+    : `/api/payments/status`;
+};
+
+export const getPaymentStatus = async (
+  params: GetPaymentStatusParams,
+  options?: RequestInit,
+): Promise<PaymentStatusResponse> => {
+  return customFetch<PaymentStatusResponse>(getGetPaymentStatusUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPaymentStatusQueryKey = (
+  params?: GetPaymentStatusParams,
+) => {
+  return [`/api/payments/status`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetPaymentStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPaymentStatus>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  params: GetPaymentStatusParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPaymentStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPaymentStatusQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPaymentStatus>>
+  > = ({ signal }) => getPaymentStatus(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPaymentStatus>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPaymentStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPaymentStatus>>
+>;
+export type GetPaymentStatusQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get booking + payment status by booking reference
+ */
+
+export function useGetPaymentStatus<
+  TData = Awaited<ReturnType<typeof getPaymentStatus>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  params: GetPaymentStatusParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPaymentStatus>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPaymentStatusQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

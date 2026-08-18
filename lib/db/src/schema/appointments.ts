@@ -50,6 +50,34 @@ export const availabilitySlotsTable = pgTable(
   (t) => [uniqueIndex("availability_slots_date_time_uq").on(t.date, t.time)]
 );
 
+/**
+ * Payment attempts for appointments (PayFast). A booking is only confirmed
+ * once its payment reaches status "complete" via server-side verification.
+ */
+export const paymentsTable = pgTable(
+  "payments",
+  {
+    id: serial("id").primaryKey(),
+    appointmentId: integer("appointment_id").notNull().references(() => appointmentsTable.id),
+    bookingRef: text("booking_ref").notNull(),
+    /** Our unique id passed to PayFast as m_payment_id. */
+    mPaymentId: text("m_payment_id").notNull(),
+    /** PayFast's payment id (pf_payment_id) from the ITN, once known. */
+    pfPaymentId: text("pf_payment_id"),
+    amountCents: integer("amount_cents").notNull(),
+    provider: text("provider").notNull().default("payfast"),
+    /** created | complete | failed | cancelled */
+    status: text("status").notNull().default("created"),
+    /** Raw ITN payload for auditing/debugging. */
+    rawItn: text("raw_itn"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("payments_m_payment_id_uq").on(t.mPaymentId)]
+);
+
+export type Payment = typeof paymentsTable.$inferSelect;
+
 export const insertServiceSchema = createInsertSchema(servicesTable).omit({ id: true });
 export const insertAppointmentSchema = createInsertSchema(appointmentsTable).omit({ id: true, createdAt: true });
 

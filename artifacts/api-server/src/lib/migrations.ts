@@ -26,6 +26,22 @@ const MIGRATIONS = [
    )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS availability_slots_date_time_uq
      ON availability_slots (date, time)`,
+  // Phase 2C: payment tracking for 100% deposit bookings
+  `CREATE TABLE IF NOT EXISTS payments (
+     id SERIAL PRIMARY KEY,
+     appointment_id INTEGER NOT NULL REFERENCES appointments(id),
+     booking_ref TEXT NOT NULL,
+     m_payment_id TEXT NOT NULL,
+     pf_payment_id TEXT,
+     amount_cents INTEGER NOT NULL,
+     provider TEXT NOT NULL DEFAULT 'payfast',
+     status TEXT NOT NULL DEFAULT 'created',
+     raw_itn TEXT,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS payments_m_payment_id_uq
+     ON payments (m_payment_id)`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can

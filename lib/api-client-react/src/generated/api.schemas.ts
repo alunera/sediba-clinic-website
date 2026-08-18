@@ -13,6 +13,32 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface InitiatePaymentBody {
+  bookingRef: string;
+}
+
+export type PaymentFormResponseFields = { [key: string]: string };
+
+export type PaymentFormResponseMode =
+  (typeof PaymentFormResponseMode)[keyof typeof PaymentFormResponseMode];
+
+export const PaymentFormResponseMode = {
+  live: "live",
+  sandbox: "sandbox",
+} as const;
+
+export interface PaymentFormResponse {
+  url: string;
+  fields: PaymentFormResponseFields;
+  mode: PaymentFormResponseMode;
+}
+
+export interface PaymentStatusResponse {
+  bookingStatus: string;
+  paymentStatus: string;
+  amountCents: number;
+}
+
 export type AppointmentStatus =
   (typeof AppointmentStatus)[keyof typeof AppointmentStatus];
 
@@ -239,6 +265,10 @@ export type GetAvailableDatesParams = {
 
 export type GetAvailableDates200 = {
   dates: string[];
+};
+
+export type GetPaymentStatusParams = {
+  ref: string;
 };
 
 export type AdminGetAvailabilityParams = {

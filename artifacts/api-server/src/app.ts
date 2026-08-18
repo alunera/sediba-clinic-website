@@ -31,7 +31,16 @@ app.use(
 app.set("trust proxy", 1);
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Keep the raw urlencoded body available — the PayFast ITN handler must post
+// the exact received payload back to PayFast for server-side validation.
+app.use(
+  express.urlencoded({
+    extended: true,
+    verify: (req, _res, buf) => {
+      (req as unknown as { rawBody?: string }).rawBody = buf.toString("utf8");
+    },
+  })
+);
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "sediba-dev-secret",

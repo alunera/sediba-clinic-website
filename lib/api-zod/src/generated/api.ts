@@ -268,6 +268,32 @@ export const AdminMeResponse = zod.object({
 });
 
 /**
+ * @summary Create a PayFast payment attempt for a pending booking
+ */
+export const InitiatePaymentBody = zod.object({
+  bookingRef: zod.string(),
+});
+
+export const InitiatePaymentResponse = zod.object({
+  url: zod.string(),
+  fields: zod.record(zod.string(), zod.string()),
+  mode: zod.enum(["live", "sandbox"]),
+});
+
+/**
+ * @summary Get booking + payment status by booking reference
+ */
+export const GetPaymentStatusQueryParams = zod.object({
+  ref: zod.coerce.string(),
+});
+
+export const GetPaymentStatusResponse = zod.object({
+  bookingStatus: zod.string(),
+  paymentStatus: zod.string(),
+  amountCents: zod.number(),
+});
+
+/**
  * @summary List all appointments (admin)
  */
 export const AdminListAppointmentsResponseItem = zod.object({

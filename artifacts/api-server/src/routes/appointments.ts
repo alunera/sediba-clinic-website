@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { appointmentsTable, servicesTable, availabilitySlotsTable } from "@workspace/db";
+import { appointmentsTable, servicesTable, availabilitySlotsTable, paymentsTable } from "@workspace/db";
 import { and, eq, gte, lte, ne, sql } from "drizzle-orm";
 import {
   CreateAppointmentBody,
@@ -16,6 +16,7 @@ import {
 } from "../lib/whatsapp";
 import { clinicToday, isPastSlot, monthEnd } from "../lib/clinic-time";
 import { requireAdmin } from "../middlewares/admin-auth";
+import { releaseExpiredPendingBookings } from "./payments";
 
 const router = Router();
 
@@ -99,6 +100,14 @@ router.post("/appointments", async (req, res): Promise<void> => {
   // lock so an admin removing the slot (or another booking) cannot
   // interleave between the checks and the insert. The partial unique index
   // appointments_active_slot_uq is the final backstop.
+  // Phase 2C: treatments require 100% payment before confirmation.
+  // Consultations keep the original immediate-confirmation flow.
+  const requiresPayment = (appointmentType ?? "treatment") === "treatment" && totalAmountCents > 0;
+  const initialStatus = requiresPayment ? "pending_payment" : "confirmed";
+
+  // Release any expired unpaid bookings first so their slots are re-bookable.
+  await releaseExpiredPendingBookings();
+
   let appointment: typeof appointmentsTable.$inferSelect | undefined;
   let conflictError: string | null = null;
   try {
@@ -141,7 +150,7 @@ router.post("/appointments", async (req, res): Promise<void> => {
           date: dateStr,
           bookingRef,
           totalAmountCents,
-          status: "confirmed",
+          status: initialStatus,
           policyAgreed: policyAgreed ? "true" : "false",
           appointmentType: appointmentType ?? "treatment",
           reminderScheduledFor,
@@ -174,12 +183,17 @@ router.post("/appointments", async (req, res): Promise<void> => {
     time: appointment.time,
   };
 
-  // Send confirmation — failure is non-blocking
-  void sendBookingConfirmation(apptDetails);
+  // Paid bookings only get their confirmation + reminder after the payment
+  // is verified (see the PayFast ITN handler). Free/consultation bookings
+  // are confirmed immediately as before.
+  if (!requiresPayment) {
+    // Send confirmation — failure is non-blocking
+    void sendBookingConfirmation(apptDetails);
 
-  // Enqueue the in-process timer (reminderScheduledFor is already in the DB)
-  if (reminderScheduledFor) {
-    scheduleReminderMessage(apptDetails, reminderScheduledFor);
+    // Enqueue the in-process timer (reminderScheduledFor is already in the DB)
+    if (reminderScheduledFor) {
+      scheduleReminderMessage(apptDetails, reminderScheduledFor);
+    }
   }
 
   res.status(201).json({
@@ -342,6 +356,39 @@ router.patch("/appointments/:id", requireAdmin, async (req, res): Promise<void> 
   if (!bodyParsed.success) {
     res.status(400).json({ error: bodyParsed.error.message });
     return;
+  }
+
+  // Guard: a paid-treatment booking may only become "confirmed" through a
+  // verified PayFast payment — the generic admin update cannot bypass it.
+  if (bodyParsed.data.status === "confirmed") {
+    const [current] = await db
+      .select({
+        status: appointmentsTable.status,
+        appointmentType: appointmentsTable.appointmentType,
+        totalAmountCents: appointmentsTable.totalAmountCents,
+      })
+      .from(appointmentsTable)
+      .where(eq(appointmentsTable.id, paramsParsed.data.id))
+      .limit(1);
+    if (
+      current &&
+      (current.status === "pending_payment" || current.status === "payment_failed") &&
+      current.appointmentType === "treatment" &&
+      current.totalAmountCents > 0
+    ) {
+      const [paid] = await db
+        .select({ id: paymentsTable.id })
+        .from(paymentsTable)
+        .where(and(eq(paymentsTable.appointmentId, paramsParsed.data.id), eq(paymentsTable.status, "complete")))
+        .limit(1);
+      if (!paid) {
+        res.status(409).json({
+          error:
+            "This booking has not been paid. It can only be confirmed automatically once payment is verified.",
+        });
+        return;
+      }
+    }
   }
 
   const [updated] = await db
