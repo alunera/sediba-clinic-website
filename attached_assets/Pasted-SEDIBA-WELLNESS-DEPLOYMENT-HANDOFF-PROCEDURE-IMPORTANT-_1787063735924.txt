@@ -1,0 +1,176 @@
+SEDIBA WELLNESS — DEPLOYMENT & HANDOFF PROCEDURE
+
+IMPORTANT:
+This is the standard deployment procedure after completing development changes.
+
+Do NOT deploy directly to Netlify.
+Do NOT create a separate deployment.
+The deployment pipeline is:
+
+REPLIT → GITHUB → NETLIFY
+
+The GitHub repository is:
+
+alunera/sediba-clinic-website
+
+The production branch is:
+
+main
+
+
+STEP 1 — VERIFY THE CHANGES
+
+Before committing anything:
+
+1. Review all changes made during this task.
+2. Confirm that the requested functionality has been implemented.
+3. Check for unintended changes.
+4. Check for obvious errors.
+5. Run the appropriate tests.
+6. Run the production build if appropriate.
+7. Confirm the existing website functionality has not been broken.
+
+Do NOT commit or push yet if there are build-breaking errors.
+
+If there are errors:
+- explain them
+- fix them if they are related to this task
+- re-test
+- then continue
+
+
+STEP 2 — CHECK GIT STATUS
+
+Inspect the current Git status.
+
+Confirm:
+- which files changed
+- which files are new
+- which files were deleted
+- whether there are unrelated changes
+
+Do not commit unrelated changes.
+
+The commit should contain ONLY the changes related to the current task.
+
+
+STEP 3 — COMMIT THE CHANGES
+
+Create a clear descriptive commit message.
+
+Example:
+
+"Update Sediba booking availability calendar"
+
+or:
+
+"Fix treatment booking flow and availability"
+
+Do not use vague messages such as:
+
+"updates"
+"changes"
+"fixes"
+
+
+STEP 4 — PUSH TO GITHUB
+
+Push the commit to:
+
+alunera/sediba-clinic-website
+
+branch:
+
+main
+
+IMPORTANT:
+
+Do not create a new repository.
+
+Do not create a new branch unless explicitly instructed.
+
+Do not force-push.
+
+Do not delete or overwrite GitHub history.
+
+If GitHub authentication is required, stop and tell me rather than asking me to expose credentials in chat.
+
+After pushing, confirm:
+
+- repository
+- branch
+- commit hash
+- commit message
+
+
+STEP 5 — VERIFY GITHUB
+
+After the push, verify that the commit exists on:
+
+alunera/sediba-clinic-website
+
+and that the expected changed files are present.
+
+Do not tell me deployment is complete merely because the push succeeded.
+
+
+STEP 6 — NETLIFY HANDOFF
+
+The Netlify site is connected to the GitHub repository.
+
+Netlify should detect the new commit on main and handle the production deployment.
+
+DO NOT make Netlify changes from Replit.
+
+DO NOT attempt to use Netlify Agent.
+
+DO NOT manually upload files to Netlify.
+
+The expected deployment pipeline is:
+
+GitHub main
+→ Netlify
+→ production site
+
+
+STEP 7 — REPORT BACK TO ME
+
+After the GitHub push, give me a concise deployment handoff containing:
+
+GitHub repository:
+alunera/sediba-clinic-website
+
+Branch:
+main
+
+Commit:
+[commit hash]
+
+Commit message:
+[message]
+
+Files changed:
+[list]
+
+Tests:
+[list]
+
+Build:
+PASS / FAIL
+
+GitHub push:
+SUCCESS / FAILED
+
+Netlify:
+"GitHub commit pushed; Netlify production deployment should now be triggered."
+
+Do NOT claim that the live website is updated unless you have actually verified the Netlify production deployment.
+
+
+IMPORTANT FINAL RULE:
+
+Your responsibility ends after successfully committing and pushing the verified changes to GitHub.
+
+Netlify is responsible for taking the GitHub commit and deploying it.
+
+If the GitHub push succeeds but Netlify does not deploy, tell me that the GitHub push succeeded and that the issue is now on the Netlify side. Do not make unrelated changes to the code to try to solve a Netlify deployment problem.
