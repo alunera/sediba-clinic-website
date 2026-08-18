@@ -26,6 +26,9 @@ app.use(
     },
   }),
 );
+// Behind Replit's deployment proxy TLS terminates upstream; trust it so
+// express-session will issue secure cookies in production.
+app.set("trust proxy", 1);
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
