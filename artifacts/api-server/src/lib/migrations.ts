@@ -47,6 +47,17 @@ const MIGRATIONS = [
      ADD COLUMN IF NOT EXISTS webhook_event_id TEXT`,
   `CREATE UNIQUE INDEX IF NOT EXISTS payments_webhook_event_id_uq
      ON payments (webhook_event_id) WHERE webhook_event_id IS NOT NULL`,
+  // The dedicated consultation flow requires a service record in every environment.
+  `INSERT INTO services (name, category, description, duration, price_cents)
+     SELECT
+       'Consultation',
+       'consultation',
+       'A personalised consultation to assess your skin, understand your concerns and goals, and create a treatment plan designed around you.',
+       30,
+       35000
+     WHERE NOT EXISTS (
+       SELECT 1 FROM services WHERE lower(category) = 'consultation'
+     )`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can

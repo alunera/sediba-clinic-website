@@ -105,7 +105,11 @@ export default function BookConsultation() {
   const [policyAgreed, setPolicyAgreed] = useState(false);
 
   /* ── Queries ── */
-  const { data: services } = useListServices({
+  const {
+    data: services,
+    isLoading: isLoadingServices,
+    isError: isServicesError,
+  } = useListServices({
     query: { queryKey: getListServicesQueryKey() },
   });
 
@@ -413,7 +417,19 @@ export default function BookConsultation() {
           <Card>
             <h2 className="font-serif text-xl text-foreground mb-8">Select a Date & Time</h2>
 
-            {!consultationService && (
+            {isLoadingServices && (
+              <p className="text-muted-foreground text-sm mb-8">
+                Loading consultation availability…
+              </p>
+            )}
+
+            {isServicesError && (
+              <p className="text-muted-foreground text-sm mb-8">
+                We couldn't load consultation availability. Please refresh the page and try again.
+              </p>
+            )}
+
+            {!isLoadingServices && !isServicesError && !consultationService && (
               <p className="text-muted-foreground text-sm mb-8">
                 The consultation service has not been configured yet. Please contact us directly to book.
               </p>
