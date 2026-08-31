@@ -28,7 +28,7 @@ export interface AppointmentDetails {
 }
 
 /** Format a date string for display: "2026-08-12" → "12 August 2026" */
-function formatDate(dateStr: string): string {
+export function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-").map(Number);
   const d = new Date(year, month - 1, day);
   return d.toLocaleDateString("en-ZA", {
@@ -39,7 +39,7 @@ function formatDate(dateStr: string): string {
 }
 
 /** Format a time string for display: "09:00" → "09:00 AM" */
-function formatTime(time: string): string {
+export function formatTime(time: string): string {
   const [hourStr, minStr] = time.split(":");
   const hour = parseInt(hourStr, 10);
   const min = minStr;
@@ -74,7 +74,7 @@ function buildConfirmationMessage(appt: AppointmentDetails): string {
 }
 
 /** Build the 24-hour reminder message text. */
-function buildReminderMessage(appt: AppointmentDetails): string {
+export function buildReminderMessage(appt: AppointmentDetails): string {
   return [
     `Hi ${appt.clientName}! ⏰`,
     ``,
