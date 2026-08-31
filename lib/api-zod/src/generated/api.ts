@@ -32,6 +32,8 @@ export const ListAppointmentsResponseItem = zod.object({
   totalAmountCents: zod.number(),
   status: zod.enum([
     "pending",
+    "pending_payment",
+    "payment_failed",
     "confirmed",
     "cancelled",
     "completed",
@@ -81,6 +83,8 @@ export const GetAppointmentResponse = zod.object({
   totalAmountCents: zod.number(),
   status: zod.enum([
     "pending",
+    "pending_payment",
+    "payment_failed",
     "confirmed",
     "cancelled",
     "completed",
@@ -101,7 +105,15 @@ export const UpdateAppointmentParams = zod.object({
 
 export const UpdateAppointmentBody = zod.object({
   status: zod
-    .enum(["pending", "confirmed", "cancelled", "completed", "no-show"])
+    .enum([
+      "pending",
+      "pending_payment",
+      "payment_failed",
+      "confirmed",
+      "cancelled",
+      "completed",
+      "no-show",
+    ])
     .optional(),
   notes: zod.string().nullish(),
 });
@@ -120,6 +132,8 @@ export const UpdateAppointmentResponse = zod.object({
   totalAmountCents: zod.number(),
   status: zod.enum([
     "pending",
+    "pending_payment",
+    "payment_failed",
     "confirmed",
     "cancelled",
     "completed",
@@ -189,6 +203,8 @@ export const GetAppointmentByRefResponse = zod.object({
   totalAmountCents: zod.number(),
   status: zod.enum([
     "pending",
+    "pending_payment",
+    "payment_failed",
     "confirmed",
     "cancelled",
     "completed",
@@ -295,30 +311,38 @@ export const GetPaymentStatusResponse = zod.object({
 /**
  * @summary List all appointments (admin)
  */
-export const AdminListAppointmentsResponseItem = zod.object({
-  id: zod.number(),
-  bookingRef: zod.string(),
-  clientName: zod.string(),
-  clientEmail: zod.string(),
-  clientPhone: zod.string(),
-  clientWhatsapp: zod.string().nullish(),
-  serviceId: zod.number(),
-  serviceName: zod.string(),
-  date: zod.coerce.date(),
-  time: zod.string(),
-  totalAmountCents: zod.number(),
-  status: zod.enum([
-    "pending",
-    "confirmed",
-    "cancelled",
-    "completed",
-    "no-show",
-  ]),
-  notes: zod.string().nullish(),
-  policyAgreed: zod.string(),
-  appointmentType: zod.enum(["treatment", "consultation"]),
-  createdAt: zod.coerce.date(),
-});
+export const AdminListAppointmentsResponseItem = zod
+  .object({
+    id: zod.number(),
+    bookingRef: zod.string(),
+    clientName: zod.string(),
+    clientEmail: zod.string(),
+    clientPhone: zod.string(),
+    clientWhatsapp: zod.string().nullish(),
+    serviceId: zod.number(),
+    serviceName: zod.string(),
+    date: zod.coerce.date(),
+    time: zod.string(),
+    totalAmountCents: zod.number(),
+    status: zod.enum([
+      "pending",
+      "pending_payment",
+      "payment_failed",
+      "confirmed",
+      "cancelled",
+      "completed",
+      "no-show",
+    ]),
+    notes: zod.string().nullish(),
+    policyAgreed: zod.string(),
+    appointmentType: zod.enum(["treatment", "consultation"]),
+    createdAt: zod.coerce.date(),
+  })
+  .and(
+    zod.object({
+      paymentStatus: zod.enum(["paid", "pending", "failed", "unpaid"]),
+    }),
+  );
 export const AdminListAppointmentsResponse = zod.array(
   AdminListAppointmentsResponseItem,
 );
@@ -332,7 +356,15 @@ export const AdminUpdateAppointmentParams = zod.object({
 
 export const AdminUpdateAppointmentBody = zod.object({
   status: zod
-    .enum(["pending", "confirmed", "cancelled", "completed", "no-show"])
+    .enum([
+      "pending",
+      "pending_payment",
+      "payment_failed",
+      "confirmed",
+      "cancelled",
+      "completed",
+      "no-show",
+    ])
     .optional(),
   notes: zod.string().nullish(),
 });
@@ -351,6 +383,8 @@ export const AdminUpdateAppointmentResponse = zod.object({
   totalAmountCents: zod.number(),
   status: zod.enum([
     "pending",
+    "pending_payment",
+    "payment_failed",
     "confirmed",
     "cancelled",
     "completed",

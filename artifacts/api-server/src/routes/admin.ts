@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { appointmentsTable, servicesTable, adminConfigTable } from "@workspace/db";
+import { appointmentsTable, servicesTable, adminConfigTable, paymentsTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/admin-auth";
 import { logger } from "../lib/logger";
+import {
+  deriveAdminPaymentStatus,
+  groupPaymentAttempts,
+} from "../lib/admin-payment-status";
 
 const router = Router();
 
@@ -47,29 +51,50 @@ router.get("/admin/me", (req, res): void => {
 /* ── Admin Appointments ───────────────────────────────────────────────────── */
 
 router.get("/admin/appointments", requireAdmin, async (req, res): Promise<void> => {
-  const appointments = await db
-    .select({
-      id: appointmentsTable.id,
-      bookingRef: appointmentsTable.bookingRef,
-      clientName: appointmentsTable.clientName,
-      clientEmail: appointmentsTable.clientEmail,
-      clientPhone: appointmentsTable.clientPhone,
-      clientWhatsapp: appointmentsTable.clientWhatsapp,
-      serviceId: appointmentsTable.serviceId,
-      serviceName: servicesTable.name,
-      date: appointmentsTable.date,
-      time: appointmentsTable.time,
-      totalAmountCents: appointmentsTable.totalAmountCents,
-      status: appointmentsTable.status,
-      notes: appointmentsTable.notes,
-      policyAgreed: appointmentsTable.policyAgreed,
-      createdAt: appointmentsTable.createdAt,
-    })
-    .from(appointmentsTable)
-    .leftJoin(servicesTable, eq(appointmentsTable.serviceId, servicesTable.id))
-    .orderBy(appointmentsTable.date);
+  const [appointments, paymentAttempts] = await Promise.all([
+    db
+      .select({
+        id: appointmentsTable.id,
+        bookingRef: appointmentsTable.bookingRef,
+        clientName: appointmentsTable.clientName,
+        clientEmail: appointmentsTable.clientEmail,
+        clientPhone: appointmentsTable.clientPhone,
+        clientWhatsapp: appointmentsTable.clientWhatsapp,
+        serviceId: appointmentsTable.serviceId,
+        serviceName: servicesTable.name,
+        date: appointmentsTable.date,
+        time: appointmentsTable.time,
+        totalAmountCents: appointmentsTable.totalAmountCents,
+        status: appointmentsTable.status,
+        notes: appointmentsTable.notes,
+        policyAgreed: appointmentsTable.policyAgreed,
+        appointmentType: appointmentsTable.appointmentType,
+        createdAt: appointmentsTable.createdAt,
+      })
+      .from(appointmentsTable)
+      .leftJoin(servicesTable, eq(appointmentsTable.serviceId, servicesTable.id))
+      .orderBy(appointmentsTable.date),
+    db
+      .select({
+        id: paymentsTable.id,
+        appointmentId: paymentsTable.appointmentId,
+        status: paymentsTable.status,
+      })
+      .from(paymentsTable)
+      .orderBy(paymentsTable.id),
+  ]);
+  const attemptsByAppointment = groupPaymentAttempts(paymentAttempts);
 
-  res.json(appointments);
+  res.json(
+    appointments.map((appointment) => ({
+      ...appointment,
+      paymentStatus: deriveAdminPaymentStatus(
+        attemptsByAppointment.get(appointment.id) ?? [],
+        appointment.appointmentType,
+        appointment.totalAmountCents,
+      ),
+    })),
+  );
 });
 
 router.patch("/admin/appointments/:id", requireAdmin, async (req, res): Promise<void> => {

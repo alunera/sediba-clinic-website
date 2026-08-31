@@ -18,6 +18,7 @@ import type {
 
 import type {
   AdminAddSlotsBody,
+  AdminAppointment,
   AdminAuthResponse,
   AdminAvailabilityDay,
   AdminClearAvailabilityDate200,
@@ -1504,8 +1505,8 @@ export const getAdminListAppointmentsUrl = () => {
 
 export const adminListAppointments = async (
   options?: RequestInit,
-): Promise<Appointment[]> => {
-  return customFetch<Appointment[]>(getAdminListAppointmentsUrl(), {
+): Promise<AdminAppointment[]> => {
+  return customFetch<AdminAppointment[]>(getAdminListAppointmentsUrl(), {
     ...options,
     method: "GET",
   });

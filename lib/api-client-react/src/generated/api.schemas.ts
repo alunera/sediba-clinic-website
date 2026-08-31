@@ -41,6 +41,8 @@ export type AppointmentStatus =
 
 export const AppointmentStatus = {
   pending: "pending",
+  pending_payment: "pending_payment",
+  payment_failed: "payment_failed",
   confirmed: "confirmed",
   cancelled: "cancelled",
   completed: "completed",
@@ -74,6 +76,20 @@ export interface Appointment {
   createdAt: string;
 }
 
+export type AdminAppointmentPaymentStatus =
+  (typeof AdminAppointmentPaymentStatus)[keyof typeof AdminAppointmentPaymentStatus];
+
+export const AdminAppointmentPaymentStatus = {
+  paid: "paid",
+  pending: "pending",
+  failed: "failed",
+  unpaid: "unpaid",
+} as const;
+
+export type AdminAppointment = Appointment & {
+  paymentStatus: AdminAppointmentPaymentStatus;
+};
+
 export type CreateAppointmentBodyAppointmentType =
   (typeof CreateAppointmentBodyAppointmentType)[keyof typeof CreateAppointmentBodyAppointmentType];
 
@@ -100,6 +116,8 @@ export type UpdateAppointmentBodyStatus =
 
 export const UpdateAppointmentBodyStatus = {
   pending: "pending",
+  pending_payment: "pending_payment",
+  payment_failed: "payment_failed",
   confirmed: "confirmed",
   cancelled: "cancelled",
   completed: "completed",
@@ -116,6 +134,8 @@ export type AdminUpdateAppointmentBodyStatus =
 
 export const AdminUpdateAppointmentBodyStatus = {
   pending: "pending",
+  pending_payment: "pending_payment",
+  payment_failed: "payment_failed",
   confirmed: "confirmed",
   cancelled: "cancelled",
   completed: "completed",

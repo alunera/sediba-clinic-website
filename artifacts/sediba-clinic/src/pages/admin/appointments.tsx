@@ -57,6 +57,25 @@ export default function AdminAppointments() {
     }
   };
 
+  const paymentStatusStyles = {
+    paid: {
+      label: "Paid",
+      className: "bg-green-500/20 text-green-700 border-green-500/30",
+    },
+    pending: {
+      label: "Pending",
+      className: "bg-amber-500/20 text-amber-700 border-amber-500/30",
+    },
+    failed: {
+      label: "Failed",
+      className: "bg-destructive/20 text-destructive border-destructive/30",
+    },
+    unpaid: {
+      label: "Unpaid",
+      className: "bg-muted text-muted-foreground border-border",
+    },
+  } as const;
+
   const tabs: {id: StatusTab, label: string}[] = [
     { id: 'all', label: 'All' },
     { id: 'confirmed', label: 'Confirmed' },
@@ -112,14 +131,15 @@ export default function AdminAppointments() {
                 <th className="px-6 py-4 font-normal">Service</th>
                 <th className="px-6 py-4 font-normal">Date & Time</th>
                 <th className="px-6 py-4 font-normal">Amount</th>
-                <th className="px-6 py-4 font-normal">Status</th>
+                <th className="px-6 py-4 font-normal">Payment</th>
+                <th className="px-6 py-4 font-normal">Booking Status</th>
                 <th className="px-6 py-4 font-normal">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredAppointments.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
                     No appointments found for this filter.
                   </td>
                 </tr>
@@ -144,6 +164,11 @@ export default function AdminAppointments() {
                       <div className="text-xs text-muted-foreground">{appt.time}</div>
                     </td>
                     <td className="px-6 py-4">R{(appt.totalAmountCents / 100).toFixed(2)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border ${paymentStatusStyles[appt.paymentStatus].className}`}>
+                        {paymentStatusStyles[appt.paymentStatus].label}
+                      </span>
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border ${getStatusColor(appt.status)}`}>
                         {appt.status}

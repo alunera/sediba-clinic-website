@@ -392,7 +392,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Appointment"
+                  $ref: "#/components/schemas/AdminAppointment"
 
   /admin/appointments/{id}:
     patch:
@@ -816,7 +816,7 @@ components:
           type: integer
         status:
           type: string
-          enum: [pending, confirmed, cancelled, completed, no-show]
+          enum: [pending, pending_payment, payment_failed, confirmed, cancelled, completed, no-show]
         notes:
           type: string
           nullable: true
@@ -843,6 +843,17 @@ components:
         - policyAgreed
         - appointmentType
         - createdAt
+
+    AdminAppointment:
+      allOf:
+        - $ref: "#/components/schemas/Appointment"
+        - type: object
+          properties:
+            paymentStatus:
+              type: string
+              enum: [paid, pending, failed, unpaid]
+          required:
+            - paymentStatus
 
     CreateAppointmentBody:
       type: object
@@ -885,7 +896,7 @@ components:
       properties:
         status:
           type: string
-          enum: [pending, confirmed, cancelled, completed, no-show]
+          enum: [pending, pending_payment, payment_failed, confirmed, cancelled, completed, no-show]
         notes:
           type: string
           nullable: true
@@ -895,7 +906,7 @@ components:
       properties:
         status:
           type: string
-          enum: [pending, confirmed, cancelled, completed, no-show]
+          enum: [pending, pending_payment, payment_failed, confirmed, cancelled, completed, no-show]
         notes:
           type: string
           nullable: true
