@@ -80,3 +80,14 @@ externalPort = 3000
 [[ports]]
 localPort = 19694
 externalPort = 3003
+
+[userenv]
+
+[userenv.shared]
+
+[userenv.production]
+SITE_BASE_URL = "https://sedibawellnessclinic.co.za"
+YOCO_MODE = "live"
+
+[userenv.development]
+YOCO_MODE = "test"

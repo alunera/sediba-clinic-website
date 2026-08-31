@@ -17,19 +17,16 @@ export interface InitiatePaymentBody {
   bookingRef: string;
 }
 
-export type PaymentFormResponseFields = { [key: string]: string };
-
 export type PaymentFormResponseMode =
   (typeof PaymentFormResponseMode)[keyof typeof PaymentFormResponseMode];
 
 export const PaymentFormResponseMode = {
   live: "live",
-  sandbox: "sandbox",
+  test: "test",
 } as const;
 
 export interface PaymentFormResponse {
   url: string;
-  fields: PaymentFormResponseFields;
   mode: PaymentFormResponseMode;
 }
 

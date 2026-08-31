@@ -51,7 +51,7 @@ export const availabilitySlotsTable = pgTable(
 );
 
 /**
- * Payment attempts for appointments (PayFast). A booking is only confirmed
+ * Payment attempts for appointments. A booking is only confirmed
  * once its payment reaches status "complete" via server-side verification.
  */
 export const paymentsTable = pgTable(
@@ -60,12 +60,12 @@ export const paymentsTable = pgTable(
     id: serial("id").primaryKey(),
     appointmentId: integer("appointment_id").notNull().references(() => appointmentsTable.id),
     bookingRef: text("booking_ref").notNull(),
-    /** Our unique id passed to PayFast as m_payment_id. */
-    mPaymentId: text("m_payment_id").notNull(),
-    /** PayFast's payment id (pf_payment_id) from the ITN, once known. */
-    pfPaymentId: text("pf_payment_id"),
+    checkoutId: text("m_payment_id").notNull(),
+    providerCheckoutId: text("provider_checkout_id"),
+    providerPaymentId: text("pf_payment_id"),
+    webhookEventId: text("webhook_event_id"),
     amountCents: integer("amount_cents").notNull(),
-    provider: text("provider").notNull().default("payfast"),
+    provider: text("provider").notNull().default("yoco"),
     /** created | complete | failed | cancelled */
     status: text("status").notNull().default("created"),
     /** Raw ITN payload for auditing/debugging. */
@@ -73,7 +73,10 @@ export const paymentsTable = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [uniqueIndex("payments_m_payment_id_uq").on(t.mPaymentId)]
+  (t) => [
+    uniqueIndex("payments_m_payment_id_uq").on(t.checkoutId),
+    uniqueIndex("payments_webhook_event_id_uq").on(t.webhookEventId),
+  ]
 );
 
 export type Payment = typeof paymentsTable.$inferSelect;

@@ -1313,7 +1313,7 @@ export function useAdminMe<
 }
 
 /**
- * @summary Create a PayFast payment attempt for a pending booking
+ * @summary Create a Yoco payment attempt for a pending booking
  */
 export const getInitiatePaymentUrl = () => {
   return `/api/payments/initiate`;
@@ -1376,7 +1376,7 @@ export type InitiatePaymentMutationBody = BodyType<InitiatePaymentBody>;
 export type InitiatePaymentMutationError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Create a PayFast payment attempt for a pending booking
+ * @summary Create a Yoco payment attempt for a pending booking
  */
 export const useInitiatePayment = <
   TError = ErrorType<ErrorResponse>,

@@ -184,7 +184,7 @@ router.post("/appointments", async (req, res): Promise<void> => {
   };
 
   // Paid bookings only get their confirmation + reminder after the payment
-  // is verified (see the PayFast ITN handler). Free/consultation bookings
+  // is verified (see the Yoco webhook handler). Free/consultation bookings
   // are confirmed immediately as before.
   if (!requiresPayment) {
     // Send confirmation — failure is non-blocking
@@ -359,7 +359,7 @@ router.patch("/appointments/:id", requireAdmin, async (req, res): Promise<void> 
   }
 
   // Guard: a paid-treatment booking may only become "confirmed" through a
-  // verified PayFast payment — the generic admin update cannot bypass it.
+  // verified Yoco payment — the generic admin update cannot bypass it.
   if (bodyParsed.data.status === "confirmed") {
     const [current] = await db
       .select({

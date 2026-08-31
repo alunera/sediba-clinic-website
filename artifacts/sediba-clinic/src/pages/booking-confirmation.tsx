@@ -11,22 +11,6 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-/** Build and auto-submit a hidden form that redirects to PayFast. */
-function redirectToPayfast(url: string, fields: Record<string, string>) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = url;
-  for (const [name, value] of Object.entries(fields)) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = name;
-    input.value = value;
-    form.appendChild(input);
-  }
-  document.body.appendChild(form);
-  form.submit();
-}
-
 export default function BookingConfirmation() {
   const [, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
@@ -43,7 +27,7 @@ export default function BookingConfirmation() {
   });
 
   // While the booking awaits payment verification, poll the payment status —
-  // the PayFast webhook may land seconds after the client returns.
+  // the Yoco webhook may land seconds after the client returns.
   const awaitingPayment =
     !!appointment && (appointment.status === "pending_payment" || appointment.status === "payment_failed");
   const statusParams = { ref: ref || "" };
@@ -67,7 +51,7 @@ export default function BookingConfirmation() {
     if (!ref) return;
     setRetrying(true);
     initiatePayment.mutate({ data: { bookingRef: ref } }, {
-      onSuccess: (payment) => redirectToPayfast(payment.url, payment.fields),
+      onSuccess: (payment) => window.location.assign(payment.url),
       onError: () => setRetrying(false),
     });
   };

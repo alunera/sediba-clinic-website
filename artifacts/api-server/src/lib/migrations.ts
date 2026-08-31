@@ -34,7 +34,7 @@ const MIGRATIONS = [
      m_payment_id TEXT NOT NULL,
      pf_payment_id TEXT,
      amount_cents INTEGER NOT NULL,
-     provider TEXT NOT NULL DEFAULT 'payfast',
+     provider TEXT NOT NULL DEFAULT 'yoco',
      status TEXT NOT NULL DEFAULT 'created',
      raw_itn TEXT,
      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -42,6 +42,11 @@ const MIGRATIONS = [
    )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS payments_m_payment_id_uq
      ON payments (m_payment_id)`,
+  `ALTER TABLE payments
+     ADD COLUMN IF NOT EXISTS provider_checkout_id TEXT,
+     ADD COLUMN IF NOT EXISTS webhook_event_id TEXT`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS payments_webhook_event_id_uq
+     ON payments (webhook_event_id) WHERE webhook_event_id IS NOT NULL`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can

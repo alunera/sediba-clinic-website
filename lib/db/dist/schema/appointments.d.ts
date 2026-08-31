@@ -502,7 +502,7 @@ export declare const availabilitySlotsTable: import("drizzle-orm/pg-core").PgTab
     dialect: "pg";
 }>;
 /**
- * Payment attempts for appointments (PayFast). A booking is only confirmed
+ * Payment attempts for appointments. A booking is only confirmed
  * once its payment reaches status "complete" via server-side verification.
  */
 export declare const paymentsTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
@@ -560,7 +560,7 @@ export declare const paymentsTable: import("drizzle-orm/pg-core").PgTableWithCol
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
-        mPaymentId: import("drizzle-orm/pg-core").PgColumn<{
+        checkoutId: import("drizzle-orm/pg-core").PgColumn<{
             name: "m_payment_id";
             tableName: "payments";
             dataType: "string";
@@ -577,8 +577,42 @@ export declare const paymentsTable: import("drizzle-orm/pg-core").PgTableWithCol
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
-        pfPaymentId: import("drizzle-orm/pg-core").PgColumn<{
+        providerCheckoutId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "provider_checkout_id";
+            tableName: "payments";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        providerPaymentId: import("drizzle-orm/pg-core").PgColumn<{
             name: "pf_payment_id";
+            tableName: "payments";
+            dataType: "string";
+            columnType: "PgText";
+            data: string;
+            driverParam: string;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: [string, ...string[]];
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
+        webhookEventId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "webhook_event_id";
             tableName: "payments";
             dataType: "string";
             columnType: "PgText";

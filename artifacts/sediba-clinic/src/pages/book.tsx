@@ -111,21 +111,6 @@ export default function Book() {
   const [redirecting, setRedirecting] = useState(false);
   const queryClient = useQueryClient();
 
-  /** Build and auto-submit a hidden form that redirects to PayFast. */
-  const redirectToPayfast = (url: string, fields: Record<string, string>) => {
-    const form = document.createElement("form");
-    form.method = "POST";
-    form.action = url;
-    for (const [name, value] of Object.entries(fields)) {
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      input.value = value;
-      form.appendChild(input);
-    }
-    document.body.appendChild(form);
-    form.submit();
-  };
 
   const handleBook = () => {
     if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail || !clientPhone || !policyAgreed) {
@@ -156,7 +141,7 @@ export default function Book() {
                 title: "Slot Reserved",
                 description: "Redirecting you to our secure payment partner…",
               });
-              redirectToPayfast(payment.url, payment.fields);
+              window.location.assign(payment.url);
             },
             onError: () => {
               setRedirecting(false);

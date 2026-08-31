@@ -327,7 +327,7 @@ paths:
     post:
       operationId: initiatePayment
       tags: [payments]
-      summary: Create a PayFast payment attempt for a pending booking
+      summary: Create a Yoco payment attempt for a pending booking
       requestBody:
         required: true
         content:
@@ -336,7 +336,7 @@ paths:
               $ref: "#/components/schemas/InitiatePaymentBody"
       responses:
         "200":
-          description: Signed PayFast form data
+          description: Yoco hosted-checkout redirect
           content:
             application/json:
               schema:
@@ -766,16 +766,11 @@ components:
       properties:
         url:
           type: string
-        fields:
-          type: object
-          additionalProperties:
-            type: string
         mode:
           type: string
-          enum: [live, sandbox]
+          enum: [live, test]
       required:
         - url
-        - fields
         - mode
 
     PaymentStatusResponse:

@@ -30,9 +30,11 @@ app.use(
 // express-session will issue secure cookies in production.
 app.set("trust proxy", 1);
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
-// Keep the raw urlencoded body available — the PayFast ITN handler must post
-// the exact received payload back to PayFast for server-side validation.
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    (req as unknown as { rawBody?: string }).rawBody = buf.toString("utf8");
+  },
+}));
 app.use(
   express.urlencoded({
     extended: true,

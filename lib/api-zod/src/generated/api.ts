@@ -268,7 +268,7 @@ export const AdminMeResponse = zod.object({
 });
 
 /**
- * @summary Create a PayFast payment attempt for a pending booking
+ * @summary Create a Yoco payment attempt for a pending booking
  */
 export const InitiatePaymentBody = zod.object({
   bookingRef: zod.string(),
@@ -276,8 +276,7 @@ export const InitiatePaymentBody = zod.object({
 
 export const InitiatePaymentResponse = zod.object({
   url: zod.string(),
-  fields: zod.record(zod.string(), zod.string()),
-  mode: zod.enum(["live", "sandbox"]),
+  mode: zod.enum(["live", "test"]),
 });
 
 /**
