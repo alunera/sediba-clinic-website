@@ -63,16 +63,6 @@ router.post("/appointments", async (req, res): Promise<void> => {
   }
 
   const { serviceId, date, policyAgreed, ...rest } = parsed.data;
-  const service = await db
-    .select()
-    .from(servicesTable)
-    .where(eq(servicesTable.id, serviceId))
-    .limit(1);
-
-  if (!service[0]) {
-    res.status(400).json({ error: "Service not found" });
-    return;
-  }
 
   const dateStr = date instanceof Date ? date.toISOString().split("T")[0] : String(date);
 
@@ -83,7 +73,6 @@ router.post("/appointments", async (req, res): Promise<void> => {
   }
 
   const bookingRef = generateBookingRef();
-  const totalAmountCents = service[0].price;
 
   // Compute the reminder timestamp before the insert so it is persisted
   // atomically with the booking — no separate update needed afterwards.
@@ -100,15 +89,13 @@ router.post("/appointments", async (req, res): Promise<void> => {
   // lock so an admin removing the slot (or another booking) cannot
   // interleave between the checks and the insert. The partial unique index
   // appointments_active_slot_uq is the final backstop.
-  // Phase 2C: treatments require 100% payment before confirmation.
-  // Consultations keep the original immediate-confirmation flow.
-  const requiresPayment = (appointmentType ?? "treatment") === "treatment" && totalAmountCents > 0;
-  const initialStatus = requiresPayment ? "pending_payment" : "confirmed";
-
   // Release any expired unpaid bookings first so their slots are re-bookable.
   await releaseExpiredPendingBookings();
 
   let appointment: typeof appointmentsTable.$inferSelect | undefined;
+  let serviceName = "";
+  let requiresPayment = false;
+  let serviceNotFound = false;
   let conflictError: string | null = null;
   try {
     appointment = await db.transaction(async (tx) => {
@@ -142,6 +129,27 @@ router.post("/appointments", async (req, res): Promise<void> => {
         return undefined;
       }
 
+      // Read the live service price in the same transaction as the insert.
+      // CreateAppointmentBody deliberately has no amount field, so clients
+      // cannot submit a stale or manipulated consultation price.
+      const [service] = await tx
+        .select({ name: servicesTable.name, price: servicesTable.price })
+        .from(servicesTable)
+        .where(eq(servicesTable.id, serviceId))
+        .limit(1);
+      if (!service) {
+        serviceNotFound = true;
+        return undefined;
+      }
+
+      serviceName = service.name;
+      const totalAmountCents = service.price;
+      // Treatments require 100% payment before confirmation. Consultations
+      // keep the original immediate-confirmation flow.
+      requiresPayment =
+        (appointmentType ?? "treatment") === "treatment" && totalAmountCents > 0;
+      const initialStatus = requiresPayment ? "pending_payment" : "confirmed";
+
       const [created] = await tx
         .insert(appointmentsTable)
         .values({
@@ -168,6 +176,11 @@ router.post("/appointments", async (req, res): Promise<void> => {
     throw err;
   }
 
+  if (serviceNotFound) {
+    res.status(400).json({ error: "Service not found" });
+    return;
+  }
+
   if (!appointment) {
     res.status(409).json({ error: conflictError ?? "This time slot is not available. Please choose another slot." });
     return;
@@ -178,7 +191,7 @@ router.post("/appointments", async (req, res): Promise<void> => {
     bookingRef: appointment.bookingRef,
     clientName: appointment.clientName,
     clientWhatsapp: appointment.clientWhatsapp,
-    serviceName: service[0].name,
+    serviceName,
     date: appointment.date,
     time: appointment.time,
   };
@@ -198,7 +211,7 @@ router.post("/appointments", async (req, res): Promise<void> => {
 
   res.status(201).json({
     ...appointment,
-    serviceName: service[0].name,
+    serviceName,
   });
 });
 
