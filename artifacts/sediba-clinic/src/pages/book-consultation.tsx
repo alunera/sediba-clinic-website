@@ -67,6 +67,15 @@ function StepIndicator({ current }: { current: number }) {
   );
 }
 
+function Card({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-card border border-border p-8 md:p-12 relative">
+      <div className="absolute top-0 left-0 w-full h-px bg-primary" />
+      {children}
+    </div>
+  );
+}
+
 /* ─── Page ─────────────────────────────────────────────────────────────────── */
 
 export default function BookConsultation() {
@@ -175,14 +184,6 @@ export default function BookConsultation() {
       },
     );
   }
-
-  /* ── Shared card wrapper ── */
-  const Card = ({ children }: { children: React.ReactNode }) => (
-    <div className="bg-card border border-border p-8 md:p-12 relative">
-      <div className="absolute top-0 left-0 w-full h-px bg-primary" />
-      {children}
-    </div>
-  );
 
   return (
     <div className="min-h-screen pt-32 pb-24 bg-background">
