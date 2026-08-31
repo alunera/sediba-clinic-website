@@ -87,7 +87,7 @@ externalPort = 3003
 
 [userenv.production]
 SITE_BASE_URL = "https://sedibawellnessclinic.co.za"
-YOCO_MODE = "live"
+YOCO_MODE = "test"
 
 [userenv.development]
 YOCO_MODE = "test"
