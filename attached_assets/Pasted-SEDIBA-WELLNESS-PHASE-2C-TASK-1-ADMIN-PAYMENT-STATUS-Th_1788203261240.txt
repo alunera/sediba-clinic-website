@@ -1,0 +1,118 @@
+SEDIBA WELLNESS — PHASE 2C
+TASK 1: ADMIN PAYMENT STATUS
+
+The Yoco payment integration is now working. Do NOT modify or rebuild the existing Yoco payment functionality unless it is necessary to correctly connect the payment status to the booking.
+
+Your task is ONLY to implement:
+
+ADMIN PAYMENT STATUS FOR BOOKINGS
+
+OBJECTIVE:
+When a customer makes a booking and completes payment through Yoco, the admin/consultant should be able to clearly see the payment status associated with that booking.
+
+PAYMENT STATUSES:
+Use clear statuses such as:
+- Paid
+- Unpaid / Pending
+- Failed
+
+REQUIREMENTS:
+
+1. LINK PAYMENT TO BOOKING
+Each booking must have a payment status associated with it.
+
+2. SUCCESSFUL PAYMENT
+When a Yoco payment is successfully completed:
+- The associated booking must show "Paid"
+- The payment status must persist in the database
+- The booking must remain linked to the correct customer and treatment
+
+3. UNSUCCESSFUL/PENDING PAYMENT
+If payment is unsuccessful, cancelled, or has not yet been completed:
+- The booking should not incorrectly show "Paid"
+- Display the appropriate status such as "Pending" or "Failed"
+
+4. ADMIN VIEW
+In the existing admin/booking area, display the payment status clearly alongside each booking.
+
+For example:
+
+Client: Jane Smith
+Treatment: The Glow
+Date: 12 September 2026
+Time: 10:00
+Payment: PAID
+
+5. DO NOT CREATE A NEW PAYMENT SYSTEM
+Use the existing Yoco implementation.
+
+6. DO NOT CHANGE:
+- The existing services page
+- The existing treatment list
+- The booking flow
+- The availability/calendar functionality
+- The current Yoco checkout
+- Website styling/layout unless a small UI change is required to display payment status
+- Any unrelated functionality
+
+7. DATABASE
+Inspect the existing booking and payment data structures first.
+
+Before making changes:
+- Identify how bookings are currently stored
+- Identify how Yoco payment results are currently stored/returned
+- Determine the safest way to associate the payment with the correct booking
+
+Do not create duplicate tables or duplicate payment logic if an existing structure can be extended.
+
+8. SECURITY
+Do not expose Yoco secret keys, payment credentials, or sensitive payment information in the frontend.
+
+9. TESTING
+After implementation, test at minimum:
+
+TEST A:
+Create a booking → complete successful Yoco payment → verify booking shows PAID in admin.
+
+TEST B:
+Start a booking/payment but do not successfully complete payment → verify it does NOT show PAID.
+
+TEST C:
+Verify that the payment status remains associated with the correct booking after refreshing/reloading the admin area.
+
+10. CODE QUALITY
+Before finishing:
+- Review all changes
+- Check for TypeScript/build errors caused by your changes
+- Confirm existing functionality has not been broken
+- Run the appropriate tests/build
+
+IMPORTANT:
+This is ONLY TASK 1 of Phase 2C.
+
+Do NOT proceed to:
+- End-to-end payment improvements beyond what is necessary for this task
+- Client records
+- Appointments dashboard
+- Booking reminders
+- WhatsApp automation
+- Google review requests
+- AI receptionist
+- Product/stock management
+- Bookkeeping
+- Profit/loss reporting
+- Salon Bridge replacement
+
+Stop after completing and testing Admin Payment Status.
+
+At the end, give me a clear report containing:
+
+1. What you changed
+2. Which files/database structures you changed
+3. How payment status is now linked to bookings
+4. What the admin will see
+5. Tests performed and their results
+6. Any issues or limitations
+7. Whether the project is ready for me to push to GitHub
+
+DO NOT push to GitHub unless I specifically ask you to after reviewing your work.
