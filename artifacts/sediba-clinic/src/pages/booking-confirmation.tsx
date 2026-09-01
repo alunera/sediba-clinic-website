@@ -15,7 +15,7 @@ export default function BookingConfirmation() {
   const [, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
   const ref = searchParams.get("ref");
-  const paymentParam = searchParams.get("payment"); // return | cancelled | retry | null
+  const paymentParam = searchParams.get("payment"); // return | cancelled | failed | retry | null
   const queryClient = useQueryClient();
   const [retrying, setRetrying] = useState(false);
 
@@ -89,18 +89,29 @@ export default function BookingConfirmation() {
 
   // ── Payment-state screens ────────────────────────────────────────────────
   if (appointment.status === "pending_payment" || appointment.status === "payment_failed") {
-    const failed = appointment.status === "payment_failed" || paymentParam === "cancelled";
+    const checkoutDidNotOpen = paymentParam === "retry";
+    const failed =
+      appointment.status === "payment_failed" ||
+      paymentParam === "cancelled" ||
+      paymentParam === "failed" ||
+      checkoutDidNotOpen;
     return (
       <div className="min-h-screen pt-32 pb-24 bg-background flex flex-col items-center">
         <div className="container max-w-2xl px-6 text-center">
           <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-4 block">
-            {failed ? "Payment Incomplete" : "Awaiting Payment"}
+            {checkoutDidNotOpen ? "Payment Required" : failed ? "Payment Incomplete" : "Awaiting Payment"}
           </span>
           <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
-            {failed ? "Your Payment Was Not Completed" : "Verifying Your Payment"}
+            {checkoutDidNotOpen
+              ? "The Payment Page Did Not Open"
+              : failed
+                ? "Your Payment Was Not Completed"
+                : "Verifying Your Payment"}
           </h1>
           <p className="text-muted-foreground font-light mb-8">
-            {failed
+            {checkoutDidNotOpen
+              ? "Your consultation is reserved for a short while, but no payment has been taken. Select Complete Payment to open the secure Yoco checkout."
+              : failed
               ? "Your slot is still reserved for a short while. Complete payment now to secure your appointment."
               : "One moment — we're confirming your payment with our payment partner. This page updates automatically."}
           </p>
