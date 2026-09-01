@@ -43,6 +43,7 @@ export function Navbar() {
   const navLinks = [
     { name: "Services", href: "/services" },
     { name: "About", href: "/about" },
+    { name: "Staff Login", href: "/admin/login" },
   ];
 
   const isOnHero = location === "/";
@@ -67,7 +68,7 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center space-x-10">
+        <nav className="hidden md:flex items-center gap-5 lg:gap-8">
           {navLinks.map((link) => (
             <Link key={link.name} href={link.href}>
               <span className={`text-sm uppercase tracking-wider transition-colors hover:text-primary cursor-pointer ${
@@ -80,7 +81,7 @@ export function Navbar() {
             </Link>
           ))}
 
-          <div className="flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             <a
               href="https://www.instagram.com/sedibawellnessclinic?utm_source=qr&igsh=MTE4cXFoNjBzYmV5dw%3D%3D"
               target="_blank"
@@ -111,7 +112,7 @@ export function Navbar() {
           </div>
 
           <Link href="/book-consultation">
-            <Button variant="default" className="rounded-none px-8 tracking-wider uppercase text-xs">
+            <Button variant="default" className="rounded-none px-5 lg:px-8 tracking-wider uppercase text-xs">
               Book Consultation
             </Button>
           </Link>

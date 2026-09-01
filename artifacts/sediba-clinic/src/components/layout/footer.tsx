@@ -118,9 +118,6 @@ export function Footer() {
           <div className="flex space-x-6 mt-4 md:mt-0">
             <span>Privacy Policy</span>
             <span>Terms of Service</span>
-            <Link href="/admin/login">
-              <span className="hover:text-primary transition-colors cursor-pointer">Staff Login</span>
-            </Link>
           </div>
         </div>
       </div>
