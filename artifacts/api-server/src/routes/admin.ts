@@ -1,13 +1,17 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { appointmentsTable, servicesTable, adminConfigTable, paymentsTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/admin-auth";
 import { logger } from "../lib/logger";
 import {
   deriveAdminPaymentStatus,
   groupPaymentAttempts,
 } from "../lib/admin-payment-status";
+import {
+  appointmentCanBeConfirmed,
+  appointmentRequiresPayment,
+} from "../lib/appointment-payment";
 
 const router = Router();
 
@@ -90,8 +94,7 @@ router.get("/admin/appointments", requireAdmin, async (req, res): Promise<void> 
       ...appointment,
       paymentStatus: deriveAdminPaymentStatus(
         attemptsByAppointment.get(appointment.id) ?? [],
-        appointment.appointmentType,
-        appointment.totalAmountCents,
+        appointment.status,
       ),
     })),
   );
@@ -108,6 +111,41 @@ router.patch("/admin/appointments/:id", requireAdmin, async (req, res): Promise<
   const updateData: Record<string, unknown> = {};
   if (status) updateData.status = status;
   if (notes !== undefined) updateData.notes = notes;
+
+  if (status === "confirmed") {
+    const [current] = await db
+      .select({
+        status: appointmentsTable.status,
+        totalAmountCents: appointmentsTable.totalAmountCents,
+      })
+      .from(appointmentsTable)
+      .where(eq(appointmentsTable.id, id))
+      .limit(1);
+
+    if (
+      current &&
+      current.status !== "confirmed" &&
+      appointmentRequiresPayment(current.totalAmountCents)
+    ) {
+      const [paid] = await db
+        .select({ id: paymentsTable.id })
+        .from(paymentsTable)
+        .where(
+          and(
+            eq(paymentsTable.appointmentId, id),
+            eq(paymentsTable.status, "complete"),
+          ),
+        )
+        .limit(1);
+      if (!appointmentCanBeConfirmed(current.totalAmountCents, Boolean(paid))) {
+        res.status(409).json({
+          error:
+            "This booking has not been paid. It can only be confirmed automatically once payment is verified.",
+        });
+        return;
+      }
+    }
+  }
 
   const [updated] = await db
     .update(appointmentsTable)

@@ -33,9 +33,9 @@ export default function BookingConfirmation() {
   const statusParams = { ref: ref || "" };
   const { data: paymentStatus } = useGetPaymentStatus(statusParams, {
     query: {
-      enabled: !!ref && awaitingPayment,
+      enabled: !!ref && !!appointment && appointment.totalAmountCents > 0,
       queryKey: getGetPaymentStatusQueryKey(statusParams),
-      refetchInterval: 3000,
+      refetchInterval: awaitingPayment ? 3000 : false,
     },
   });
 
@@ -157,6 +157,10 @@ export default function BookingConfirmation() {
     );
   }
 
+  const paymentWasVerified =
+    appointment.appointmentType === "treatment" ||
+    paymentStatus?.paymentStatus === "complete";
+
   const handleCalendarDownload = () => {
     // Generate a basic .ics file content
     const startObj = new Date(`${appointment.date}T${appointment.time}`);
@@ -223,7 +227,9 @@ export default function BookingConfirmation() {
             </div>
             
             <div className="flex justify-between items-center pt-6 border-t border-border">
-              <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">Amount Paid</span>
+              <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">
+                {paymentWasVerified ? "Amount Paid" : "Consultation Fee"}
+              </span>
               <span className="font-serif text-xl">R{(appointment.totalAmountCents / 100).toFixed(2)}</span>
             </div>
           </div>

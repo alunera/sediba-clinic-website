@@ -15,6 +15,10 @@ import {
   computeReminderTime,
 } from "../lib/whatsapp";
 import { clinicToday, isPastSlot, monthEnd } from "../lib/clinic-time";
+import {
+  appointmentCanBeConfirmed,
+  appointmentRequiresPayment,
+} from "../lib/appointment-payment";
 import { requireAdmin } from "../middlewares/admin-auth";
 import { releaseExpiredPendingBookings } from "./payments";
 
@@ -144,10 +148,9 @@ router.post("/appointments", async (req, res): Promise<void> => {
 
       serviceName = service.name;
       const totalAmountCents = service.price;
-      // Treatments require 100% payment before confirmation. Consultations
-      // keep the original immediate-confirmation flow.
-      requiresPayment =
-        (appointmentType ?? "treatment") === "treatment" && totalAmountCents > 0;
+      // Every priced appointment, including a consultation, must be paid
+      // before it can be confirmed.
+      requiresPayment = appointmentRequiresPayment(totalAmountCents);
       const initialStatus = requiresPayment ? "pending_payment" : "confirmed";
 
       const [created] = await tx
@@ -197,8 +200,8 @@ router.post("/appointments", async (req, res): Promise<void> => {
   };
 
   // Paid bookings only get their confirmation + reminder after the payment
-  // is verified (see the Yoco webhook handler). Free/consultation bookings
-  // are confirmed immediately as before.
+  // is verified (see the Yoco webhook handler). Free bookings are confirmed
+  // immediately.
   if (!requiresPayment) {
     // Send confirmation — failure is non-blocking
     void sendBookingConfirmation(apptDetails);
@@ -371,13 +374,12 @@ router.patch("/appointments/:id", requireAdmin, async (req, res): Promise<void> 
     return;
   }
 
-  // Guard: a paid-treatment booking may only become "confirmed" through a
+  // Guard: every priced booking may only become "confirmed" through a
   // verified Yoco payment — the generic admin update cannot bypass it.
   if (bodyParsed.data.status === "confirmed") {
     const [current] = await db
       .select({
         status: appointmentsTable.status,
-        appointmentType: appointmentsTable.appointmentType,
         totalAmountCents: appointmentsTable.totalAmountCents,
       })
       .from(appointmentsTable)
@@ -385,16 +387,15 @@ router.patch("/appointments/:id", requireAdmin, async (req, res): Promise<void> 
       .limit(1);
     if (
       current &&
-      (current.status === "pending_payment" || current.status === "payment_failed") &&
-      current.appointmentType === "treatment" &&
-      current.totalAmountCents > 0
+      current.status !== "confirmed" &&
+      appointmentRequiresPayment(current.totalAmountCents)
     ) {
       const [paid] = await db
         .select({ id: paymentsTable.id })
         .from(paymentsTable)
         .where(and(eq(paymentsTable.appointmentId, paramsParsed.data.id), eq(paymentsTable.status, "complete")))
         .limit(1);
-      if (!paid) {
+      if (!appointmentCanBeConfirmed(current.totalAmountCents, Boolean(paid))) {
         res.status(409).json({
           error:
             "This booking has not been paid. It can only be confirmed automatically once payment is verified.",

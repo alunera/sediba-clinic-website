@@ -12,19 +12,17 @@ describe("admin payment status", () => {
           { appointmentId: 1, id: 10, status: "complete" },
           { appointmentId: 1, id: 11, status: "created" },
         ],
-        "treatment",
-        120000,
+        "confirmed",
       ),
     ).toBe("paid");
   });
 
   it("shows Pending for a payable booking with no completed attempt", () => {
-    expect(deriveAdminPaymentStatus([], "treatment", 120000)).toBe("pending");
+    expect(deriveAdminPaymentStatus([], "pending_payment")).toBe("pending");
     expect(
       deriveAdminPaymentStatus(
         [{ appointmentId: 1, id: 10, status: "created" }],
-        "treatment",
-        120000,
+        "pending_payment",
       ),
     ).toBe("pending");
   });
@@ -36,14 +34,17 @@ describe("admin payment status", () => {
           { appointmentId: 1, id: 10, status: "created" },
           { appointmentId: 1, id: 11, status: "failed" },
         ],
-        "treatment",
-        120000,
+        "payment_failed",
       ),
     ).toBe("failed");
   });
 
-  it("shows Unpaid for a booking that does not use the payment flow", () => {
-    expect(deriveAdminPaymentStatus([], "consultation", 35000)).toBe("unpaid");
+  it("shows Unpaid for a legacy confirmed booking with no payment attempt", () => {
+    expect(deriveAdminPaymentStatus([], "confirmed")).toBe("unpaid");
+  });
+
+  it("shows Failed for a failed booking even if checkout creation did not record an attempt", () => {
+    expect(deriveAdminPaymentStatus([], "payment_failed")).toBe("failed");
   });
 
   it("keeps attempts isolated to their associated booking", () => {
@@ -52,8 +53,8 @@ describe("admin payment status", () => {
       { appointmentId: 2, id: 11, status: "failed" },
     ]);
 
-    expect(deriveAdminPaymentStatus(grouped.get(1) ?? [], "treatment", 50000)).toBe("paid");
-    expect(deriveAdminPaymentStatus(grouped.get(2) ?? [], "treatment", 50000)).toBe("failed");
-    expect(deriveAdminPaymentStatus(grouped.get(3) ?? [], "treatment", 50000)).toBe("pending");
+    expect(deriveAdminPaymentStatus(grouped.get(1) ?? [], "confirmed")).toBe("paid");
+    expect(deriveAdminPaymentStatus(grouped.get(2) ?? [], "payment_failed")).toBe("failed");
+    expect(deriveAdminPaymentStatus(grouped.get(3) ?? [], "pending_payment")).toBe("pending");
   });
 });

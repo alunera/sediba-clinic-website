@@ -9,6 +9,7 @@ import {
   getGetAvailableDatesQueryKey,
   getGetAvailabilityQueryKey,
   useCreateAppointment,
+  useInitiatePayment,
 } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -139,6 +140,8 @@ export default function BookConsultation() {
   );
 
   const createAppointment = useCreateAppointment();
+  const initiatePayment = useInitiatePayment();
+  const [redirecting, setRedirecting] = useState(false);
 
   /* ── Helpers ── */
   function toggleConcern(c: string) {
@@ -180,6 +183,26 @@ export default function BookConsultation() {
       },
       {
         onSuccess: (data) => {
+          if (data.status === "pending_payment") {
+            setRedirecting(true);
+            initiatePayment.mutate(
+              { data: { bookingRef: data.bookingRef } },
+              {
+                onSuccess: (payment) => {
+                  toast({
+                    title: "Consultation Reserved",
+                    description: "Redirecting you to our secure payment partner…",
+                  });
+                  window.location.assign(payment.url);
+                },
+                onError: () => {
+                  setRedirecting(false);
+                  setLocation(`/booking-confirmation?ref=${data.bookingRef}&payment=retry`);
+                },
+              },
+            );
+            return;
+          }
           setLocation(`/booking-confirmation?ref=${data.bookingRef}`);
         },
         onError: () => {
@@ -563,10 +586,14 @@ export default function BookConsultation() {
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={!policyAgreed || createAppointment.isPending}
+                disabled={!policyAgreed || createAppointment.isPending || redirecting || initiatePayment.isPending}
                 className="rounded-none uppercase tracking-widest text-xs px-10 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {createAppointment.isPending ? "Confirming..." : "Confirm Consultation"}
+                {createAppointment.isPending
+                  ? "Reserving..."
+                  : redirecting || initiatePayment.isPending
+                    ? "Opening Payment..."
+                    : "Confirm & Pay"}
               </Button>
             </div>
           </Card>

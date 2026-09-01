@@ -22,8 +22,7 @@ export function groupPaymentAttempts(
 
 export function deriveAdminPaymentStatus(
   attempts: PaymentAttempt[],
-  appointmentType: string,
-  totalAmountCents: number,
+  bookingStatus: string,
 ): AdminPaymentStatus {
   if (attempts.some((attempt) => attempt.status === "complete")) {
     return "paid";
@@ -38,8 +37,12 @@ export function deriveAdminPaymentStatus(
     return "failed";
   }
 
-  if (latestAttempt || (appointmentType === "treatment" && totalAmountCents > 0)) {
+  if (latestAttempt || bookingStatus === "pending_payment") {
     return "pending";
+  }
+
+  if (bookingStatus === "payment_failed") {
+    return "failed";
   }
 
   return "unpaid";
