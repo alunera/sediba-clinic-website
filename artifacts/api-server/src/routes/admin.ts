@@ -208,18 +208,22 @@ router.get("/admin/settings", requireAdmin, async (req, res): Promise<void> => {
 });
 
 router.put("/admin/settings", requireAdmin, async (req, res): Promise<void> => {
-  const body = req.body as Record<string, string>;
+  const body = req.body as Record<string, unknown>;
   const settings: Record<string, string | null> = {};
 
-  for (const key of SETTINGS_KEYS) {
-    if (body[key] !== undefined) {
-      await db
-        .insert(adminConfigTable)
-        .values({ key, value: body[key] })
-        .onConflictDoUpdate({ target: adminConfigTable.key, set: { value: body[key] } });
-      settings[key] = body[key];
+  await db.transaction(async (tx) => {
+    for (const key of SETTINGS_KEYS) {
+      const submittedValue = body[key];
+      if (submittedValue !== undefined) {
+        const value = typeof submittedValue === "string" ? submittedValue : "";
+        await tx
+          .insert(adminConfigTable)
+          .values({ key, value })
+          .onConflictDoUpdate({ target: adminConfigTable.key, set: { value } });
+        settings[key] = value;
+      }
     }
-  }
+  });
 
   // Return merged settings
   const rows = await db.select().from(adminConfigTable);
