@@ -187,16 +187,16 @@ export default function Book() {
           </p>
         </div>
 
-        <div className="bg-card border border-border p-8 md:p-12">
+        <div className="bg-card border border-border p-5 sm:p-8 md:p-12">
           {/* Step Indicators */}
-          <div className="flex justify-between border-b border-border pb-8 mb-8 overflow-x-auto gap-4">
+          <div className="flex justify-between border-b border-border pb-6 sm:pb-8 mb-8 gap-2 sm:gap-4">
             {steps.map((label, idx) => (
               <div 
                 key={label} 
-                className={`flex flex-col items-center flex-1 min-w-[80px] ${step === idx + 1 ? "text-primary" : step > idx + 1 ? "text-foreground" : "text-muted-foreground/50"}`}
+                className={`flex flex-col items-center flex-1 min-w-0 ${step === idx + 1 ? "text-primary" : step > idx + 1 ? "text-foreground" : "text-muted-foreground/50"}`}
               >
                 <span className="font-serif text-xl mb-2">0{idx + 1}</span>
-                <span className="text-[10px] uppercase tracking-widest">{label}</span>
+                <span className="hidden sm:block text-[10px] uppercase tracking-widest text-center">{label}</span>
               </div>
             ))}
           </div>
@@ -257,20 +257,20 @@ export default function Book() {
 
           {/* Compact booking summary, visible after the treatment is chosen */}
           {step >= 2 && selectedService && (
-            <div className="mb-8 border border-border bg-muted/20 px-6 py-4 flex flex-wrap gap-x-10 gap-y-2 text-sm">
-              <div>
+            <div className="mb-8 border border-border bg-muted/20 px-6 py-4 flex flex-wrap gap-x-10 gap-y-4 text-sm">
+              <div className="flex-1 min-w-[120px]">
                 <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Treatment</span>
-                <span className="font-serif text-foreground">{selectedService.name}</span>
+                <span className="font-serif text-foreground break-words">{selectedService.name}</span>
               </div>
-              <div>
+              <div className="flex-1 min-w-[80px]">
                 <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Price</span>
                 <span className="text-foreground">{displayPrice(selectedService.name, selectedService.price)}</span>
               </div>
-              <div>
+              <div className="flex-1 min-w-[100px]">
                 <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Date</span>
                 <span className="text-foreground">{selectedDate ? format(selectedDate, "d MMM yyyy") : "Not selected"}</span>
               </div>
-              <div>
+              <div className="flex-1 min-w-[80px]">
                 <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Time</span>
                 <span className="text-foreground">{selectedTime ?? "Not selected"}</span>
               </div>
@@ -510,13 +510,13 @@ export default function Book() {
                   <div className="space-y-4 text-sm">
                     <div>
                       <span className="text-muted-foreground uppercase tracking-widest text-[10px] block mb-1">Appointment Details</span>
-                      <p className="font-medium text-foreground">{selectedService?.name}</p>
+                      <p className="font-medium text-foreground break-words">{selectedService?.name}</p>
                       <p className="text-foreground/80">{selectedDate && format(selectedDate, "MMMM d, yyyy")} at {selectedTime}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center pt-6 mt-6 border-t border-border">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center pt-6 mt-6 border-t border-border gap-2">
                   <span className="text-muted-foreground uppercase tracking-widest text-xs">Total Amount</span>
                   <span className="font-serif text-2xl text-foreground">
                     {selectedService ? displayPrice(selectedService.name, selectedService.price) : ""}

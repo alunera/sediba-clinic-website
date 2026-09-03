@@ -134,7 +134,7 @@ export default function AdminDashboard() {
           <p className="text-sm text-muted-foreground mt-1">Next 7 days</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left min-w-[700px]">
             <thead className="bg-muted/50 text-[10px] uppercase tracking-widest text-muted-foreground">
               <tr>
                 <th className="px-6 py-4 font-normal">Date & Time</th>

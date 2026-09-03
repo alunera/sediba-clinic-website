@@ -179,7 +179,7 @@ export default function AdminAvailability() {
                       className={`inline-flex items-center gap-2 border px-3 py-2 text-sm ${
                         slot.booked
                           ? "border-primary bg-primary/10 text-foreground"
-                          : "border-border text-foreground"
+                          : "border-border text-foreground pr-1"
                       }`}
                     >
                       {slot.time}
@@ -191,9 +191,9 @@ export default function AdminAvailability() {
                           aria-label={`Remove ${slot.time}`}
                           onClick={() => handleRemove(slot.time)}
                           disabled={removeSlot.isPending}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
+                          className="text-muted-foreground hover:text-destructive transition-colors p-2"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-4 h-4" />
                         </button>
                       )}
                     </span>
@@ -212,7 +212,7 @@ export default function AdminAvailability() {
                     type="button"
                     disabled={configuredTimes.has(t) || addSlots.isPending}
                     onClick={() => handleAdd([t])}
-                    className={`py-2 text-sm border transition-colors ${
+                    className={`py-3 px-1 text-sm border transition-colors ${
                       configuredTimes.has(t)
                         ? "border-transparent bg-muted/50 text-muted-foreground/50 cursor-not-allowed"
                         : "border-border text-foreground hover:border-primary hover:text-primary"

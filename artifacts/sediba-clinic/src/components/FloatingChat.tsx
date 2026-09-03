@@ -112,7 +112,7 @@ export function FloatingChat() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full overflow-hidden shadow-xl border-2 border-primary hover:scale-105 transition-transform duration-300"
+            className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden shadow-xl border-2 border-primary hover:scale-105 transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             aria-label="Chat with Sedi"
           >
             <img src="/sedi-avatar.jpg" alt="Sedi, AI Concierge" className="w-full h-full object-cover object-top" />
@@ -128,7 +128,7 @@ export function FloatingChat() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed bottom-6 right-6 z-50 w-[360px] max-h-[520px] bg-white border border-border shadow-xl flex flex-col"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[360px] max-h-[calc(100dvh-5rem)] sm:max-h-[520px] bg-white border border-border shadow-xl flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-foreground text-white">
@@ -143,7 +143,7 @@ export function FloatingChat() {
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-white/60 hover:text-white transition-colors"
+                className="text-white/60 hover:text-white transition-colors p-2 -mr-2"
                 aria-label="Close chat"
               >
                 <X size={18} />
@@ -192,7 +192,7 @@ export function FloatingChat() {
               <button
                 onClick={sendMessage}
                 disabled={isStreaming || !input.trim() || !conversationId}
-                className="text-primary hover:text-primary/70 transition-colors disabled:opacity-30"
+                className="text-primary hover:text-primary/70 transition-colors disabled:opacity-30 p-2 -mr-2"
                 aria-label="Send"
               >
                 <Send size={16} />

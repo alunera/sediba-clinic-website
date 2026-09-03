@@ -122,7 +122,7 @@ export default function AdminAppointments() {
 
       <div className="bg-card border border-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left min-w-[1000px]">
             <thead className="bg-muted/50 text-[10px] uppercase tracking-widest text-muted-foreground">
               <tr>
                 <th className="px-6 py-4 font-normal">Ref</th>

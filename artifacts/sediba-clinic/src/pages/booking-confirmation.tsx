@@ -101,7 +101,7 @@ export default function BookingConfirmation() {
           <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-4 block">
             {checkoutDidNotOpen ? "Payment Required" : failed ? "Payment Incomplete" : "Awaiting Payment"}
           </span>
-          <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-foreground mb-4 break-words">
             {checkoutDidNotOpen
               ? "The Payment Page Did Not Open"
               : failed
@@ -116,10 +116,10 @@ export default function BookingConfirmation() {
               : "One moment — we're confirming your payment with our payment partner. This page updates automatically."}
           </p>
 
-          <div className="bg-card border border-border p-8 mb-8">
+          <div className="bg-card border border-border p-5 sm:p-8 mb-8">
             <span className="uppercase tracking-widest text-[10px] text-muted-foreground block mb-2">Booking Reference</span>
             <span className="font-mono text-2xl tracking-[0.2em] block mb-6">{appointment.bookingRef}</span>
-            <div className="flex justify-between items-center border-t border-border pt-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 border-t border-border pt-6">
               <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">Amount Due</span>
               <span className="font-serif text-xl">R{(appointment.totalAmountCents / 100).toFixed(2)}</span>
             </div>
@@ -209,11 +209,11 @@ export default function BookingConfirmation() {
       <div className="container max-w-2xl px-6">
         <div className="text-center mb-12">
           <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-4 block">Reservation Confirmed</span>
-          <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-4">Your Appointment is Confirmed</h1>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-foreground mb-4">Your Appointment is Confirmed</h1>
           <p className="text-muted-foreground font-light">We look forward to welcoming you, {appointment.clientName}.</p>
         </div>
 
-        <div className="bg-card border border-border p-8 md:p-12 mb-8 relative">
+        <div className="bg-card border border-border p-5 sm:p-8 md:p-12 mb-8 relative">
           <div className="absolute top-0 left-0 w-full h-1 bg-primary" />
           
           <div className="text-center border-b border-border pb-8 mb-8">
@@ -222,22 +222,22 @@ export default function BookingConfirmation() {
           </div>
 
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
               <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">Treatment</span>
               <span className="font-medium">{appointment.serviceName}</span>
             </div>
             
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
               <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">Date</span>
               <span className="font-medium">{format(new Date(appointment.date), "MMMM d, yyyy")}</span>
             </div>
             
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
               <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">Time</span>
               <span className="font-medium">{appointment.time}</span>
             </div>
             
-            <div className="flex justify-between items-center pt-6 border-t border-border">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 pt-6 border-t border-border">
               <span className="text-muted-foreground text-sm uppercase tracking-widest text-[10px]">
                 {paymentWasVerified ? "Amount Paid" : "Consultation Fee"}
               </span>

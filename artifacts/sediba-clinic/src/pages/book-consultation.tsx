@@ -43,23 +43,23 @@ const STEPS = [
 
 function StepIndicator({ current }: { current: number }) {
   return (
-    <div className="flex items-center justify-center gap-0 mb-10">
+    <div className="flex items-center justify-center gap-0 mb-10 pb-4">
       {STEPS.map((s, i) => {
         const idx = i + 1;
         const active = idx === current;
         const done = idx < current;
         return (
-          <div key={s.num} className="flex items-center">
-            <div className="text-center w-20">
+          <div key={s.num} className="flex items-center flex-shrink-0">
+            <div className="text-center w-10 sm:w-16 md:w-20">
               <p className={`text-sm font-light mb-0.5 transition-colors ${active ? "text-primary" : done ? "text-foreground/40" : "text-foreground/20"}`}>
                 {s.num}
               </p>
-              <p className={`uppercase tracking-widest text-[9px] transition-colors ${active ? "text-primary" : done ? "text-foreground/40" : "text-foreground/20"}`}>
+              <p className={`hidden sm:block uppercase tracking-widest text-[9px] transition-colors ${active ? "text-primary" : done ? "text-foreground/40" : "text-foreground/20"}`}>
                 {s.label}
               </p>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={`w-8 h-px mx-1 transition-colors ${done ? "bg-foreground/30" : "bg-foreground/10"}`} />
+              <div className={`w-2 sm:w-4 md:w-8 h-px mx-1 transition-colors ${done ? "bg-foreground/30" : "bg-foreground/10"}`} />
             )}
           </div>
         );
@@ -70,7 +70,7 @@ function StepIndicator({ current }: { current: number }) {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-card border border-border p-8 md:p-12 relative">
+    <div className="bg-card border border-border p-5 sm:p-8 md:p-12 relative">
       <div className="absolute top-0 left-0 w-full h-px bg-primary" />
       {children}
     </div>
@@ -268,7 +268,7 @@ export default function BookConsultation() {
               <Label className="uppercase tracking-widest text-[10px] text-muted-foreground mb-4 block">
                 Select all that apply
               </Label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {CONCERNS.map((c) => {
                   const selected = selectedConcerns.includes(c);
                   return (
@@ -347,7 +347,7 @@ export default function BookConsultation() {
             <h2 className="font-serif text-xl text-foreground mb-8">Your Details</h2>
 
             <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="uppercase tracking-widest text-[10px] text-muted-foreground mb-2 block">
                     First Name <span className="text-primary">*</span>
@@ -489,13 +489,13 @@ export default function BookConsultation() {
                       Available times for {format(selectedDate, "MMMM d, yyyy")}
                     </p>
                     {isLoadingSlots ? (
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {Array.from({ length: 8 }).map((_, i) => (
                           <div key={i} className="h-10 bg-muted animate-pulse" />
                         ))}
                       </div>
                     ) : (
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {(availability ?? []).filter((s) => s.available).map((slot) => (
                           <button
                             key={slot.time}
@@ -553,9 +553,9 @@ export default function BookConsultation() {
                 { label: "Amount", value: `R${consultationService.price.toFixed(2)}` },
                 { label: "Concerns", value: selectedConcerns.join(", ") },
               ].map(({ label, value }) => (
-                <div key={label} className="flex justify-between items-baseline gap-4">
+                <div key={label} className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1 sm:gap-4">
                   <span className="uppercase tracking-widest text-[10px] text-muted-foreground shrink-0">{label}</span>
-                  <span className="text-sm text-foreground text-right">{value}</span>
+                  <span className="text-sm text-foreground sm:text-right break-words">{value}</span>
                 </div>
               ))}
             </div>

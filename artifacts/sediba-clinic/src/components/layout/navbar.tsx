@@ -120,8 +120,10 @@ export function Navbar() {
 
         {/* Mobile Toggle */}
         <button
-          className={`md:hidden transition-colors duration-300 ${logoInvert ? "text-white" : "text-foreground"}`}
+          className={`md:hidden transition-colors duration-300 p-2 -mr-2 ${logoInvert ? "text-white" : "text-foreground"}`}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isMobileMenuOpen}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -129,32 +131,32 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-border shadow-lg py-6 px-6 flex flex-col space-y-6">
+        <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-border shadow-lg py-4 px-6 flex flex-col space-y-2">
           {navLinks.map((link) => (
             <Link key={link.name} href={link.href}>
               <span
-                className="text-sm uppercase tracking-wider text-foreground block cursor-pointer"
+                className="text-sm uppercase tracking-wider text-foreground block cursor-pointer py-3"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.name}
               </span>
             </Link>
           ))}
-          <div className="flex items-center gap-4 pt-2">
-            <a href="https://www.instagram.com/sedibawellnessclinic?utm_source=qr&igsh=MTE4cXFoNjBzYmV5dw%3D%3D" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
-              <InstagramIcon size={18} />
+          <div className="flex items-center gap-6 pt-4 pb-2">
+            <a href="https://www.instagram.com/sedibawellnessclinic?utm_source=qr&igsh=MTE4cXFoNjBzYmV5dw%3D%3D" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors p-2 -ml-2" aria-label="Instagram">
+              <InstagramIcon size={20} />
             </a>
-            <a href="https://www.facebook.com/share/17iZSPotiF/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Facebook">
-              <FacebookIcon size={18} />
+            <a href="https://www.facebook.com/share/17iZSPotiF/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors p-2" aria-label="Facebook">
+              <FacebookIcon size={20} />
             </a>
-            <a href="https://www.tiktok.com/@sedibawellnessclinic?_r=1&_t=ZS-96Bti2ATdMg" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="TikTok">
-              <TikTokIcon size={18} />
+            <a href="https://www.tiktok.com/@sedibawellnessclinic?_r=1&_t=ZS-96Bti2ATdMg" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors p-2" aria-label="TikTok">
+              <TikTokIcon size={20} />
             </a>
           </div>
-          <Link href="/book-consultation" onClick={() => setIsMobileMenuOpen(false)} className="block">
+          <Link href="/book-consultation" onClick={() => setIsMobileMenuOpen(false)} className="block pt-2">
             <Button
               variant="default"
-              className="rounded-none w-full tracking-wider uppercase text-xs"
+              className="rounded-none w-full tracking-wider uppercase text-xs py-6"
             >
               Book Consultation
             </Button>

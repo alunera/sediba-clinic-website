@@ -59,50 +59,52 @@ export default function AdminCalendar() {
   const isConsultation = (appt: Appointment) => appt.appointmentType === 'consultation';
 
   return (
-    <div className="h-[calc(100vh-6rem)] flex flex-col md:flex-row gap-6 animate-in fade-in">
+    <div className="h-[calc(100vh-6rem)] md:h-[calc(100vh-6rem)] flex flex-col md:flex-row gap-6 animate-in fade-in">
       
       {/* Calendar Grid */}
-      <div className="flex-1 bg-card border border-border p-6 flex flex-col">
+      <div className="flex-1 bg-card border border-border p-4 sm:p-6 flex flex-col min-w-0">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="font-serif text-2xl">{format(currentMonth, "MMMM yyyy")}</h2>
+          <h2 className="font-serif text-xl sm:text-2xl">{format(currentMonth, "MMMM yyyy")}</h2>
           <div className="flex gap-2">
             <button 
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className="p-2 border border-border hover:bg-muted transition-colors"
+              className="p-3 sm:p-2 border border-border hover:bg-muted transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button 
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className="p-2 border border-border hover:bg-muted transition-colors"
+              className="p-3 sm:p-2 border border-border hover:bg-muted transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-px bg-border mb-px">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="bg-card py-2 text-center text-[10px] uppercase tracking-widest text-muted-foreground">
-              {day}
+        <div className="overflow-x-auto flex-1">
+          <div className="min-w-[600px] h-full flex flex-col">
+            <div className="grid grid-cols-7 gap-px bg-border mb-px">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="bg-card py-2 text-center text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {day}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        <div className="grid grid-cols-7 gap-px bg-border flex-1">
-          {paddingDays.map(i => (
-            <div key={`pad-${i}`} className="bg-card/50 min-h-[100px]" />
-          ))}
-          {days.map(day => {
-            const dayAppts = appointments.filter(a => isSameDay(parseISO(a.date), day));
-            const isSelected = selectedDate && isSameDay(day, selectedDate);
-            
-            return (
-              <div 
-                key={day.toISOString()} 
-                onClick={() => setSelectedDate(day)}
-                className={`bg-card min-h-[100px] p-2 cursor-pointer transition-colors relative hover:bg-muted/50 ${isSelected ? "ring-2 ring-primary ring-inset z-10" : ""}`}
-              >
+            <div className="grid grid-cols-7 gap-px bg-border flex-1">
+              {paddingDays.map(i => (
+                <div key={`pad-${i}`} className="bg-card/50 min-h-[80px] sm:min-h-[100px]" />
+              ))}
+              {days.map(day => {
+                const dayAppts = appointments.filter(a => isSameDay(parseISO(a.date), day));
+                const isSelected = selectedDate && isSameDay(day, selectedDate);
+
+                return (
+                  <div
+                    key={day.toISOString()}
+                    onClick={() => setSelectedDate(day)}
+                    className={`bg-card min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 cursor-pointer transition-colors relative hover:bg-muted/50 ${isSelected ? "ring-2 ring-primary ring-inset z-10" : ""}`}
+                  >
                 <span className={`text-sm font-medium ${isSameDay(day, new Date()) ? "text-primary" : ""}`}>
                   {format(day, "d")}
                 </span>
@@ -124,6 +126,8 @@ export default function AdminCalendar() {
               </div>
             );
           })}
+            </div>
+          </div>
         </div>
       </div>
 

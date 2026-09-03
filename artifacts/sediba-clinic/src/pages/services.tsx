@@ -6,9 +6,10 @@ import { SKIN, ADVANCED, BODY, HANDS_FEET } from "@/lib/treatments";
 
 function SectionDivider({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-6 mb-10">
-      <h2 className="font-serif text-3xl md:text-4xl text-foreground whitespace-nowrap">{label}</h2>
-      <div className="flex-1 h-px bg-border" />
+    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-10">
+      <h2 className="font-serif text-3xl md:text-4xl text-foreground break-words">{label}</h2>
+      <div className="hidden sm:block flex-1 h-px bg-border" />
+      <div className="sm:hidden w-16 h-px bg-primary" />
     </div>
   );
 }
