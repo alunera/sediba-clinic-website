@@ -1,1 +1,2 @@
 - [api-zod index.ts codegen clobber](api-zod-index-clobber.md) — orval codegen overwrites lib/api-zod/src/index.ts with a broken double-export; must reset after every codegen run
+- [Sedi service catalog](sedi-service-catalog.md) — Sedi must quote the newer branded Services-page menu, not the legacy live-booking catalog.

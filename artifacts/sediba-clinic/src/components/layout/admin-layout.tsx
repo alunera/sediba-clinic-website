@@ -10,6 +10,7 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [location, setLocation] = useLocation();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const logout = useAdminLogout();
 
   useEffect(() => {
@@ -51,8 +52,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { name: "Clients", path: "/admin/clients", icon: Users },
     { name: "Settings", path: "/admin/settings", icon: Settings },
   ];
-
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-muted/20 flex flex-col md:flex-row">

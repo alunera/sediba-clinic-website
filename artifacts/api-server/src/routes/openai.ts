@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { conversations, messages, servicesTable } from "@workspace/db";
+import { conversations, messages } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import {
@@ -31,17 +31,41 @@ Brands: Dermalogica, DMK, Depelive, CND — all vegan friendly and cruelty free.
 
 You will receive a CURRENT SERVICE CATALOG with every request. It is the only source of truth for available services, prices, durations, and descriptions. Never quote a service or price that is not in that catalog. If a requested service is not listed, say it is not currently listed and suggest contacting the clinic.`;
 
-export function formatServiceCatalog(
-  services: Array<{ name: string; category: string; description: string; duration: number; price: number }>,
-): string {
-  if (!services.length) {
-    return "CURRENT SERVICE CATALOG\nNo services are currently available. Do not invent services or prices.";
-  }
+const SEDI_SERVICE_CATALOG = [
+  ["Skin", "The Glow", "Radiance · Hydration · Refresh", "From R1,000"],
+  ["Skin", "The Clarify", "Congestion · Breakouts · Balance", "From R1,000"],
+  ["Skin", "The Brighten", "Pigmentation · Tone · Luminosity", "From R1,000"],
+  ["Skin", "The Firm", "Fine Lines · Firmness · Collagen", "From R1,000"],
+  ["Skin", "The Calm", "Sensitivity · Redness · Barrier Support", "From R1,000"],
+  ["Skin", "The Renew", "Resurfacing · Texture · Skin Renewal", "From R1,000"],
+  ["Skin", "The Lift", "Firming · Definition · Rejuvenation", "From R1,000"],
+  ["Skin", "The Repair", "Regeneration · Recovery · Skin Restoration", "From R1,000"],
+  ["Advanced Aesthetics", "The Precision Peel", "Targeted Resurfacing · Pigmentation · Texture", "From R1,250"],
+  ["Advanced Aesthetics", "The Collagen Boost", "Microneedling · Texture · Fine Lines", "From R990"],
+  ["Advanced Aesthetics", "The Regeneration (Exosome)", "Exosome Therapy · Repair · Rejuvenation", "From R2,500"],
+  ["Advanced Aesthetics", "The Perfect Polish", "Dermaplaning · Smoothness · Radiance", "From R850"],
+  ["Advanced Aesthetics", "The Light Therapy", "LED · Calm · Repair", "R1,750"],
+  ["Advanced Aesthetics", "The Smooth", "Laser Hair Removal · All Skin Types", "From R450"],
+  ["Advanced Aesthetics", "The Clear", "Laser Tattoo Removal", "From R450"],
+  ["Advanced Aesthetics", "The Contour", "Cavitation · Body Contouring", "From R550"],
+  ["Body & Wellness", "The Sediba Signature", "Full-Body Relaxation · Restore · Rebalance", "R750"],
+  ["Body & Wellness", "The Deep Release", "Deep Tissue · Muscle Tension · Recovery", "R500"],
+  ["Body & Wellness", "The Reset", "Back · Neck · Shoulders", "R450"],
+  ["Body & Wellness", "The Aroma Ritual", "Aromatherapy · Relaxation · Wellbeing", "R800"],
+  ["Body & Wellness", "Add-On Massage", "Hand or Foot Massage (Add-On)", "R350"],
+  ["Hands & Feet", "The Manicure", "Shape · Cuticle Care · Polish", "R350"],
+  ["Hands & Feet", "The Gel Manicure", "Long-Wear · High Shine", "R400"],
+  ["Hands & Feet", "The Pedicure", "Foot Care · Shape · Polish", "R420"],
+  ["Hands & Feet", "The Gel Pedicure", "Long-Wear · High Shine", "R620"],
+  ["Hands & Feet", "The Luxury Hand Ritual", "Exfoliate · Nourish · Massage", "R350"],
+  ["Hands & Feet", "The Luxury Foot Ritual", "Exfoliate · Restore · Massage", "R350"],
+  ["Consultation", "Consultation", "Personalised 30-minute skin and wellness consultation", "R350"],
+] as const;
 
-  const lines = services.map((service) => {
-    const price = service.price > 0 ? `R${(service.price / 100).toFixed(2)}` : "Complimentary";
-    return `• ${service.name} | ${service.category} | ${price} | ${service.duration} min | ${service.description}`;
-  });
+export function formatServiceCatalog(): string {
+  const lines = SEDI_SERVICE_CATALOG.map(
+    ([category, name, description, price]) => `• ${name} | ${category} | ${price} | ${description}`,
+  );
   return `CURRENT SERVICE CATALOG\n${lines.join("\n")}`;
 }
 
@@ -157,20 +181,9 @@ router.post("/openai/conversations/:id/messages", async (req, res) => {
     .where(eq(messages.conversationId, convId))
     .orderBy(asc(messages.createdAt));
 
-  const services = await db
-    .select({
-      name: servicesTable.name,
-      category: servicesTable.category,
-      description: servicesTable.description,
-      duration: servicesTable.duration,
-      price: servicesTable.price,
-    })
-    .from(servicesTable)
-    .orderBy(asc(servicesTable.category), asc(servicesTable.name));
-
   const chatMessages = [
     { role: "system" as const, content: SYSTEM_PROMPT },
-    { role: "system" as const, content: formatServiceCatalog(services) },
+    { role: "system" as const, content: formatServiceCatalog() },
     ...history.map((m) => ({
       role: m.role as "user" | "assistant",
       content: m.content,

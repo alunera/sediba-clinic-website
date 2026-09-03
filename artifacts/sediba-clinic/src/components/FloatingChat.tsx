@@ -112,7 +112,7 @@ export function FloatingChat() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden shadow-xl border-2 border-primary hover:scale-105 transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="fixed top-24 right-4 sm:top-auto sm:bottom-6 sm:right-6 z-50 w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden shadow-xl border-2 border-primary hover:scale-105 transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             aria-label="Chat with Sedi"
           >
             <img src="/sedi-avatar.jpg" alt="Sedi, AI Concierge" className="w-full h-full object-cover object-top" />
