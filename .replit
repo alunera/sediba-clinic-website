@@ -44,7 +44,7 @@ isValidation = true
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm --filter @workspace/db --filter @workspace/api-server exec tsc --noEmit"
+args = "pnpm --filter @workspace/db --filter @workspace/api-server --filter @workspace/sediba-clinic exec tsc --noEmit"
 
 [agent]
 stack = "PNPM_WORKSPACE"

@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star } from "lucide-react";
 
@@ -42,12 +42,12 @@ const googleReviews = [
 ];
 
 export default function Home() {
-  const fadeIn = {
+  const fadeIn: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" as const } }
   };
 
-  const stagger = {
+  const stagger: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
