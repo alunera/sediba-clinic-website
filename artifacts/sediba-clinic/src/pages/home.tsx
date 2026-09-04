@@ -19,13 +19,6 @@ const googleReviews = [
     avatar: "PN",
   },
   {
-    name: "Sarah B.",
-    rating: 5,
-    date: "2 months ago",
-    text: "A truly world-class clinic right here in Midrand. The Botox results are so natural, exactly what I wanted. The whole experience feels nothing like a medical appointment; it's more like a spa retreat.",
-    avatar: "SB",
-  },
-  {
     name: "Lerato K.",
     rating: 5,
     date: "2 months ago",
