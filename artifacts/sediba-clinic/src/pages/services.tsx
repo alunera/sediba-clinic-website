@@ -93,11 +93,11 @@ export default function Services() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <div className="relative overflow-hidden aspect-[3/4]">
+              <div className="relative overflow-hidden aspect-video">
                 <img
-                  src="/glass-skin.jpg"
-                  alt="Glass skin result: radiant complexion"
-                  className="w-full h-full object-cover object-top"
+                  src="/skin-treatment.jpg"
+                  alt="Client receiving a professional facial treatment"
+                  className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
               </div>
