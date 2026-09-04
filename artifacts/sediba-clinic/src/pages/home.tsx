@@ -182,19 +182,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Clinic Interior Photo */}
-      <section className="w-full">
+      {/* Microneedling overview */}
+      <section className="w-full bg-white">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1 }}
-          className="w-full h-[60vh] md:h-[75vh] overflow-hidden"
+          className="w-full overflow-hidden"
         >
           <img
-            src="/aesthetic-treatment.jpg"
-            alt="Aesthetic treatment at Sediba Wellness Clinic"
-            className="w-full h-full object-cover object-[center_20%]"
+            src="/microneedling-overview.jpg"
+            alt="Microneedling treatments for skin, acne scar revision, and hair restoration"
+            className="block w-full h-auto"
           />
         </motion.div>
       </section>
