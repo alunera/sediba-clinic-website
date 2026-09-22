@@ -21,6 +21,7 @@ import {
 } from "../lib/appointment-payment";
 import { requireAdmin } from "../middlewares/admin-auth";
 import { releaseExpiredPendingBookings } from "./payments";
+import { isServiceBookableForNewAppointment } from "../lib/service-catalog";
 
 const router = Router();
 
@@ -100,12 +101,51 @@ router.post("/appointments", async (req, res): Promise<void> => {
   let serviceName = "";
   let requiresPayment = false;
   let serviceNotFound = false;
+  let serviceNotBookable = false;
   let conflictError: string | null = null;
   try {
     appointment = await db.transaction(async (tx) => {
       await tx.execute(
         sql`SELECT pg_advisory_xact_lock(hashtext(${`slot:${dateStr} ${rest.time}`}))`
       );
+
+      // Read the live service price in the same transaction as the insert.
+      // CreateAppointmentBody deliberately has no amount field, so clients
+      // cannot submit a stale or manipulated consultation price.
+      const [service] = await tx
+        .select({
+          id: servicesTable.id,
+          name: servicesTable.name,
+          category: servicesTable.category,
+          price: servicesTable.price,
+        })
+        .from(servicesTable)
+        .where(eq(servicesTable.id, serviceId))
+        .limit(1);
+      if (!service) {
+        serviceNotFound = true;
+        return undefined;
+      }
+      const [canonicalPublicService] =
+        service.category.toLowerCase() === "consultation"
+          ? [service]
+          : await tx
+              .select({ id: servicesTable.id })
+              .from(servicesTable)
+              .where(
+                sql`lower(${servicesTable.name}) = lower(${service.name})`,
+              )
+              .orderBy(servicesTable.id)
+              .limit(1);
+      if (
+        !isServiceBookableForNewAppointment(
+          service,
+          canonicalPublicService?.id,
+        )
+      ) {
+        serviceNotBookable = true;
+        return undefined;
+      }
 
       const slotConfigured = await tx
         .select({ id: availabilitySlotsTable.id })
@@ -130,19 +170,6 @@ router.post("/appointments", async (req, res): Promise<void> => {
         .limit(1);
       if (conflict[0]) {
         conflictError = "This time slot has just been booked. Please choose another slot.";
-        return undefined;
-      }
-
-      // Read the live service price in the same transaction as the insert.
-      // CreateAppointmentBody deliberately has no amount field, so clients
-      // cannot submit a stale or manipulated consultation price.
-      const [service] = await tx
-        .select({ name: servicesTable.name, price: servicesTable.price })
-        .from(servicesTable)
-        .where(eq(servicesTable.id, serviceId))
-        .limit(1);
-      if (!service) {
-        serviceNotFound = true;
         return undefined;
       }
 
@@ -181,6 +208,12 @@ router.post("/appointments", async (req, res): Promise<void> => {
 
   if (serviceNotFound) {
     res.status(400).json({ error: "Service not found" });
+    return;
+  }
+  if (serviceNotBookable) {
+    res.status(400).json({
+      error: "This service is no longer available for new bookings.",
+    });
     return;
   }
 

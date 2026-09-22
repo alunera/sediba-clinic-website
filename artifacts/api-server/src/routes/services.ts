@@ -1,15 +1,16 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { servicesTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { GetServiceParams } from "@workspace/api-zod";
+import { publicServices } from "../lib/service-catalog";
 
 const router = Router();
 
 router.get("/services", async (_req, res) => {
-  const services = await db.select().from(servicesTable).orderBy(servicesTable.category);
+  const services = await db.select().from(servicesTable).orderBy(servicesTable.id);
   res.json(
-    services.map((s) => ({
+    publicServices(services).map((s) => ({
       ...s,
       price: s.price / 100,
     }))
@@ -17,16 +18,16 @@ router.get("/services", async (_req, res) => {
 });
 
 router.get("/services/categories", async (_req, res) => {
-  const categories = await db
-    .select({
-      category: servicesTable.category,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(servicesTable)
-    .groupBy(servicesTable.category)
-    .orderBy(servicesTable.category);
-
-  res.json(categories);
+  const services = publicServices(
+    await db.select().from(servicesTable).orderBy(servicesTable.id),
+  );
+  const counts = new Map<string, number>();
+  for (const service of services) {
+    counts.set(service.category, (counts.get(service.category) ?? 0) + 1);
+  }
+  res.json(
+    [...counts].map(([category, count]) => ({ category, count })),
+  );
 });
 
 router.get("/services/:id", async (req, res) => {

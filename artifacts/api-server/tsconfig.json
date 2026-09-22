@@ -8,6 +8,9 @@
   "include": ["src"],
   "references": [
     {
+      "path": "../../lib/treatment-catalog"
+    },
+    {
       "path": "../../lib/db"
     },
     {

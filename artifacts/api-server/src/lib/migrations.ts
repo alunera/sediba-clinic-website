@@ -11,6 +11,7 @@
 
 import { pool } from "@workspace/db";
 import { logger } from "./logger";
+import { reconcileServiceCatalog } from "./service-catalog";
 
 const MIGRATIONS = [
   // Task: persist appointment reminders across server restarts
@@ -80,6 +81,14 @@ export async function runSchemaMigrations(): Promise<void> {
     for (const sql of MIGRATIONS) {
       await client.query(sql);
     }
+    const catalogPlan = await reconcileServiceCatalog(client);
+    logger.info(
+      {
+        inserted: catalogPlan.inserts.length,
+        updated: catalogPlan.updates.length,
+      },
+      "[Migrations] Public service catalog reconciled",
+    );
     try {
       await client.query(ACTIVE_SLOT_INDEX);
     } catch (err) {
