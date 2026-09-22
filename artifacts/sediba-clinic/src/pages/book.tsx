@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,6 +27,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { displayPrice, findTreatmentByName, menuIndex, TREATMENT_MENU } from "@/lib/treatments";
 
+function parseRequestedDate(value: string | null): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+    ? date
+    : null;
+}
+
+function parseRequestedTime(value: string | null): string | null {
+  return value && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value) ? value : null;
+}
+
 export default function Book() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -35,6 +48,12 @@ export default function Book() {
   const searchParams = new URLSearchParams(window.location.search);
   const defaultServiceId = searchParams.get("service") ? parseInt(searchParams.get("service")!) : null;
   const treatmentParam = searchParams.get("treatment");
+  const requestedDateParam = searchParams.get("date");
+  const requestedTimeParam = searchParams.get("time");
+  const requestedDate = useMemo(() => parseRequestedDate(requestedDateParam), [requestedDateParam]);
+  const requestedTime = useMemo(() => parseRequestedTime(requestedTimeParam), [requestedTimeParam]);
+  const datePrefillAttempted = useRef(false);
+  const timePrefillAttempted = useRef(false);
 
   // Form State
   const [step, setStep] = useState(2);
@@ -44,7 +63,7 @@ export default function Book() {
   const [treatmentCategory, setTreatmentCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [visibleMonth, setVisibleMonth] = useState<Date>(new Date());
+  const [visibleMonth, setVisibleMonth] = useState<Date>(requestedDate ?? new Date());
   
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -121,6 +140,34 @@ export default function Book() {
     availabilityParams,
     { query: { enabled: !!selectedDate && !!selectedServiceId, queryKey: getGetAvailabilityQueryKey(availabilityParams) } }
   );
+
+  // Assistant suggestions are hints only. Apply each hint once, and only after
+  // the same live APIs used by the calendar confirm that it is still available.
+  useEffect(() => {
+    if (datePrefillAttempted.current || !selectedServiceId || availableDatesData === undefined) return;
+    datePrefillAttempted.current = true;
+    if (requestedDate && availableDates.has(format(requestedDate, "yyyy-MM-dd"))) {
+      setSelectedDate(requestedDate);
+    } else {
+      timePrefillAttempted.current = true;
+    }
+  }, [availableDates, availableDatesData, requestedDate, selectedServiceId]);
+
+  useEffect(() => {
+    if (
+      timePrefillAttempted.current ||
+      !requestedTime ||
+      !requestedDate ||
+      !selectedDate ||
+      format(selectedDate, "yyyy-MM-dd") !== format(requestedDate, "yyyy-MM-dd") ||
+      availability === undefined ||
+      isLoadingAvailability
+    ) return;
+    timePrefillAttempted.current = true;
+    if (availability.some((slot) => slot.available && slot.time === requestedTime)) {
+      setSelectedTime(requestedTime);
+    }
+  }, [availability, isLoadingAvailability, requestedDate, requestedTime, selectedDate]);
 
   const createAppointment = useCreateAppointment();
   const initiatePayment = useInitiatePayment();
@@ -286,6 +333,7 @@ export default function Book() {
                           onClick={() => {
                             setSelectedServiceId(service.id);
                             setSelectedTime(null);
+                             timePrefillAttempted.current = true;
                             setIsTreatmentPickerOpen(false);
                             setTreatmentSearch("");
                             setTreatmentCategory(null);
@@ -384,6 +432,7 @@ export default function Book() {
                       onSelect={(date) => {
                         setSelectedDate(date);
                         setSelectedTime(null);
+                        timePrefillAttempted.current = true;
                       }}
                       disabled={(date) => !availableDates.has(format(date, "yyyy-MM-dd"))}
                       modifiers={{

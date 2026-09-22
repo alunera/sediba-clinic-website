@@ -11,63 +11,17 @@ import {
   SendOpenaiMessageParams,
   SendOpenaiMessageBody,
 } from "@workspace/api-zod";
+import {
+  SYSTEM_PROMPT,
+  SEDI_TOOLS,
+  appendPreparedBookingLink,
+  executeSediTool,
+  formatClinicDateContext,
+  formatLiveConsultation,
+  formatTreatmentCatalog,
+} from "../lib/sedi";
 
 const router = Router();
-
-const SYSTEM_PROMPT = `You are Sedi, the AI concierge for Sediba Aesthetic & Wellness Clinic — a premium skin and wellness clinic located at Hertford Office Park, 90 Bekker Road, Vorna Valley, Midrand, South Africa.
-
-Your role is to help clients learn about treatments, pricing, and to guide them to book appointments. Be warm, calm, knowledgeable and professional. Never use emojis.
-
---- BOOKING ---
-When a client wants to book an appointment, help them identify the right treatment, then direct them to use the Book Consultation or Reserve Your Time button on this website.
-
---- CLINIC DETAILS ---
-Address: Hertford Office Park, 90 Bekker Road, Vorna Valley, Midrand
-Email: info@sedibawellnessclinic.co.za
-Phone: 081 456 6402
-Hours: Monday–Friday 09:00–18:00, Saturday 10:00–15:00, Sunday Closed
-Free parking on premises.
-Brands: Dermalogica, DMK, Depelive, CND — all vegan friendly and cruelty free.
-
-You will receive a CURRENT SERVICE CATALOG with every request. It is the only source of truth for available services, prices, durations, and descriptions. Never quote a service or price that is not in that catalog. If a requested service is not listed, say it is not currently listed and suggest contacting the clinic.`;
-
-const SEDI_SERVICE_CATALOG = [
-  ["Skin", "The Glow", "Radiance · Hydration · Refresh", "From R1,000"],
-  ["Skin", "The Clarify", "Congestion · Breakouts · Balance", "From R1,000"],
-  ["Skin", "The Brighten", "Pigmentation · Tone · Luminosity", "From R1,000"],
-  ["Skin", "The Firm", "Fine Lines · Firmness · Collagen", "From R1,000"],
-  ["Skin", "The Calm", "Sensitivity · Redness · Barrier Support", "From R1,000"],
-  ["Skin", "The Renew", "Resurfacing · Texture · Skin Renewal", "From R1,000"],
-  ["Skin", "The Lift", "Firming · Definition · Rejuvenation", "From R1,000"],
-  ["Skin", "The Repair", "Regeneration · Recovery · Skin Restoration", "From R1,000"],
-  ["Advanced Aesthetics", "The Precision Peel", "Targeted Resurfacing · Pigmentation · Texture", "From R1,250"],
-  ["Advanced Aesthetics", "The Collagen Boost", "Microneedling · Texture · Fine Lines", "From R990"],
-  ["Advanced Aesthetics", "The Regeneration (Exosome)", "Exosome Therapy · Repair · Rejuvenation", "From R2,500"],
-  ["Advanced Aesthetics", "The Perfect Polish", "Dermaplaning · Smoothness · Radiance", "From R850"],
-  ["Advanced Aesthetics", "The Light Therapy", "LED · Calm · Repair", "R1,750"],
-  ["Advanced Aesthetics", "The Smooth", "Laser Hair Removal · All Skin Types", "From R450"],
-  ["Advanced Aesthetics", "The Clear", "Laser Tattoo Removal", "From R450"],
-  ["Advanced Aesthetics", "The Contour", "Cavitation · Body Contouring", "From R550"],
-  ["Body & Wellness", "The Sediba Signature", "Full-Body Relaxation · Restore · Rebalance", "R750"],
-  ["Body & Wellness", "The Deep Release", "Deep Tissue · Muscle Tension · Recovery", "R500"],
-  ["Body & Wellness", "The Reset", "Back · Neck · Shoulders", "R450"],
-  ["Body & Wellness", "The Aroma Ritual", "Aromatherapy · Relaxation · Wellbeing", "R800"],
-  ["Body & Wellness", "Add-On Massage", "Hand or Foot Massage (Add-On)", "R350"],
-  ["Hands & Feet", "The Manicure", "Shape · Cuticle Care · Polish", "R350"],
-  ["Hands & Feet", "The Gel Manicure", "Long-Wear · High Shine", "R400"],
-  ["Hands & Feet", "The Pedicure", "Foot Care · Shape · Polish", "R420"],
-  ["Hands & Feet", "The Gel Pedicure", "Long-Wear · High Shine", "R620"],
-  ["Hands & Feet", "The Luxury Hand Ritual", "Exfoliate · Nourish · Massage", "R350"],
-  ["Hands & Feet", "The Luxury Foot Ritual", "Exfoliate · Restore · Massage", "R350"],
-  ["Consultation", "Consultation", "Personalised 30-minute skin and wellness consultation", "R350"],
-] as const;
-
-export function formatServiceCatalog(): string {
-  const lines = SEDI_SERVICE_CATALOG.map(
-    ([category, name, description, price]) => `• ${name} | ${category} | ${price} | ${description}`,
-  );
-  return `CURRENT SERVICE CATALOG\n${lines.join("\n")}`;
-}
 
 router.get("/openai/conversations", async (_req, res) => {
   const all = await db.select().from(conversations).orderBy(conversations.createdAt);
@@ -181,9 +135,14 @@ router.post("/openai/conversations/:id/messages", async (req, res) => {
     .where(eq(messages.conversationId, convId))
     .orderBy(asc(messages.createdAt));
 
-  const chatMessages = [
+  type CompletionParams = Parameters<
+    typeof openai.chat.completions.create
+  >[0];
+  const chatMessages: CompletionParams["messages"] = [
     { role: "system" as const, content: SYSTEM_PROMPT },
-    { role: "system" as const, content: formatServiceCatalog() },
+    { role: "system" as const, content: formatClinicDateContext() },
+    { role: "system" as const, content: formatTreatmentCatalog() },
+    { role: "system" as const, content: await formatLiveConsultation() },
     ...history.map((m) => ({
       role: m.role as "user" | "assistant",
       content: m.content,
@@ -195,20 +154,61 @@ router.post("/openai/conversations/:id/messages", async (req, res) => {
   res.setHeader("Connection", "keep-alive");
 
   let fullResponse = "";
+  let preparedLink: string | undefined;
 
-  const stream = await openai.chat.completions.create({
-    model: "gpt-5.4",
-    max_completion_tokens: 8192,
-    messages: chatMessages,
-    stream: true,
-  });
+  try {
+    // Keep tool use bounded so a malformed model/tool exchange cannot hold an
+    // SSE request open indefinitely.
+    for (let round = 0; round < 4; round++) {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-5.4",
+        max_completion_tokens: 8192,
+        messages: chatMessages,
+        tools: [...SEDI_TOOLS],
+      });
+      const assistant = completion.choices[0]?.message;
+      if (!assistant) throw new Error("OpenAI returned no assistant message");
 
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content;
-    if (content) {
-      fullResponse += content;
-      res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      const toolCalls = assistant.tool_calls ?? [];
+      if (toolCalls.length === 0) {
+        fullResponse = assistant.content ?? "";
+        break;
+      }
+
+      chatMessages.push({
+        role: "assistant" as const,
+        content: assistant.content,
+        tool_calls: toolCalls,
+      });
+      for (const toolCall of toolCalls) {
+        if (toolCall.type !== "function") continue;
+        let result;
+        try {
+          result = await executeSediTool(
+            toolCall.function.name,
+            toolCall.function.arguments,
+          );
+        } catch {
+          result = {
+            output: JSON.stringify({
+              ok: false,
+              error: "Live booking information could not be checked.",
+            }),
+          };
+        }
+        if (result.preparedLink) preparedLink = result.preparedLink;
+        chatMessages.push({
+          role: "tool" as const,
+          tool_call_id: toolCall.id,
+          content: result.output,
+        });
+      }
     }
+
+    fullResponse = appendPreparedBookingLink(fullResponse, preparedLink);
+  } catch {
+    fullResponse =
+      "I'm sorry, I couldn't complete that request just now. Please try again, call 081 456 6402, or email info@sedibawellnessclinic.co.za.";
   }
 
   await db.insert(messages).values({
@@ -216,7 +216,7 @@ router.post("/openai/conversations/:id/messages", async (req, res) => {
     role: "assistant",
     content: fullResponse,
   });
-
+  res.write(`data: ${JSON.stringify({ content: fullResponse })}\n\n`);
   res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
   res.end();
 });

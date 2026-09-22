@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Sparkles } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { AssistantMessage, readAssistantStream } from "@/lib/assistant-chat";
 
 type Message = {
   id: number;
@@ -84,47 +85,25 @@ export default function AiAssistant() {
         body: JSON.stringify({ content: userMessageContent }),
       });
 
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
       let assistantContent = "";
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n\n");
-        
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (data.done) {
-                // Refresh the conversation to get final saved state and real IDs
-                queryClient.invalidateQueries({ queryKey: getGetOpenaiConversationQueryKey(conversationId) });
-                break;
-              }
-              if (data.content) {
-                assistantContent += data.content;
-                setMessages(prev => 
-                  prev.map(msg => 
-                    msg.id === tempAssistantId 
-                      ? { ...msg, content: assistantContent } 
-                      : msg
-                  )
-                );
-              }
-            } catch (e) {
-              console.error("Error parsing SSE JSON", e);
-            }
-          }
-        }
-      }
+      await readAssistantStream(response, (content) => {
+        assistantContent += content;
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === tempAssistantId
+              ? { ...msg, content: assistantContent }
+              : msg
+          )
+        );
+      });
+      queryClient.invalidateQueries({ queryKey: getGetOpenaiConversationQueryKey(conversationId) });
     } catch (error) {
       console.error("Error sending message:", error);
-      setMessages(prev => prev.filter(msg => msg.id !== tempAssistantId));
+      setMessages(prev => prev.map(msg =>
+        msg.id === tempAssistantId
+          ? { ...msg, content: error instanceof Error ? error.message : "I encountered an issue. Please try again." }
+          : msg
+      ));
     } finally {
       setIsTyping(false);
     }
@@ -175,7 +154,7 @@ export default function AiAssistant() {
                           : "bg-muted/30 text-foreground border border-border"
                       }`}
                     >
-                      {msg.content}
+                      {msg.role === "assistant" ? <AssistantMessage content={msg.content} /> : msg.content}
                     </div>
                   </motion.div>
                 ))}

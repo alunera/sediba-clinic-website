@@ -22,6 +22,7 @@ import {
 import { requireAdmin } from "../middlewares/admin-auth";
 import { releaseExpiredPendingBookings } from "./payments";
 import { isServiceBookableForNewAppointment } from "../lib/service-catalog";
+import { getLiveAvailability } from "../lib/availability";
 
 const router = Router();
 
@@ -260,26 +261,7 @@ router.get("/appointments/availability", async (req, res): Promise<void> => {
     return;
   }
 
-  // Slots configured by the clinic admin for this date
-  const configured = await db
-    .select({ time: availabilitySlotsTable.time })
-    .from(availabilitySlotsTable)
-    .where(eq(availabilitySlotsTable.date, dateStr))
-    .orderBy(availabilitySlotsTable.time);
-
-  const existing = await db
-    .select({ time: appointmentsTable.time })
-    .from(appointmentsTable)
-    .where(and(eq(appointmentsTable.date, dateStr), ne(appointmentsTable.status, "cancelled")));
-
-  const bookedTimes = new Set(existing.map((a) => a.time));
-
-  const slots = configured.map(({ time }) => ({
-    time,
-    available: !bookedTimes.has(time) && !isPastSlot(dateStr, time),
-  }));
-
-  res.json(slots);
+  res.json(await getLiveAvailability(dateStr));
 });
 
 router.get("/appointments/available-dates", async (req, res): Promise<void> => {

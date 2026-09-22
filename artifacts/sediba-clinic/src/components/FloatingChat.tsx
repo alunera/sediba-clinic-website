@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send } from "lucide-react";
 import { useCreateOpenaiConversation } from "@workspace/api-client-react";
+import { AssistantMessage, readAssistantStream } from "@/lib/assistant-chat";
 
 
 interface Message {
@@ -57,43 +58,22 @@ export function FloatingChat() {
         body: JSON.stringify({ content: text }),
       });
 
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n").filter(l => l.startsWith("data: "));
-
-        for (const line of lines) {
-          try {
-            const json = JSON.parse(line.slice(6));
-            if (json.done) break;
-            if (json.content) {
-              setMessages(prev => {
-                const updated = [...prev];
-                updated[updated.length - 1] = {
-                  role: "assistant",
-                  content: updated[updated.length - 1].content + json.content
-                };
-                return updated;
-              });
-            }
-          } catch {
-            // skip malformed lines
-          }
-        }
-      }
-    } catch {
+      await readAssistantStream(response, (content) => {
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: updated[updated.length - 1].content + content
+          };
+          return updated;
+        });
+      });
+    } catch (error) {
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: "assistant",
-          content: "I apologise. I encountered an issue. Please try again."
+          content: error instanceof Error ? error.message : "I encountered an issue. Please try again."
         };
         return updated;
       });
@@ -164,7 +144,9 @@ export function FloatingChat() {
                         : "bg-muted/50 text-foreground"
                     }`}
                   >
-                    {msg.content || (
+                    {msg.content ? (
+                      msg.role === "assistant" ? <AssistantMessage content={msg.content} /> : msg.content
+                    ) : (
                       <span className="inline-flex gap-1 items-center">
                         <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:0ms]" />
                         <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce [animation-delay:150ms]" />
