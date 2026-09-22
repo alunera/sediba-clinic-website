@@ -15,6 +15,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,9 +37,9 @@ export default function Book() {
   const treatmentParam = searchParams.get("treatment");
 
   // Form State
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(defaultServiceId);
-  const [changingTreatment, setChangingTreatment] = useState(false);
+  const [isTreatmentPickerOpen, setIsTreatmentPickerOpen] = useState(false);
   const [treatmentSearch, setTreatmentSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -61,7 +68,6 @@ export default function Book() {
 
   const selectedService = bookableServices.find((s) => s.id === selectedServiceId);
   const selectedTreatment = findTreatmentByName(selectedService?.name);
-  const choosingTreatment = !selectedService || changingTreatment;
   const matchingServices = bookableServices.filter((service) => {
     const treatment = findTreatmentByName(service.name);
     return `${treatment?.name ?? service.name} ${treatment?.sub ?? service.description}`
@@ -177,26 +183,26 @@ export default function Book() {
     });
   };
 
-  const steps = ["Treatment", "Time", "Details", "Policy", "Confirm"];
+  const steps = ["Time", "Details", "Policy", "Confirm"];
 
   return (
-    <div className="min-h-screen pt-32 pb-24 bg-background flex flex-col items-center">
-      <div className="container max-w-4xl px-6">
-        <div className="text-center mb-16">
-          <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-4 block">Reservations</span>
-          <h1 className="font-serif text-4xl md:text-5xl text-foreground mb-6">Secure Your Time</h1>
-          <p className="text-muted-foreground font-light max-w-xl mx-auto">
+    <div className="min-h-screen pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-24 bg-background flex flex-col items-center">
+      <div className="container max-w-4xl px-4 sm:px-6">
+        <div className="text-center mb-6 sm:mb-10">
+          <span className="text-primary font-sans uppercase tracking-[0.2em] text-[10px] sm:text-xs mb-2 sm:mb-3 block">Reservations</span>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-foreground mb-2 sm:mb-4">Book Your Appointment</h1>
+          <p className="hidden sm:block text-muted-foreground font-light max-w-xl mx-auto">
             Follow the steps to reserve your bespoke aesthetic and wellness experience.
           </p>
         </div>
 
-        <div className="bg-card border border-border p-5 sm:p-8 md:p-12">
+        <div className="bg-card border border-border p-4 sm:p-8 md:p-12">
           {/* Step Indicators */}
-          <div className="flex justify-between border-b border-border pb-6 sm:pb-8 mb-8 gap-2 sm:gap-4">
+          <div className="flex justify-between border-b border-border pb-4 sm:pb-6 mb-5 sm:mb-8 gap-2 sm:gap-4">
             {steps.map((label, idx) => (
               <div 
                 key={label} 
-                className={`flex flex-col items-center flex-1 min-w-0 ${step === idx + 1 ? "text-primary" : step > idx + 1 ? "text-foreground" : "text-muted-foreground/50"}`}
+                className={`flex flex-col items-center flex-1 min-w-0 ${step === idx + 2 ? "text-primary" : step > idx + 2 ? "text-foreground" : "text-muted-foreground/50"}`}
               >
                 <span className="font-serif text-xl mb-2">0{idx + 1}</span>
                 <span className="hidden sm:block text-[10px] uppercase tracking-widest text-center">{label}</span>
@@ -204,98 +210,111 @@ export default function Book() {
             ))}
           </div>
 
-          {/* STEP 1: Service Selection */}
-          {step === 1 && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-              {isLoadingServices ? (
-                <p role="status" className="p-6 bg-muted border border-border">Loading treatments…</p>
-              ) : (
-                <div className="space-y-6">
-                  {selectedService && !choosingTreatment && (
-                    <div className="p-6 border border-primary bg-primary/5">
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
-                        You're booking
-                      </span>
-                      <h2 className="font-serif text-3xl text-foreground mb-3 break-words">{selectedTreatment?.name ?? selectedService.name}</h2>
-                      <p className="text-xl text-foreground mb-3">
-                        {displayPrice(selectedService.name, selectedService.price)}
-                      </p>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{selectedTreatment?.sub ?? selectedService.description}</p>
-                      <p className="text-xs text-muted-foreground mt-2">{selectedTreatment?.duration ?? selectedService.duration} minutes</p>
-                      <Button
-                        variant="outline"
-                        onClick={() => { setTreatmentSearch(""); setChangingTreatment(true); }}
-                        className="mt-6 min-h-11 rounded-none border-border"
-                      >
-                        Change treatment
-                      </Button>
-                    </div>
-                  )}
-                  {choosingTreatment && (
-                    <div className="space-y-5">
-                      <h2 className="font-serif text-2xl text-foreground">What would you like to book?</h2>
-                      <div>
-                        <Label htmlFor="treatment-search" className="block text-sm text-muted-foreground mb-2">Search treatments</Label>
-                        <Input
-                          id="treatment-search"
-                          type="search"
-                          placeholder="Search treatments..."
-                          value={treatmentSearch}
-                          onChange={(event) => setTreatmentSearch(event.target.value)}
-                          className="rounded-none min-h-12 w-full"
-                        />
-                      </div>
-                      <p role="status" className="text-sm text-muted-foreground">
-                        {matchingServices.length === 0 ? "No treatments found" : `${matchingServices.length} treatments available`}
-                      </p>
-                      <ul className="space-y-3">
-                        {matchingServices.map((service) => {
-                          const treatment = findTreatmentByName(service.name);
-                          return (
-                            <li key={service.id} className="border border-border p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-serif text-xl break-words">{treatment?.name ?? service.name}</h3>
-                                <p className="text-sm text-foreground mt-1">{displayPrice(service.name, service.price)}</p>
-                                <p className="text-sm text-muted-foreground leading-relaxed mt-2">{treatment?.sub ?? service.description}</p>
-                              </div>
-                              <Button
-                                aria-label={`Select ${service.name}`}
-                                onClick={() => {
-                                  setSelectedServiceId(service.id);
-                                  setChangingTreatment(false);
-                                  setTreatmentSearch("");
-                                }}
-                                className="min-h-11 rounded-none sm:shrink-0 px-6"
-                              >
-                                Select
-                              </Button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                      {selectedService && (
-                        <Button variant="outline" onClick={() => setChangingTreatment(false)} className="min-h-11 rounded-none">
-                          Keep current treatment
+          <Dialog
+            open={isTreatmentPickerOpen}
+            onOpenChange={(open) => {
+              setIsTreatmentPickerOpen(open);
+              if (!open) setTreatmentSearch("");
+            }}
+          >
+            <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[calc(100dvh-1.5rem)] p-0 gap-0 rounded-none flex flex-col overflow-hidden [&>button]:p-3 [&>button]:right-1 [&>button]:top-1">
+              <DialogHeader className="shrink-0 text-left px-4 sm:px-6 pt-5 sm:pt-6 pb-4 pr-12 border-b border-border">
+                <DialogTitle className="font-serif text-2xl font-normal">Choose a treatment</DialogTitle>
+                <DialogDescription>Browse the treatment menu or search by name or description.</DialogDescription>
+              </DialogHeader>
+              <div className="shrink-0 px-4 sm:px-6 py-4 border-b border-border">
+                <Label htmlFor="treatment-search" className="sr-only">Search treatments</Label>
+                <Input
+                  id="treatment-search"
+                  data-testid="input-treatment-search"
+                  type="search"
+                  placeholder="Search treatments..."
+                  value={treatmentSearch}
+                  onChange={(event) => setTreatmentSearch(event.target.value)}
+                  className="rounded-none min-h-12 w-full"
+                />
+                <p role="status" data-testid="status-treatment-results" className="text-xs text-muted-foreground mt-2">
+                  {matchingServices.length === 0 ? "No treatments found" : `${matchingServices.length} treatments available`}
+                </p>
+              </div>
+              <div className="min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6">
+                <ul className="space-y-3">
+                  {matchingServices.map((service) => {
+                    const treatment = findTreatmentByName(service.name);
+                    return (
+                      <li key={service.id} className="border border-border p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-serif text-xl break-words">{treatment?.name ?? service.name}</h3>
+                          <p className="text-sm text-foreground mt-1">{displayPrice(service.name, service.price)}</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed mt-2">{treatment?.sub ?? service.description}</p>
+                        </div>
+                        <Button
+                          data-testid={`button-select-treatment-${service.id}`}
+                          aria-label={`Select ${treatment?.name ?? service.name}`}
+                          onClick={() => {
+                            setSelectedServiceId(service.id);
+                            setSelectedTime(null);
+                            setIsTreatmentPickerOpen(false);
+                            setTreatmentSearch("");
+                          }}
+                          className="min-h-11 rounded-none sm:shrink-0 px-6"
+                        >
+                          Select
                         </Button>
-                      )}
-                    </div>
-                  )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Treatment selection remains available without adding a booking step. */}
+          {step === 2 && (
+            isLoadingServices ? (
+              <p role="status" data-testid="status-treatments-loading" className="mb-5 sm:mb-8 p-4 bg-muted border border-border">
+                Loading treatment…
+              </p>
+            ) : selectedService ? (
+              <div data-testid="card-selected-treatment" className="mb-5 sm:mb-8 border border-primary bg-primary/5 p-4 sm:px-6 sm:py-5">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
+                  You're booking
+                </span>
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
+                  <div className="flex-1 min-w-0">
+                    <h2 data-testid="text-selected-treatment" className="font-serif text-2xl sm:text-3xl text-foreground break-words">
+                      {selectedTreatment?.name ?? selectedService.name}
+                    </h2>
+                    <p data-testid="text-selected-treatment-price" className="text-base sm:text-lg text-foreground mt-1">
+                      {displayPrice(selectedService.name, selectedService.price)}
+                    </p>
+                  </div>
+                  <Button
+                    data-testid="button-change-treatment"
+                    variant="outline"
+                    onClick={() => setIsTreatmentPickerOpen(true)}
+                    className="min-h-11 rounded-none border-border sm:shrink-0"
+                  >
+                    Change treatment
+                  </Button>
                 </div>
-              )}
-              <div className="mt-8 flex justify-end">
-                <Button 
-                  onClick={() => setStep(2)} 
-                  disabled={!selectedService || choosingTreatment}
-                  className="rounded-none uppercase tracking-widest text-xs px-8 min-h-11"
+              </div>
+            ) : (
+              <div data-testid="card-empty-treatment" className="mb-5 sm:mb-8 border border-border bg-muted/20 p-4 sm:p-6">
+                <h2 className="font-serif text-xl sm:text-2xl text-foreground">What would you like to book?</h2>
+                <Button
+                  data-testid="button-choose-treatment"
+                  onClick={() => setIsTreatmentPickerOpen(true)}
+                  className="mt-4 min-h-11 rounded-none px-6"
                 >
-                  Continue
+                  Choose a treatment
                 </Button>
               </div>
-            </div>
+            )
           )}
 
-          {/* Compact booking summary, visible after the treatment is chosen */}
-          {step >= 2 && selectedService && (
+          {/* Compact booking summary for the remaining booking steps */}
+          {step >= 3 && selectedService && (
             <div className="mb-8 border border-border bg-muted/20 px-6 py-4 flex flex-wrap gap-x-10 gap-y-4 text-sm">
               <div className="flex-1 min-w-[120px]">
                 <span className="block text-[10px] uppercase tracking-widest text-muted-foreground">Treatment</span>
@@ -317,9 +336,9 @@ export default function Book() {
           )}
 
           {/* STEP 2: Date & Time */}
-          {step === 2 && (
+          {step === 2 && selectedService && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-              <h2 className="font-serif text-2xl text-foreground mb-6">Select Date & Time</h2>
+              <h2 className="font-serif text-2xl text-foreground mb-6">Select Your Date</h2>
               <div className="grid md:grid-cols-2 gap-12">
                 <div>
                   <Label className="uppercase tracking-widest text-[10px] text-muted-foreground mb-4 block">Date</Label>
@@ -385,14 +404,7 @@ export default function Book() {
                   )}
                 </div>
               </div>
-              <div className="mt-8 flex justify-between">
-                <Button 
-                  variant="outline"
-                  onClick={() => setStep(1)} 
-                  className="rounded-none uppercase tracking-widest text-xs px-8 border-border text-foreground"
-                >
-                  Back
-                </Button>
+              <div className="mt-8 flex justify-end">
                 <Button 
                   onClick={() => setStep(3)} 
                   disabled={!selectedDate || !selectedTime}

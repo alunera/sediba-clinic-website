@@ -1,0 +1,436 @@
+SEDIBA WELLNESS — BOOKING PAGE UX UPDATE
+TASK: Replace the visible treatment list/dropdown with a selected-treatment summary + "Change treatment" picker.
+
+IMPORTANT:
+Do NOT rebuild the booking system.
+
+The calendar, availability, booking flow, database, and Yoco payment are already working. I only want to change the USER INTERFACE for treatment selection.
+
+Before changing anything, inspect the existing implementation and understand how the current treatment selection works.
+
+Relevant files are likely:
+
+- src/pages/book.tsx
+- src/lib/treatments.ts
+- any existing components used by the booking page
+
+Also inspect how the existing ?treatment= query parameter is handled.
+
+--------------------------------------------------
+1. CURRENT PROBLEM
+--------------------------------------------------
+
+When a customer clicks "Book" for a treatment from the Services page, they arrive at a URL such as:
+
+/book?treatment=The%20Glow
+
+The treatment is already known from the URL.
+
+However, the booking page currently makes the customer interact with the treatment selector/list and scroll through treatments.
+
+I do NOT want this.
+
+If the customer arrived from a specific treatment's Book button, they should immediately see the treatment they are booking and move on to selecting their date.
+
+--------------------------------------------------
+2. NEW EXPERIENCE WHEN A TREATMENT IS ALREADY SELECTED
+--------------------------------------------------
+
+When the URL contains a valid treatment parameter, for example:
+
+/book?treatment=The%20Glow
+
+DO NOT display the full treatment list as the first thing the customer sees.
+
+Instead, display a compact selected-treatment summary.
+
+The layout should communicate:
+
+BOOK YOUR APPOINTMENT
+
+You're booking
+
+[ The Glow ]
+
+[ existing price ]
+
+[ Change treatment ]
+
+Then immediately below that:
+
+SELECT YOUR DATE
+
+[ existing calendar ]
+
+The customer should NOT have to:
+
+- open a dropdown
+- scroll through treatments
+- search for the treatment they already selected
+- select The Glow a second time
+
+The selected treatment should be obvious immediately.
+
+Use the existing treatment data from:
+
+src/lib/treatments.ts
+
+Do NOT manually hard-code treatment names or prices.
+
+--------------------------------------------------
+3. "CHANGE TREATMENT" FUNCTION
+--------------------------------------------------
+
+Add a clear but secondary action:
+
+Change treatment
+
+When the customer clicks "Change treatment", DO NOT navigate them away from the booking page.
+
+Instead, open a treatment-selection interface as a modal/overlay, drawer, or expandable panel.
+
+Choose whichever approach fits the existing Sediba design and existing React structure best.
+
+The important behaviour is:
+
+DEFAULT STATE:
+Show only the selected treatment.
+
+AFTER "CHANGE TREATMENT":
+Show the treatment-selection interface.
+
+This prevents the long treatment list from taking up the booking page when it isn't needed.
+
+--------------------------------------------------
+4. TREATMENT PICKER
+--------------------------------------------------
+
+Inside the Change Treatment interface, the customer should be able to browse and select another treatment.
+
+The picker should include:
+
+- Search treatments field
+- Existing treatment list
+- Existing treatment names
+- Existing prices
+- Existing descriptions where available
+
+Search should filter the existing treatment data.
+
+Search should be optional.
+
+The customer must still be able to browse treatments.
+
+Do NOT force the customer to search.
+
+Use the existing treatment data as the single source of truth.
+
+Do not duplicate the treatment list in another file.
+
+--------------------------------------------------
+5. AFTER CUSTOMER CHANGES TREATMENT
+--------------------------------------------------
+
+If the customer selects another treatment:
+
+- update the selected treatment
+- close the treatment picker
+- show the newly selected treatment in the treatment summary
+- update the displayed price using the existing treatment data
+- continue with the existing booking flow
+
+For example:
+
+Initially:
+
+You're booking
+
+The Glow
+R___
+
+Change treatment
+
+After selecting another treatment:
+
+You're booking
+
+Deep Release
+R___
+
+Change treatment
+
+The customer should then continue to the existing date/calendar section.
+
+Do NOT make them go through another treatment-selection step.
+
+--------------------------------------------------
+6. DIRECT /book VISIT
+--------------------------------------------------
+
+There is another scenario:
+
+The customer visits:
+
+/book
+
+with no treatment query parameter.
+
+In this case, there is no treatment to display.
+
+Show a clear treatment-selection state.
+
+For example:
+
+BOOK YOUR APPOINTMENT
+
+What would you like to book?
+
+[ Choose a treatment ]
+
+Clicking this should open the same treatment picker described above.
+
+Therefore there should be ONE treatment-selection component/interface used in both situations.
+
+Do not create two separate treatment systems.
+
+--------------------------------------------------
+7. INVALID QUERY PARAMETER
+--------------------------------------------------
+
+If someone visits:
+
+/book?treatment=SomethingThatDoesNotExist
+
+do not break the page.
+
+Treat it as if no valid treatment was selected and show:
+
+What would you like to book?
+
+[ Choose a treatment ]
+
+The existing booking page should continue functioning normally.
+
+--------------------------------------------------
+8. KEEP THE EXISTING CALENDAR AND BOOKING FLOW
+--------------------------------------------------
+
+This is extremely important.
+
+Do NOT modify or rebuild:
+
+- calendar functionality
+- availability logic
+- date selection
+- time selection
+- booking submission
+- client details
+- booking database
+- Yoco payment
+- payment processing
+- existing treatment data
+- Services page
+- existing routes
+
+The only change should be how treatment selection is presented.
+
+Once a treatment has been selected, the existing booking flow must receive the treatment exactly as it does now.
+
+--------------------------------------------------
+9. VISUAL DESIGN
+--------------------------------------------------
+
+The new interface must match the existing Sediba Wellness website.
+
+Use the existing:
+
+- typography
+- colours
+- buttons
+- borders
+- spacing
+- border radius
+- card styling
+- visual hierarchy
+
+Do NOT redesign the entire booking page.
+
+The selected-treatment card should feel like a natural part of the existing page.
+
+"Change treatment" should be visually secondary to the selected treatment.
+
+The primary action should remain moving forward with the booking.
+
+--------------------------------------------------
+10. MOBILE-FIRST
+--------------------------------------------------
+
+This page is primarily used on mobile.
+
+Test approximately:
+
+- 320px
+- 375px
+- 390px
+- 430px
+
+The selected treatment should be immediately visible without requiring unnecessary scrolling.
+
+The treatment picker/modal must fit within the mobile viewport.
+
+There must be no horizontal scrolling.
+
+Buttons must be easy to tap.
+
+If using a modal, make sure it can be closed easily on mobile.
+
+--------------------------------------------------
+11. USER EXPERIENCE GOAL
+--------------------------------------------------
+
+The intended booking experience is:
+
+CUSTOMER CLICKS:
+
+The Glow → Book
+
+THEN:
+
+BOOK YOUR APPOINTMENT
+
+You're booking
+
+The Glow
+R___
+
+Change treatment
+
+SELECT YOUR DATE
+
+[Calendar]
+
+SELECT YOUR TIME
+
+[Available times]
+
+Continue
+
+The customer should feel like the system already knows what they want.
+
+Only customers who want to change their treatment should need to interact with the treatment picker.
+
+--------------------------------------------------
+12. DO NOT OVER-ENGINEER THIS
+--------------------------------------------------
+
+Do not introduce a new library just to create the modal/picker.
+
+Reuse existing components and styling where possible.
+
+Do not create unnecessary new files.
+
+Do not change the database.
+
+Do not change the treatment data structure unless absolutely necessary.
+
+Do not change any working functionality outside this UX task.
+
+--------------------------------------------------
+13. TESTING
+--------------------------------------------------
+
+After implementation, test all of the following.
+
+TEST 1:
+Open:
+
+/book?treatment=The%20Glow
+
+Expected:
+
+- The Glow is immediately visible.
+- The correct existing price is visible.
+- No treatment list is displayed by default.
+- Customer can immediately proceed to date selection.
+- Change treatment opens the picker.
+
+TEST 2:
+Click Change treatment.
+
+Expected:
+
+- Treatment picker opens.
+- Customer can browse treatments.
+- Customer can search treatments.
+- Customer can select another treatment.
+- Picker closes after selection.
+- New treatment appears in the selected-treatment summary.
+
+TEST 3:
+Open:
+
+/book
+
+Expected:
+
+- No invalid/empty treatment is shown.
+- Customer sees a clear "What would you like to book?" state.
+- Customer can open the treatment picker.
+- Customer can select a treatment.
+- Existing calendar flow continues.
+
+TEST 4:
+Open:
+
+/book?treatment=InvalidTreatment
+
+Expected:
+
+- Page does not break.
+- Normal treatment-selection state appears.
+
+TEST 5:
+Mobile test at approximately 375px and 390px.
+
+Expected:
+
+- Selected treatment is immediately visible.
+- No unnecessary treatment-list scrolling.
+- Treatment picker works correctly.
+- No horizontal scrolling.
+
+TEST 6:
+Regression test.
+
+Confirm that:
+
+- calendar availability still works
+- date selection still works
+- time selection still works
+- booking details still work
+- booking submission still works
+- Yoco payment flow still works
+
+--------------------------------------------------
+14. IMPORTANT — DO NOT PUSH OR DEPLOY
+--------------------------------------------------
+
+Do NOT push to GitHub.
+
+Do NOT deploy to Netlify.
+
+Do NOT make any unrelated improvements.
+
+Do NOT redesign the booking page.
+
+Complete ONLY this UX change.
+
+After completing the work, report:
+
+1. Files changed
+2. What was changed
+3. How the new treatment-selection flow works
+4. Tests performed
+5. Any issues or risks
+
+Then STOP and wait for my approval.
