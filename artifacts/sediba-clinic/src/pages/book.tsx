@@ -18,14 +18,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { displayPrice, menuIndex } from "@/lib/treatments";
+import { displayPrice, findTreatmentByName, menuIndex } from "@/lib/treatments";
 
 export default function Book() {
   const [, setLocation] = useLocation();
@@ -39,6 +32,8 @@ export default function Book() {
   // Form State
   const [step, setStep] = useState(1);
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(defaultServiceId);
+  const [changingTreatment, setChangingTreatment] = useState(false);
+  const [treatmentSearch, setTreatmentSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [visibleMonth, setVisibleMonth] = useState<Date>(new Date());
@@ -65,6 +60,14 @@ export default function Book() {
   );
 
   const selectedService = bookableServices.find((s) => s.id === selectedServiceId);
+  const selectedTreatment = findTreatmentByName(selectedService?.name);
+  const choosingTreatment = !selectedService || changingTreatment;
+  const matchingServices = bookableServices.filter((service) => {
+    const treatment = findTreatmentByName(service.name);
+    return `${treatment?.name ?? service.name} ${treatment?.sub ?? service.description}`
+      .toLowerCase()
+      .includes(treatmentSearch.trim().toLowerCase());
+  });
 
   // Once services load: validate any legacy ?service=<id> selection, then
   // pre-select the treatment passed from the Services page (?treatment=Name)
@@ -204,41 +207,77 @@ export default function Book() {
           {/* STEP 1: Service Selection */}
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-              <h2 className="font-serif text-2xl text-foreground mb-6">Select Treatment</h2>
               {isLoadingServices ? (
-                <div className="h-16 bg-muted animate-pulse border border-border" />
+                <p role="status" className="p-6 bg-muted border border-border">Loading treatments…</p>
               ) : (
                 <div className="space-y-6">
-                  <div>
-                    <Label className="uppercase tracking-widest text-[10px] text-muted-foreground mb-2 block">
-                      Treatment
-                    </Label>
-                    <Select
-                      value={selectedServiceId !== null ? String(selectedServiceId) : ""}
-                      onValueChange={(v) => setSelectedServiceId(parseInt(v))}
-                    >
-                      <SelectTrigger className="rounded-none border-border bg-background h-14 text-left focus:ring-1 focus:ring-primary">
-                        <SelectValue placeholder="Select a treatment" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-none max-h-[320px]">
-                        {bookableServices.map((service) => (
-                          <SelectItem key={service.id} value={String(service.id)}>
-                            {service.name} &mdash; {displayPrice(service.name, service.price)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedService && (
+                  {selectedService && !choosingTreatment && (
                     <div className="p-6 border border-primary bg-primary/5">
                       <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
-                        You are booking
+                        You're booking
                       </span>
-                      <h3 className="font-serif text-lg text-foreground mb-1">{selectedService.name}</h3>
-                      <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                        {selectedService.duration} Min &bull; {displayPrice(selectedService.name, selectedService.price)}
+                      <h2 className="font-serif text-3xl text-foreground mb-3 break-words">{selectedTreatment?.name ?? selectedService.name}</h2>
+                      <p className="text-xl text-foreground mb-3">
+                        {displayPrice(selectedService.name, selectedService.price)}
                       </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{selectedTreatment?.sub ?? selectedService.description}</p>
+                      <p className="text-xs text-muted-foreground mt-2">{selectedTreatment?.duration ?? selectedService.duration} minutes</p>
+                      <Button
+                        variant="outline"
+                        onClick={() => { setTreatmentSearch(""); setChangingTreatment(true); }}
+                        className="mt-6 min-h-11 rounded-none border-border"
+                      >
+                        Change treatment
+                      </Button>
+                    </div>
+                  )}
+                  {choosingTreatment && (
+                    <div className="space-y-5">
+                      <h2 className="font-serif text-2xl text-foreground">What would you like to book?</h2>
+                      <div>
+                        <Label htmlFor="treatment-search" className="block text-sm text-muted-foreground mb-2">Search treatments</Label>
+                        <Input
+                          id="treatment-search"
+                          type="search"
+                          placeholder="Search treatments..."
+                          value={treatmentSearch}
+                          onChange={(event) => setTreatmentSearch(event.target.value)}
+                          className="rounded-none min-h-12 w-full"
+                        />
+                      </div>
+                      <p role="status" className="text-sm text-muted-foreground">
+                        {matchingServices.length === 0 ? "No treatments found" : `${matchingServices.length} treatments available`}
+                      </p>
+                      <ul className="space-y-3">
+                        {matchingServices.map((service) => {
+                          const treatment = findTreatmentByName(service.name);
+                          return (
+                            <li key={service.id} className="border border-border p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-serif text-xl break-words">{treatment?.name ?? service.name}</h3>
+                                <p className="text-sm text-foreground mt-1">{displayPrice(service.name, service.price)}</p>
+                                <p className="text-sm text-muted-foreground leading-relaxed mt-2">{treatment?.sub ?? service.description}</p>
+                              </div>
+                              <Button
+                                aria-label={`Select ${service.name}`}
+                                onClick={() => {
+                                  setSelectedServiceId(service.id);
+                                  setChangingTreatment(false);
+                                  setTreatmentSearch("");
+                                }}
+                                className="min-h-11 rounded-none sm:shrink-0 px-6"
+                              >
+                                Select
+                              </Button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {selectedService && (
+                        <Button variant="outline" onClick={() => setChangingTreatment(false)} className="min-h-11 rounded-none">
+                          Keep current treatment
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -246,8 +285,8 @@ export default function Book() {
               <div className="mt-8 flex justify-end">
                 <Button 
                   onClick={() => setStep(2)} 
-                  disabled={!selectedService}
-                  className="rounded-none uppercase tracking-widest text-xs px-8"
+                  disabled={!selectedService || choosingTreatment}
+                  className="rounded-none uppercase tracking-widest text-xs px-8 min-h-11"
                 >
                   Continue
                 </Button>
@@ -524,7 +563,7 @@ export default function Book() {
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-between">
+              <div className="mt-8 flex flex-col sm:flex-row justify-between gap-3">
                 <Button 
                   variant="outline"
                   onClick={() => setStep(4)} 
@@ -535,7 +574,7 @@ export default function Book() {
                 <Button 
                   onClick={handleBook} 
                   disabled={createAppointment.isPending || redirecting}
-                  className="rounded-none uppercase tracking-widest text-xs px-10 py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="rounded-none uppercase tracking-widest text-xs px-4 sm:px-10 py-6 whitespace-normal h-auto min-h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {redirecting
                     ? "Redirecting to Payment..."

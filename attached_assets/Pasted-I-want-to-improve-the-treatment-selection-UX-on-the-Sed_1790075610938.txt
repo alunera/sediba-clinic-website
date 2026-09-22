@@ -1,0 +1,216 @@
+I want to improve the treatment-selection UX on the Sediba Wellness booking page.
+
+IMPORTANT: Do NOT rebuild the booking system. The current calendar, availability, booking flow and Yoco payment are working. This is ONLY a UX improvement to how customers see and select their treatment.
+
+FIRST inspect the existing implementation, especially:
+
+- src/pages/book.tsx
+- src/lib/treatments.ts
+- the current treatment query-parameter handling
+- existing calendar/availability logic
+- existing booking/database logic
+- existing Yoco payment logic
+
+Use the existing treatment data as the single source of truth.
+
+CURRENT PROBLEM:
+
+When a customer clicks a treatment's Book button from the Services page, they arrive at a URL such as:
+
+/book?treatment=The%20Deep%20Release
+
+The treatment is currently preselected in a dropdown, but the customer has to open the dropdown to realise what treatment they are booking.
+
+I want the treatment to be immediately visible.
+
+DESIRED BEHAVIOUR:
+
+1. CUSTOMER COMES FROM THE SERVICES PAGE
+
+If the URL contains a valid treatment parameter, for example:
+
+/book?treatment=The%20Deep%20Release
+
+show a prominent treatment summary at the top of the booking step.
+
+Example:
+
+You're booking
+
+The Deep Release
+
+From R1,000
+
+[Change treatment]
+
+The customer should NOT have to open a dropdown or select the same treatment again.
+
+The existing treatment, price and information must come from src/lib/treatments.ts.
+
+Keep the existing query-parameter behaviour.
+
+2. CHANGE TREATMENT
+
+Add a simple "Change treatment" action.
+
+When clicked, show the treatment-selection interface.
+
+The customer should then be able to choose another existing treatment.
+
+Once another treatment is selected, continue using the existing booking flow.
+
+Do not create a second booking system.
+
+3. CUSTOMER OPENS /book DIRECTLY
+
+If there is no valid treatment parameter, make treatment selection much more obvious.
+
+Instead of hiding the treatment list inside a dropdown, show:
+
+"What would you like to book?"
+
+Then provide:
+
+- A search field: "Search treatments..."
+- A visible list of available treatments
+- Existing treatment name
+- Existing price
+- Existing description where available
+- A clear Select button
+
+The customer must be able to browse the treatments WITHOUT having to search.
+
+Search is an additional convenience, not the only way to find a treatment.
+
+Search should be case-insensitive and filter the existing treatment list as the customer types.
+
+If no treatment matches, show a clear "No treatments found" message.
+
+4. INVALID TREATMENT PARAMETER
+
+If someone visits:
+
+/book?treatment=InvalidTreatment
+
+the page must not break.
+
+Instead, show the normal treatment-selection interface.
+
+5. KEEP THE EXISTING BOOKING FLOW
+
+After a treatment is selected, continue with the existing:
+
+Treatment → Date & Time → Details → Payment
+
+Do not change the existing calendar or availability logic.
+
+Do not change Yoco.
+
+Do not change booking submission.
+
+Do not change the database unless absolutely necessary for this UX improvement.
+
+6. MOBILE
+
+The booking page must work properly on mobile, especially around:
+
+375px
+390px
+430px
+
+No horizontal scrolling.
+
+Treatment cards/buttons must be easy to tap.
+
+7. VISUAL DESIGN
+
+Match the existing Sediba Wellness website.
+
+Use the existing typography, colours, buttons, spacing, cards and styling.
+
+Do NOT redesign the entire booking page.
+
+The new treatment-selection interface should look like it already belongs to the site.
+
+8. IMPORTANT SCOPE LIMIT
+
+Do NOT change:
+
+- treatment names
+- treatment prices
+- treatment data
+- calendar availability
+- date/time selection
+- booking submission
+- Yoco payment
+- payment processing
+- Services page
+- database architecture
+- unrelated pages
+- unrelated components
+
+Do not introduce new dependencies unless genuinely necessary.
+
+Reuse the existing components and treatment data wherever possible.
+
+9. TESTING
+
+After making the change, test:
+
+A. Services → Book
+
+Click a treatment's Book button.
+
+Confirm:
+
+- The correct treatment is immediately visible.
+- The correct existing price is shown.
+- The customer does not have to open a dropdown.
+- Change treatment works.
+- Date/time selection still works.
+
+B. Direct /book
+
+Confirm:
+
+- Treatment selection is clearly visible.
+- Treatments can be browsed.
+- Search works.
+- Selecting a treatment works.
+- The existing booking flow continues.
+
+C. Invalid treatment
+
+Confirm:
+
+/book?treatment=InvalidTreatment
+
+does not break the page.
+
+D. Mobile
+
+Test approximately 375px and 390px widths.
+
+E. Existing functionality
+
+Confirm that calendar availability, date selection, time selection, booking details, booking submission and Yoco payment have not been broken.
+
+10. BEFORE FINISHING
+
+Tell me:
+
+- Which files you changed
+- What you changed
+- How the new treatment-selection experience works
+- What tests you performed
+- Whether you found any risks or issues
+
+VERY IMPORTANT:
+
+Do NOT push anything to GitHub.
+
+Do NOT deploy to Netlify.
+
+Do NOT make any unrelated improvements.
+
+Complete ONLY this treatment-selection UX task and stop so I can review it first.
