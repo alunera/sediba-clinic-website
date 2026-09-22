@@ -1,0 +1,148 @@
+IMPORTANT UX CHANGE — PLEASE MODIFY ONLY THE "CHANGE TREATMENT" EXPERIENCE.
+
+The current selected-treatment display is good and should remain:
+
+YOU'RE BOOKING
+
+The Clarify
+
+From R1,000
+
+[ Change treatment ]
+
+DO NOT change this section.
+
+The problem is what happens when the customer clicks "Change treatment".
+
+Currently, clicking "Change treatment" opens a long list of all treatments.
+
+I DO NOT WANT THE FULL TREATMENT LIST TO APPEAR.
+
+I want the Change Treatment experience to be a compact search-and-browse interface instead.
+
+When the customer clicks:
+
+[ Change treatment ]
+
+open a modal, drawer, or overlay.
+
+Inside it, show:
+
+CHANGE TREATMENT
+
+[ Search treatments... ]
+
+Then provide category buttons/chips using the EXISTING treatment categories if they already exist in the treatment data.
+
+For example:
+
+[ Facials ] [ Body ] [ Aesthetics ] [ Hair Removal ]
+
+Do not invent new treatment categories if the existing data does not support them.
+
+DEFAULT STATE:
+
+Do not display the entire treatment catalogue.
+
+Show only the search field and category options.
+
+The customer can:
+
+1. Type a treatment name into the search field.
+2. See matching treatments appear.
+3. OR choose a category to browse only treatments within that category.
+
+Example:
+
+CHANGE TREATMENT
+
+[ Search treatments... ]
+
+Browse by:
+
+[ Facials ] [ Body ] [ Aesthetics ]
+
+If the customer searches:
+
+"clar"
+
+show:
+
+The Clarify
+From R1,000
+
+[ Select ]
+
+Do not show unrelated treatments.
+
+If the customer selects a category such as Facials, show only the treatments in that category.
+
+IMPORTANT:
+
+Do not show the complete treatment list by default.
+
+The purpose is to prevent the customer from having to scroll through a long catalogue.
+
+The existing treatment data in src/lib/treatments.ts must remain the single source of truth for:
+
+- treatment names
+- prices
+- descriptions
+- categories
+
+Do not duplicate treatment data.
+
+After the customer selects a treatment:
+
+1. Close the Change Treatment interface.
+2. Update the selected treatment summary.
+3. Update the displayed price.
+4. Return the customer to the existing booking page.
+5. Keep the existing calendar and availability flow unchanged.
+
+If the customer clicks Cancel or closes the interface, keep their current treatment unchanged.
+
+IMPORTANT:
+
+Do not change:
+
+- calendar
+- availability
+- booking flow
+- booking database
+- Yoco
+- payment processing
+- treatment names
+- treatment prices
+- Services page
+- existing selected-treatment card
+
+This is ONLY a UX change to the Change Treatment interaction.
+
+Mobile requirements:
+
+- Search field must be easy to use on mobile.
+- Modal/drawer must fit mobile screens.
+- No horizontal scrolling.
+- Category buttons must be easy to tap.
+- Search results must be easy to select.
+
+TEST:
+
+1. Open /book?treatment=The%20Clarify
+2. Confirm The Clarify appears immediately.
+3. Click Change treatment.
+4. Confirm the full treatment catalogue does NOT appear.
+5. Confirm only search + categories appear.
+6. Search for "Glow".
+7. Confirm only matching treatment(s) appear.
+8. Select another treatment.
+9. Confirm the selected-treatment card updates.
+10. Confirm the calendar still works.
+11. Confirm no unrelated booking functionality changed.
+
+Do NOT push to GitHub.
+Do NOT deploy.
+Do NOT make any other changes.
+
+Report the files changed and tests completed, then STOP.

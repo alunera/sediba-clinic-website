@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { displayPrice, findTreatmentByName, menuIndex } from "@/lib/treatments";
+import { displayPrice, findTreatmentByName, menuIndex, TREATMENT_MENU } from "@/lib/treatments";
 
 export default function Book() {
   const [, setLocation] = useLocation();
@@ -41,6 +41,7 @@ export default function Book() {
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(defaultServiceId);
   const [isTreatmentPickerOpen, setIsTreatmentPickerOpen] = useState(false);
   const [treatmentSearch, setTreatmentSearch] = useState("");
+  const [treatmentCategory, setTreatmentCategory] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [visibleMonth, setVisibleMonth] = useState<Date>(new Date());
@@ -68,8 +69,14 @@ export default function Book() {
 
   const selectedService = bookableServices.find((s) => s.id === selectedServiceId);
   const selectedTreatment = findTreatmentByName(selectedService?.name);
+  const hasTreatmentFilter = !!treatmentSearch.trim() || treatmentCategory !== null;
   const matchingServices = bookableServices.filter((service) => {
+    if (!hasTreatmentFilter) return false;
     const treatment = findTreatmentByName(service.name);
+    if (treatmentCategory) {
+      return TREATMENT_MENU.find((category) => category.label === treatmentCategory)
+        ?.treatments.some((entry) => entry.name === treatment?.name);
+    }
     return `${treatment?.name ?? service.name} ${treatment?.sub ?? service.description}`
       .toLowerCase()
       .includes(treatmentSearch.trim().toLowerCase());
@@ -214,13 +221,16 @@ export default function Book() {
             open={isTreatmentPickerOpen}
             onOpenChange={(open) => {
               setIsTreatmentPickerOpen(open);
-              if (!open) setTreatmentSearch("");
+              if (!open) {
+                setTreatmentSearch("");
+                setTreatmentCategory(null);
+              }
             }}
           >
             <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[calc(100dvh-1.5rem)] p-0 gap-0 rounded-none flex flex-col overflow-hidden [&>button]:p-3 [&>button]:right-1 [&>button]:top-1">
               <DialogHeader className="shrink-0 text-left px-4 sm:px-6 pt-5 sm:pt-6 pb-4 pr-12 border-b border-border">
-                <DialogTitle className="font-serif text-2xl font-normal">Choose a treatment</DialogTitle>
-                <DialogDescription>Browse the treatment menu or search by name or description.</DialogDescription>
+                <DialogTitle className="font-serif text-2xl font-normal">Change treatment</DialogTitle>
+                <DialogDescription>Search for a treatment or choose a category to browse.</DialogDescription>
               </DialogHeader>
               <div className="shrink-0 px-4 sm:px-6 py-4 border-b border-border">
                 <Label htmlFor="treatment-search" className="sr-only">Search treatments</Label>
@@ -230,14 +240,36 @@ export default function Book() {
                   type="search"
                   placeholder="Search treatments..."
                   value={treatmentSearch}
-                  onChange={(event) => setTreatmentSearch(event.target.value)}
+                  onChange={(event) => {
+                    setTreatmentSearch(event.target.value);
+                    setTreatmentCategory(null);
+                  }}
                   className="rounded-none min-h-12 w-full"
                 />
-                <p role="status" data-testid="status-treatment-results" className="text-xs text-muted-foreground mt-2">
-                  {matchingServices.length === 0 ? "No treatments found" : `${matchingServices.length} treatments available`}
-                </p>
               </div>
               <div className="min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6">
+                <p className="text-sm text-muted-foreground mb-3">Browse by:</p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {TREATMENT_MENU.map((category) => (
+                    <Button
+                      key={category.label}
+                      variant={treatmentCategory === category.label ? "default" : "outline"}
+                      aria-pressed={treatmentCategory === category.label}
+                      onClick={() => {
+                        setTreatmentSearch("");
+                        setTreatmentCategory((current) => current === category.label ? null : category.label);
+                      }}
+                      className="rounded-none min-h-11 h-auto whitespace-normal text-left px-3 py-2 max-w-full"
+                    >
+                      {category.label}
+                    </Button>
+                  ))}
+                </div>
+                {hasTreatmentFilter && (
+                  <p role="status" data-testid="status-treatment-results" className="text-xs text-muted-foreground mb-3">
+                    {matchingServices.length === 0 ? "No treatments found" : `${matchingServices.length} treatments available`}
+                  </p>
+                )}
                 <ul className="space-y-3">
                   {matchingServices.map((service) => {
                     const treatment = findTreatmentByName(service.name);
@@ -256,6 +288,7 @@ export default function Book() {
                             setSelectedTime(null);
                             setIsTreatmentPickerOpen(false);
                             setTreatmentSearch("");
+                            setTreatmentCategory(null);
                           }}
                           className="min-h-11 rounded-none sm:shrink-0 px-6"
                         >
