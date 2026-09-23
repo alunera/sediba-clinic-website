@@ -6,6 +6,7 @@ import {
   SYSTEM_PROMPT,
   appendPreparedBookingLink,
   bookingLink,
+  consultationLink,
   executeSediTool,
   formatClinicDateContext,
   formatTreatmentCatalog,
@@ -49,6 +50,9 @@ describe("Sedi catalog and booking tools", () => {
     expect(
       SEDI_TOOLS[1].function.parameters.properties.treatment.enum,
     ).toEqual(ALL_TREATMENTS.map((treatment) => treatment.name));
+    expect(
+      SEDI_TOOLS[0].function.parameters.properties.treatment.enum,
+    ).toEqual(ALL_TREATMENTS.map((treatment) => treatment.name));
   });
 
   it("returns only availability read from the shared live service", async () => {
@@ -58,15 +62,17 @@ describe("Sedi catalog and booking tools", () => {
     ]);
     const result = await executeSediTool(
       "get_availability",
-      JSON.stringify({ date: "2030-06-10" }),
+      JSON.stringify({ treatment: "The Glow", date: "2030-06-10" }),
       deps,
     );
 
     expect(JSON.parse(result.output)).toEqual({
       ok: true,
       date: "2030-06-10",
+      treatment: "The Glow",
       availableTimes: ["10:00"],
     });
+    expect(deps.resolveTreatment).toHaveBeenCalledWith("The Glow");
     expect(deps.availability).toHaveBeenCalledWith("2030-06-10");
   });
 
@@ -83,7 +89,7 @@ describe("Sedi catalog and booking tools", () => {
     );
 
     expect(result.preparedLink).toBe(
-      "[Continue booking The Glow](/book?treatment=The%20Glow&date=2030-06-10&time=10%3A00)",
+      "[Continue booking The Glow](https://sedibawellnessclinic.co.za/book?treatment=The%20Glow&date=2030-06-10&time=10%3A00)",
     );
     expect(JSON.parse(result.output)).toMatchObject({
       ok: true,
@@ -93,15 +99,46 @@ describe("Sedi catalog and booking tools", () => {
     });
   });
 
-  it("strips every model-authored /book link but preserves consultation", () => {
+  it("allows only centralized canonical booking and consultation links", () => {
     expect(
       appendPreparedBookingLink(
-        "Ready. [Reserve now](/book?treatment=Fake) [Book a consultation](/book-consultation)",
+        "Ready. [Reserve now](https://dev.example.replit.dev/book?treatment=Fake) [Book a consultation](https://dev.example.replit.dev/book-consultation)",
         bookingLink("The Glow"),
       ),
     ).toBe(
-      "Ready.  [Book a consultation](/book-consultation)\n\n[Continue booking The Glow](/book?treatment=The%20Glow)",
+      `Ready.  ${consultationLink()}\n\n${bookingLink("The Glow")}`,
     );
+    expect(
+      appendPreparedBookingLink(
+        "Use https://dev.example.replit.dev/book-consultation or https://dev.example.replit.dev/book?treatment=Fake",
+      ),
+    ).toBe(
+      `Use ${consultationLink()} or`,
+    );
+  });
+
+  it("removes invented booking-like paths and every Replit development URL", () => {
+    expect(
+      appendPreparedBookingLink(
+        "Wrong https://sedibawellnessclinic.co.za/book-treatment?treatment=The%20Brighten dev https://example.replit.dev and [preview](https://example.replit.dev/).",
+        bookingLink("The Brighten"),
+      ),
+    ).toBe(
+      `Wrong  dev  and preview.\n\n${bookingLink("The Brighten")}`,
+    );
+  });
+
+  it("turns a bare consultation URL into one uncorrupted clickable link", () => {
+    expect(
+      appendPreparedBookingLink(
+        "Please use https://sedibawellnessclinic.co.za/book-consultation.",
+      ),
+    ).toBe(`Please use ${consultationLink()}.`);
+    expect(
+      appendPreparedBookingLink(
+        "[Consult with us](https://sedibawellnessclinic.co.za/book-consultation)",
+      ),
+    ).toBe(consultationLink("Consult with us"));
   });
 
   it("returns an explicit handoff if bounded rounds produce no content", () => {
@@ -185,12 +222,53 @@ describe("Sedi catalog and booking tools", () => {
 
     const impossibleDate = await executeSediTool(
       "get_availability",
-      JSON.stringify({ date: "2030-02-30" }),
+      JSON.stringify({ treatment: "The Glow", date: "2030-02-30" }),
       dependencies(),
     );
     expect(JSON.parse(impossibleDate.output)).toEqual({
       ok: false,
       error: "date must be YYYY-MM-DD",
     });
+  });
+
+  it("requires a canonical, currently bookable treatment before reading availability", async () => {
+    const aliasDeps = dependencies();
+    const alias = await executeSediTool(
+      "get_availability",
+      JSON.stringify({ treatment: "the glow", date: "2030-06-10" }),
+      aliasDeps,
+    );
+    expect(JSON.parse(alias.output).ok).toBe(false);
+    expect(aliasDeps.availability).not.toHaveBeenCalled();
+
+    const unbookableDeps = dependencies();
+    vi.mocked(unbookableDeps.resolveTreatment).mockResolvedValue(undefined);
+    const unbookable = await executeSediTool(
+      "get_availability",
+      JSON.stringify({ treatment: "The Glow", date: "2030-06-10" }),
+      unbookableDeps,
+    );
+    expect(JSON.parse(unbookable.output).error).toBe(
+      "This catalog treatment is not currently bookable.",
+    );
+    expect(unbookableDeps.availability).not.toHaveBeenCalled();
+  });
+
+  it("instructs proactive handling for complete and partial booking details", () => {
+    expect(SYSTEM_PROMPT).toContain(
+      "known treatment, specific date and specific time",
+    );
+    expect(SYSTEM_PROMPT).toContain(
+      "known treatment and date are present but time is missing",
+    );
+    expect(SYSTEM_PROMPT).toContain(
+      "date/time are present but treatment is missing",
+    );
+    expect(SYSTEM_PROMPT).toContain(
+      "cannot look up an existing client's booking or payment status yet",
+    );
+    expect(SYSTEM_PROMPT).toContain(
+      "Do not offer to check appointment details",
+    );
   });
 });

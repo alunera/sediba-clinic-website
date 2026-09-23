@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
+import { useLocation } from "wouter";
 
 type StreamEvent = {
   content?: string;
@@ -64,25 +65,34 @@ export async function readAssistantStream(
 const LINK_PATTERN = /\[([^\]\n]+)\]\(([^)\s]+)\)/g;
 const VERIFIED_EMAIL = "info@sedibawellnessclinic.co.za";
 const VERIFIED_PHONE = "+27814566402";
+const PRODUCTION_ORIGIN = "https://sedibawellnessclinic.co.za";
+const BOOKING_QUERY_KEYS = ["treatment", "date", "time"];
 
 function safeAssistantHref(rawHref: string): string | null {
-  if (rawHref === "/book-consultation") return rawHref;
   if (rawHref.toLowerCase() === `mailto:${VERIFIED_EMAIL}`) {
     return `mailto:${VERIFIED_EMAIL}`;
   }
   if (rawHref.replace(/[\s()-]/g, "") === `tel:${VERIFIED_PHONE}`) {
     return `tel:${VERIFIED_PHONE}`;
   }
-  if (!rawHref.startsWith("/book?")) return null;
+
+  const isLegacyRelative = rawHref.startsWith("/") && !rawHref.startsWith("//");
+  const isCanonicalAbsolute = rawHref.startsWith(`${PRODUCTION_ORIGIN}/`);
+  if (!isLegacyRelative && !isCanonicalAbsolute) return null;
 
   let url: URL;
   try {
-    url = new URL(rawHref, window.location.origin);
+    url = new URL(rawHref, PRODUCTION_ORIGIN);
   } catch {
     return null;
   }
-  if (url.origin !== window.location.origin || url.pathname !== "/book") return null;
-  if ([...url.searchParams.keys()].some((key) => !["treatment", "date", "time"].includes(key))) {
+  if (url.origin !== PRODUCTION_ORIGIN || url.hash) return null;
+
+  if (url.pathname === "/book-consultation") {
+    return url.search ? null : `${PRODUCTION_ORIGIN}/book-consultation`;
+  }
+  if (url.pathname !== "/book" || !url.search) return null;
+  if ([...url.searchParams.keys()].some((key) => !BOOKING_QUERY_KEYS.includes(key))) {
     return null;
   }
   const treatment = url.searchParams.get("treatment")?.trim();
@@ -91,10 +101,11 @@ function safeAssistantHref(rawHref: string): string | null {
   if (!treatment) return null;
   if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
   if (time && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) return null;
-  return `${url.pathname}${url.search}`;
+  return `${PRODUCTION_ORIGIN}${url.pathname}${url.search}`;
 }
 
 export function AssistantMessage({ content }: { content: string }) {
+  const [, setLocation] = useLocation();
   const nodes: ReactNode[] = [];
   let cursor = 0;
 
@@ -103,10 +114,29 @@ export function AssistantMessage({ content }: { content: string }) {
     if (index > cursor) nodes.push(content.slice(cursor, index));
     const href = safeAssistantHref(match[2]);
     if (href) {
+      const localPath = href.startsWith(PRODUCTION_ORIGIN)
+        ? href.slice(PRODUCTION_ORIGIN.length)
+        : null;
+      const handleClick = import.meta.env.DEV && localPath
+        ? (event: MouseEvent<HTMLAnchorElement>) => {
+            if (
+              event.button !== 0
+              || event.metaKey
+              || event.ctrlKey
+              || event.shiftKey
+              || event.altKey
+            ) {
+              return;
+            }
+            event.preventDefault();
+            setLocation(localPath);
+          }
+        : undefined;
       nodes.push(
         <a
           key={`${index}-${href}`}
           href={href}
+          onClick={handleClick}
           data-testid={`link-assistant-action-${index}`}
           className="mt-3 inline-flex min-h-10 items-center justify-center border border-primary bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >

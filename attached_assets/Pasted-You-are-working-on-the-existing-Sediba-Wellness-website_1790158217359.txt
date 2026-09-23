@@ -1,0 +1,246 @@
+You are working on the existing Sediba Wellness website and Sedi AI receptionist.
+
+Sedi's current behaviour is working well. Do NOT redesign or rewrite its personality, treatment recommendations, pricing responses, medical caution, or conversation handling.
+
+Make ONLY the following 3 improvements.
+
+==================================================
+1. MAKE AVAILABILITY CHECKING PROACTIVE
+==================================================
+
+If the customer provides BOTH:
+
+- a known treatment
+- a specific date
+- a specific time
+
+Sedi should immediately check the existing live availability system.
+
+Example:
+
+Customer:
+"Can I book The Brighten tomorrow at 2pm?"
+
+Sedi should:
+
+1. Recognise The Brighten.
+2. Interpret "tomorrow" using the actual current date.
+3. Check the existing availability system for The Brighten at 14:00.
+4. If available, tell the customer it is available and provide the existing booking link.
+5. If unavailable, say the requested time is unavailable and offer to check alternative available times.
+6. Never invent availability.
+
+If the customer gives a treatment and date but no time, help them find available times.
+
+If the customer gives a date/time but no treatment, ask which treatment they want before checking treatment-specific availability.
+
+Use the EXISTING booking and availability system.
+
+Do NOT create a second booking or availability system.
+
+Do NOT hard-code availability.
+
+Do NOT invent appointment times.
+
+==================================================
+2. REMOVE REPLIT DEVELOPMENT URLS
+==================================================
+
+Sedi is currently generating customer-facing links using a Replit development URL such as:
+
+https://31d13493-ef38-42c8-be3d-86b02b163886-00-3vqwri21rxec5.worf.replit.dev
+
+This must NOT be shown to customers.
+
+Customer-facing links must use:
+
+https://sedibawellnessclinic.co.za
+
+For example:
+
+https://sedibawellnessclinic.co.za/book?treatment=The%20Brighten
+
+and:
+
+https://sedibawellnessclinic.co.za/book-consultation
+
+Inspect how Sedi currently generates these links.
+
+Do NOT simply replace individual URLs in response text.
+
+Centralise/configure the production base URL properly so booking links are generated from the correct domain.
+
+Preserve existing treatment/date/time query parameters.
+
+The development environment must still function correctly.
+
+==================================================
+3. PREPARE SEDI FOR REAL BOOKING/PAYMENT STATUS
+==================================================
+
+Sedi currently correctly refuses to falsely confirm payment.
+
+For example:
+
+Customer:
+"I've paid already. Am I booked?"
+
+Sedi must NOT claim the appointment is confirmed unless the existing booking/payment system actually confirms it.
+
+Inspect the existing booking and Yoco payment implementation.
+
+Determine where the real booking/payment status is stored and how Sedi could read it.
+
+Reuse existing structures if available.
+
+Do NOT:
+
+- rebuild Yoco
+- create another payment system
+- create fake payment verification
+- assume payment was successful
+- change the existing checkout flow
+- create a second booking system
+
+If Admin Payment Status already exists, reuse it.
+
+If it does not exist, make only the minimum architectural preparation needed for Sedi to eventually read the real status.
+
+Do not implement unrelated features.
+
+==================================================
+SOURCE OF TRUTH
+==================================================
+
+Continue using the existing structured Sediba treatment data as the source of truth.
+
+Do NOT change:
+
+- treatment names
+- prices
+- durations
+- categories
+- descriptions
+- treatment recommendations
+- Sedi personality
+- medical-safety behaviour
+- clinic policies
+- existing booking flow
+- Yoco checkout
+- calendar availability
+- Services page
+
+unless strictly required for these three tasks.
+
+==================================================
+BEFORE CHANGING ANYTHING
+==================================================
+
+First inspect the current implementation and identify:
+
+1. Where Sedi gets treatment information.
+2. Where Sedi gets availability.
+3. How Sedi currently generates booking links.
+4. Where booking/payment status currently lives.
+5. Whether an existing payment-status implementation can be reused.
+
+Then make the smallest changes necessary.
+
+==================================================
+TESTING
+==================================================
+
+Test all of the following:
+
+TEST 1
+
+"Can I book The Brighten tomorrow at 2pm?"
+
+Expected:
+- treatment recognised
+- date recognised
+- time recognised
+- actual availability checked
+- no unnecessary question asking which treatment
+
+TEST 2
+
+"Can I book The Brighten tomorrow?"
+
+Expected:
+- treatment and date recognised
+- available times checked/offered
+
+TEST 3
+
+"Can I book tomorrow at 2pm?"
+
+Expected:
+- asks which treatment because treatment is missing
+
+TEST 4
+
+"I've paid already. Am I booked?"
+
+Expected:
+- never falsely confirms
+- only confirms if real verified booking/payment status exists
+
+TEST 5
+
+Generate a booking link for The Brighten.
+
+Expected:
+- uses https://sedibawellnessclinic.co.za
+- does NOT use replit.dev
+
+TEST 6
+
+Generate a consultation link.
+
+Expected:
+- uses https://sedibawellnessclinic.co.za/book-consultation
+- does NOT use replit.dev
+
+TEST 7
+
+Confirm existing treatment/date/time query parameters still work correctly.
+
+==================================================
+DO NOT
+==================================================
+
+Do NOT:
+
+- redesign Sedi
+- change the treatment catalogue
+- change prices
+- add or remove treatments
+- invent medical information
+- invent availability
+- rebuild the booking system
+- rebuild Yoco
+- create another calendar
+- create another payment system
+- change the Services page
+- change unrelated website functionality
+- push to GitHub
+- deploy to Netlify
+- start another roadmap task
+
+This is a focused implementation task.
+
+==================================================
+FINAL REPORT
+==================================================
+
+When finished, report:
+
+1. Files/components changed.
+2. How availability checking now behaves.
+3. How production URLs are generated.
+4. What you found about booking/payment status.
+5. Tests performed and their results.
+6. Any remaining limitations.
+
+STOP after this task and wait for my approval.

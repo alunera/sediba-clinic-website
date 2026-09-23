@@ -7,6 +7,11 @@ import {
 import { sql } from "drizzle-orm";
 import { getLiveAvailability, type AvailabilitySlot } from "./availability";
 import { isServiceBookableForNewAppointment } from "./service-catalog";
+import {
+  SEDI_CONSULTATION_URL,
+  SEDI_PUBLIC_BASE_URL,
+  sediPublicUrl,
+} from "./sedi-public-url";
 
 export const SEDI_TOOLS = [
   {
@@ -23,8 +28,13 @@ export const SEDI_TOOLS = [
             type: "string",
             description: "Calendar date in YYYY-MM-DD format.",
           },
+          treatment: {
+            type: "string",
+            enum: ALL_TREATMENTS.map((treatment) => treatment.name),
+            description: "Exact CURRENT TREATMENT CATALOG name.",
+          },
         },
-        required: ["date"],
+        required: ["date", "treatment"],
         additionalProperties: false,
       },
     },
@@ -68,21 +78,26 @@ APPROVED FACTS AND SOURCES
 - Location: Hertford Office Park, Building M, Waterfall, Midrand. Do not add a street address.
 - Hours: Monday-Friday 09:00-18:00; Saturday 10:00-15:00; Sunday closed.
 - Phone: 081 456 6402. Email: info@sedibawellnessclinic.co.za.
-- A Skin Consultation has its own existing form at /book-consultation. Its current live database details are supplied separately when available.
+- A Skin Consultation has its own existing form at ${SEDI_CONSULTATION_URL}. Its current live database details are supplied separately when available.
 - Existing booking-form policy: 100% payment is required to secure an appointment; cancellations less than 24 hours before an appointment forfeit the full booking amount; rescheduling requires at least 24 hours' notice; clients should arrive 5 minutes early.
 - Do not state parking, product-brand, medical-aid, gift-card, preparation, aftercare, consultation-requirement, downtime, pain, results, or session-count facts unless they are explicitly present in the supplied approved knowledge. Catalog taglines are not clinical guarantees.
 
 CONSULTING AND SAFETY
 - Understand the concern, ask one useful follow-up when needed, then suggest only relevant catalog treatments and briefly connect the suggestion to catalog wording. Never call one universally best.
 - If the client asks for a recommendation without naming a concern, ask one short question rather than listing options. Once the concern is clear, lead with ONE relevant treatment and explain why using its catalog description; offer at most one alternative only if needed. End with an offer to book the primary recommendation. Do not overwhelm them with a menu. If they next ask "How much?" or say "Okay, book it", continue with that primary recommendation without asking them to repeat it. Clarify only when the conversation genuinely has no primary choice.
-- Do not diagnose, guarantee outcomes, promise cures, or give personalised medical advice. For contraindications, reactions, complaints, suitability needing examination, or unsupported facts, say you do not have confirmed information and hand off naturally to the phone/email or offer [Book a consultation](/book-consultation).
+- Do not diagnose, guarantee outcomes, promise cures, or give personalised medical advice. For contraindications, reactions, complaints, suitability needing examination, or unsupported facts, say you do not have confirmed information and hand off naturally to the phone/email or offer the server-supplied canonical consultation link.
 - Preserve conversational context. Replies such as "it", "yes", or "let's book it" refer to the relevant treatment from the full conversation when clear. Do not make the client repeat known information.
 
 BOOKING
-- For actual booking intent, confirm the catalog treatment, proactively ask for a date, use get_availability, and help choose only a returned available time. If the date is not known, prepare_booking may be called with null date/time so the user can continue in the existing calendar. Once a valid choice is known, call prepare_booking with it.
+- When a known treatment, specific date and specific time are already present, do not ask another question: immediately call get_availability with that exact canonical treatment and date, then call prepare_booking with the treatment/date/time if the requested time was returned.
+- This live check is mandatory even for a requested time outside published opening hours. The admin-configured calendar is the authority for both availability and unavailability; never infer either from opening hours. If the requested time is not returned, say it is unavailable and offer the actual returned alternatives.
+- When a known treatment and date are present but time is missing, immediately call get_availability and offer only returned live times. When date/time are present but treatment is missing, ask which treatment before calling treatment-specific availability. When the date is missing, ask for it; prepare_booking may still be called with null date/time only when handing the user to the existing calendar is appropriate.
+- get_availability requires an exact canonical treatment name. It first verifies that treatment is currently bookable in the existing database; availability remains clinic-wide and is then read from the existing live calendar.
+- Once a valid treatment/date/time choice is known, call prepare_booking with it.
 - prepare_booking never creates, reserves or confirms an appointment. Never claim a reservation or confirmation. Policy acceptance is not confirmation, and payment is only confirmed by the existing booking/payment flow after provider verification. Client details, clinic policy acceptance and any Yoco payment stay in that form.
+- Sedi cannot look up an existing client's booking or payment status yet because no customer ownership-verification tool is exposed. Do not offer to check appointment details or imply that you can verify a payment; direct the client to the existing booking/payment flow or a concise human handoff.
 - Only say a date/time is available after get_availability or successful prepare_booking in this turn. Treat tool errors as unavailable/needs another choice.
-- Never write or alter the Continue booking markdown link yourself. The server appends the validated link after prepare_booking.
+- Never generate booking or consultation URLs yourself, including development URLs. The server supplies allowlisted canonical links on ${SEDI_PUBLIC_BASE_URL}; it appends the validated booking link after prepare_booking.
 
 If an answer is absent from these sources, say you do not have confirmed information and offer a concise human handoff.`;
 
@@ -124,7 +139,7 @@ export async function formatLiveConsultation(): Promise<string> {
   if (!consultation) {
     return "CURRENT CONSULTATION DETAILS\nNo live consultation details are available; do not quote a fee or duration.";
   }
-  return `CURRENT CONSULTATION DETAILS\n${consultation.name} | R${(consultation.price / 100).toFixed(2)} | ${consultation.duration} min | booking form: /book-consultation`;
+  return `CURRENT CONSULTATION DETAILS\n${consultation.name} | R${(consultation.price / 100).toFixed(2)} | ${consultation.duration} min | booking form: ${SEDI_CONSULTATION_URL}`;
 }
 
 type BookableTreatment = { id: number; name: string };
@@ -189,17 +204,82 @@ export function bookingLink(
   const query = [`treatment=${encodeURIComponent(treatment)}`];
   if (date) query.push(`date=${encodeURIComponent(date)}`);
   if (time) query.push(`time=${encodeURIComponent(time)}`);
-  return `[Continue booking ${treatment}](/book?${query.join("&")})`;
+  return `[Continue booking ${treatment}](${sediPublicUrl(`/book?${query.join("&")}`)})`;
+}
+
+export function consultationLink(label = "Book a consultation"): string {
+  return `[${label}](${SEDI_CONSULTATION_URL})`;
+}
+
+function sediLinkKind(
+  destination: string,
+): "booking" | "consultation" | "development" | undefined {
+  const unwrapped = destination.trim().replace(/^<|>$/g, "");
+  try {
+    const url = new URL(unwrapped, SEDI_PUBLIC_BASE_URL);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return undefined;
+    const pathname = url.pathname.replace(/\/+$/, "") || "/";
+    if (pathname === "/book-consultation") return "consultation";
+    if (pathname.startsWith("/book")) return "booking";
+    if (
+      url.hostname === "replit.dev" ||
+      url.hostname.endsWith(".replit.dev")
+    ) {
+      return "development";
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
 }
 
 export function appendPreparedBookingLink(
   content: string,
   preparedLink?: string,
 ): string {
-  // Only the server may emit a /book handoff. Preserve /book-consultation,
-  // which is the approved human/practitioner handoff.
-  const safeContent = content
-    .replace(/\[[^\]\n]*\]\(\s*\/book(?!-consultation)(?:[/?#][^)\s]*)?\s*\)/gi, "")
+  // Protect complete markdown tokens while raw URLs are finalized, avoiding
+  // nested markdown when a bare consultation URL becomes a clickable link.
+  const protectedLinks: string[] = [];
+  const protect = (markdown: string): string => {
+    const token = `\u0000SEDI_LINK_${protectedLinks.length}\u0000`;
+    protectedLinks.push(markdown);
+    return token;
+  };
+
+  const markdownFinalized = content
+    .replace(
+      /\[([^\]\n]*)\]\(\s*(<?(?:https?:\/\/|\/)[^)\s>]+>?)\s*\)/gi,
+      (markdown, label: string, destination: string) => {
+        const kind = sediLinkKind(destination);
+        if (kind === "booking") return "";
+        if (kind === "consultation") {
+          return protect(consultationLink(label || "Book a consultation"));
+        }
+        if (kind === "development") return label;
+        return protect(markdown);
+      },
+    );
+
+  const safeContent = markdownFinalized
+    .replace(
+      /https?:\/\/[^\s<>)\]]+|\/book[^\s<>)\]]*/gi,
+      (destination) => {
+        const trailing = destination.match(/[.,;:!?]+$/)?.[0] ?? "";
+        const url = trailing
+          ? destination.slice(0, -trailing.length)
+          : destination;
+        const kind = sediLinkKind(url);
+        if (kind === "booking") return trailing;
+        if (kind === "consultation") {
+          return `${protect(consultationLink())}${trailing}`;
+        }
+        if (kind === "development") return trailing;
+        return destination;
+      },
+    )
+    .replace(/\u0000SEDI_LINK_(\d+)\u0000/g, (_token, index: string) => {
+      return protectedLinks[Number(index)] ?? "";
+    })
     .trim() || SEDI_FAILURE_HANDOFF;
   return preparedLink ? `${safeContent}\n\n${preparedLink}` : safeContent;
 }
@@ -236,11 +316,23 @@ export async function executeSediTool(
     if (!validDate(args.date)) {
       return { output: JSON.stringify({ ok: false, error: "date must be YYYY-MM-DD" }) };
     }
+    if (typeof args.treatment !== "string") {
+      return { output: JSON.stringify({ ok: false, error: "An exact catalog treatment is required." }) };
+    }
+    const treatment = findTreatmentByName(args.treatment);
+    if (!treatment || args.treatment !== treatment.name) {
+      return { output: JSON.stringify({ ok: false, error: "Use an exact CURRENT TREATMENT CATALOG name." }) };
+    }
+    const service = await dependencies.resolveTreatment(treatment.name);
+    if (!service) {
+      return { output: JSON.stringify({ ok: false, error: "This catalog treatment is not currently bookable." }) };
+    }
     const slots = await dependencies.availability(args.date);
     return {
       output: JSON.stringify({
         ok: true,
         date: args.date,
+        treatment: treatment.name,
         availableTimes: slots
           .filter((slot) => slot.available)
           .map((slot) => slot.time),
