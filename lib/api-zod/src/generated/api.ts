@@ -483,6 +483,173 @@ export const AdminListClientsResponseItem = zod.object({
 export const AdminListClientsResponse = zod.array(AdminListClientsResponseItem);
 
 /**
+ * @summary Search persistent client records (admin only)
+ */
+export const listAdminClientRecordsQuerySearchMax = 200;
+
+export const ListAdminClientRecordsQueryParams = zod.object({
+  search: zod.coerce
+    .string()
+    .max(listAdminClientRecordsQuerySearchMax)
+    .optional(),
+});
+
+export const listAdminClientRecordsResponseDateOfBirthRegExp = new RegExp(
+  "^\\d{4}-\\d{2}-\\d{2}$",
+);
+
+export const ListAdminClientRecordsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string().nullable(),
+  phone: zod.string().nullable(),
+  whatsapp: zod.string().nullable(),
+  dateOfBirth: zod
+    .string()
+    .regex(listAdminClientRecordsResponseDateOfBirthRegExp)
+    .nullable(),
+  internalNotes: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+export const ListAdminClientRecordsResponse = zod.array(
+  ListAdminClientRecordsResponseItem,
+);
+
+/**
+ * @summary Create a client record (admin only)
+ */
+export const createAdminClientRecordBodyNameMax = 200;
+
+export const createAdminClientRecordBodyEmailMax = 254;
+
+export const createAdminClientRecordBodyPhoneMax = 40;
+
+export const createAdminClientRecordBodyWhatsappMax = 40;
+
+export const createAdminClientRecordBodyDateOfBirthRegExp = new RegExp(
+  "^\\d{4}-\\d{2}-\\d{2}$",
+);
+export const createAdminClientRecordBodyInternalNotesMax = 10000;
+
+export const CreateAdminClientRecordBody = zod.object({
+  name: zod.string().min(1).max(createAdminClientRecordBodyNameMax),
+  email: zod.string().max(createAdminClientRecordBodyEmailMax).nullish(),
+  phone: zod.string().max(createAdminClientRecordBodyPhoneMax).nullish(),
+  whatsapp: zod.string().max(createAdminClientRecordBodyWhatsappMax).nullish(),
+  dateOfBirth: zod
+    .string()
+    .regex(createAdminClientRecordBodyDateOfBirthRegExp)
+    .nullish(),
+  internalNotes: zod
+    .string()
+    .max(createAdminClientRecordBodyInternalNotesMax)
+    .nullish(),
+});
+
+/**
+ * @summary Get client and linked booking history (admin only)
+ */
+
+export const GetAdminClientRecordParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const getAdminClientRecordResponseOneDateOfBirthRegExp = new RegExp(
+  "^\\d{4}-\\d{2}-\\d{2}$",
+);
+
+export const GetAdminClientRecordResponse = zod
+  .object({
+    id: zod.number(),
+    name: zod.string(),
+    email: zod.string().nullable(),
+    phone: zod.string().nullable(),
+    whatsapp: zod.string().nullable(),
+    dateOfBirth: zod
+      .string()
+      .regex(getAdminClientRecordResponseOneDateOfBirthRegExp)
+      .nullable(),
+    internalNotes: zod.string().nullable(),
+    createdAt: zod.string(),
+    updatedAt: zod.string(),
+  })
+  .and(
+    zod.object({
+      bookings: zod.array(
+        zod.object({
+          id: zod.number(),
+          bookingRef: zod.string(),
+          clientName: zod.string(),
+          clientEmail: zod.string(),
+          clientPhone: zod.string(),
+          clientWhatsapp: zod.string().nullable(),
+          serviceName: zod.string().nullable(),
+          date: zod.string(),
+          time: zod.string(),
+          status: zod.string(),
+          createdAt: zod.string(),
+        }),
+      ),
+    }),
+  );
+
+/**
+ * @summary Update a client record (admin only)
+ */
+
+export const UpdateAdminClientRecordParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const updateAdminClientRecordBodyNameMax = 200;
+
+export const updateAdminClientRecordBodyEmailMax = 254;
+
+export const updateAdminClientRecordBodyPhoneMax = 40;
+
+export const updateAdminClientRecordBodyWhatsappMax = 40;
+
+export const updateAdminClientRecordBodyDateOfBirthRegExp = new RegExp(
+  "^\\d{4}-\\d{2}-\\d{2}$",
+);
+export const updateAdminClientRecordBodyInternalNotesMax = 10000;
+
+export const UpdateAdminClientRecordBody = zod.object({
+  name: zod.string().min(1).max(updateAdminClientRecordBodyNameMax).optional(),
+  email: zod.string().max(updateAdminClientRecordBodyEmailMax).nullish(),
+  phone: zod.string().max(updateAdminClientRecordBodyPhoneMax).nullish(),
+  whatsapp: zod.string().max(updateAdminClientRecordBodyWhatsappMax).nullish(),
+  dateOfBirth: zod
+    .string()
+    .regex(updateAdminClientRecordBodyDateOfBirthRegExp)
+    .nullish(),
+  internalNotes: zod
+    .string()
+    .max(updateAdminClientRecordBodyInternalNotesMax)
+    .nullish(),
+});
+
+export const updateAdminClientRecordResponseDateOfBirthRegExp = new RegExp(
+  "^\\d{4}-\\d{2}-\\d{2}$",
+);
+
+export const UpdateAdminClientRecordResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  email: zod.string().nullable(),
+  phone: zod.string().nullable(),
+  whatsapp: zod.string().nullable(),
+  dateOfBirth: zod
+    .string()
+    .regex(updateAdminClientRecordResponseDateOfBirthRegExp)
+    .nullable(),
+  internalNotes: zod.string().nullable(),
+  createdAt: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
  * @summary Get admin settings
  */
 export const AdminGetSettingsResponse = zod.object({

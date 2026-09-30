@@ -22,6 +22,10 @@ import type {
   AdminAuthResponse,
   AdminAvailabilityDay,
   AdminClearAvailabilityDate200,
+  AdminClientRecord,
+  AdminClientRecordDetail,
+  AdminClientRecordInput,
+  AdminClientRecordUpdate,
   AdminConsultationService,
   AdminConsultationServiceUpdate,
   AdminGetAvailabilityParams,
@@ -41,6 +45,7 @@ import type {
   GetPaymentStatusParams,
   HealthStatus,
   InitiatePaymentBody,
+  ListAdminClientRecordsParams,
   OpenaiConversation,
   OpenaiConversationWithMessages,
   OpenaiError,
@@ -2107,6 +2112,372 @@ export function useAdminListClients<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Search persistent client records (admin only)
+ */
+export const getListAdminClientRecordsUrl = (
+  params?: ListAdminClientRecordsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/client-records?${stringifiedParams}`
+    : `/api/admin/client-records`;
+};
+
+export const listAdminClientRecords = async (
+  params?: ListAdminClientRecordsParams,
+  options?: RequestInit,
+): Promise<AdminClientRecord[]> => {
+  return customFetch<AdminClientRecord[]>(
+    getListAdminClientRecordsUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListAdminClientRecordsQueryKey = (
+  params?: ListAdminClientRecordsParams,
+) => {
+  return [`/api/admin/client-records`, ...(params ? [params] : [])] as const;
+};
+
+export const getListAdminClientRecordsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminClientRecords>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminClientRecordsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminClientRecords>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListAdminClientRecordsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminClientRecords>>
+  > = ({ signal }) =>
+    listAdminClientRecords(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminClientRecords>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminClientRecordsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminClientRecords>>
+>;
+export type ListAdminClientRecordsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Search persistent client records (admin only)
+ */
+
+export function useListAdminClientRecords<
+  TData = Awaited<ReturnType<typeof listAdminClientRecords>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListAdminClientRecordsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listAdminClientRecords>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminClientRecordsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a client record (admin only)
+ */
+export const getCreateAdminClientRecordUrl = () => {
+  return `/api/admin/client-records`;
+};
+
+export const createAdminClientRecord = async (
+  adminClientRecordInput: AdminClientRecordInput,
+  options?: RequestInit,
+): Promise<AdminClientRecord> => {
+  return customFetch<AdminClientRecord>(getCreateAdminClientRecordUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminClientRecordInput),
+  });
+};
+
+export const getCreateAdminClientRecordMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminClientRecord>>,
+    TError,
+    { data: BodyType<AdminClientRecordInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminClientRecord>>,
+  TError,
+  { data: BodyType<AdminClientRecordInput> },
+  TContext
+> => {
+  const mutationKey = ["createAdminClientRecord"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminClientRecord>>,
+    { data: BodyType<AdminClientRecordInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdminClientRecord(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminClientRecordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminClientRecord>>
+>;
+export type CreateAdminClientRecordMutationBody =
+  BodyType<AdminClientRecordInput>;
+export type CreateAdminClientRecordMutationError = ErrorType<void>;
+
+/**
+ * @summary Create a client record (admin only)
+ */
+export const useCreateAdminClientRecord = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminClientRecord>>,
+    TError,
+    { data: BodyType<AdminClientRecordInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminClientRecord>>,
+  TError,
+  { data: BodyType<AdminClientRecordInput> },
+  TContext
+> => {
+  return useMutation(getCreateAdminClientRecordMutationOptions(options));
+};
+
+/**
+ * @summary Get client and linked booking history (admin only)
+ */
+export const getGetAdminClientRecordUrl = (id: number) => {
+  return `/api/admin/client-records/${id}`;
+};
+
+export const getAdminClientRecord = async (
+  id: number,
+  options?: RequestInit,
+): Promise<AdminClientRecordDetail> => {
+  return customFetch<AdminClientRecordDetail>(getGetAdminClientRecordUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminClientRecordQueryKey = (id: number) => {
+  return [`/api/admin/client-records/${id}`] as const;
+};
+
+export const getGetAdminClientRecordQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminClientRecord>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminClientRecord>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminClientRecordQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminClientRecord>>
+  > = ({ signal }) => getAdminClientRecord(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminClientRecord>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminClientRecordQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminClientRecord>>
+>;
+export type GetAdminClientRecordQueryError = ErrorType<void>;
+
+/**
+ * @summary Get client and linked booking history (admin only)
+ */
+
+export function useGetAdminClientRecord<
+  TData = Awaited<ReturnType<typeof getAdminClientRecord>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminClientRecord>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminClientRecordQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a client record (admin only)
+ */
+export const getUpdateAdminClientRecordUrl = (id: number) => {
+  return `/api/admin/client-records/${id}`;
+};
+
+export const updateAdminClientRecord = async (
+  id: number,
+  adminClientRecordUpdate: AdminClientRecordUpdate,
+  options?: RequestInit,
+): Promise<AdminClientRecord> => {
+  return customFetch<AdminClientRecord>(getUpdateAdminClientRecordUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminClientRecordUpdate),
+  });
+};
+
+export const getUpdateAdminClientRecordMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminClientRecord>>,
+    TError,
+    { id: number; data: BodyType<AdminClientRecordUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateAdminClientRecord>>,
+  TError,
+  { id: number; data: BodyType<AdminClientRecordUpdate> },
+  TContext
+> => {
+  const mutationKey = ["updateAdminClientRecord"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateAdminClientRecord>>,
+    { id: number; data: BodyType<AdminClientRecordUpdate> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateAdminClientRecord(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateAdminClientRecordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateAdminClientRecord>>
+>;
+export type UpdateAdminClientRecordMutationBody =
+  BodyType<AdminClientRecordUpdate>;
+export type UpdateAdminClientRecordMutationError = ErrorType<void>;
+
+/**
+ * @summary Update a client record (admin only)
+ */
+export const useUpdateAdminClientRecord = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateAdminClientRecord>>,
+    TError,
+    { id: number; data: BodyType<AdminClientRecordUpdate> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateAdminClientRecord>>,
+  TError,
+  { id: number; data: BodyType<AdminClientRecordUpdate> },
+  TContext
+> => {
+  return useMutation(getUpdateAdminClientRecordMutationOptions(options));
+};
 
 /**
  * @summary Get admin settings

@@ -146,6 +146,23 @@ export declare const appointmentsTable: import("drizzle-orm/pg-core").PgTableWit
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        clientRecordId: import("drizzle-orm/pg-core").PgColumn<{
+            name: "client_record_id";
+            tableName: "appointments";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         bookingRef: import("drizzle-orm/pg-core").PgColumn<{
             name: "booking_ref";
             tableName: "appointments";
@@ -747,6 +764,7 @@ export declare const insertServiceSchema: z.ZodObject<{
 }>;
 export declare const insertAppointmentSchema: z.ZodObject<{
     date: z.ZodString;
+    clientRecordId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     bookingRef: z.ZodString;
     clientName: z.ZodString;
     clientEmail: z.ZodString;

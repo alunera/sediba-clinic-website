@@ -539,6 +539,78 @@ paths:
                 items:
                   $ref: "#/components/schemas/Client"
 
+  /admin/client-records:
+    get:
+      operationId: listAdminClientRecords
+      tags: [admin]
+      summary: Search persistent client records (admin only)
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string, maxLength: 200 }
+      responses:
+        "200":
+          description: Client records
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AdminClientRecord" }
+    post:
+      operationId: createAdminClientRecord
+      tags: [admin]
+      summary: Create a client record (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminClientRecordInput" }
+      responses:
+        "201":
+          description: Created client
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminClientRecord" }
+        "400":
+          description: Invalid input
+  /admin/client-records/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer, minimum: 1 }
+    get:
+      operationId: getAdminClientRecord
+      tags: [admin]
+      summary: Get client and linked booking history (admin only)
+      responses:
+        "200":
+          description: Client detail
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminClientRecordDetail" }
+        "404":
+          description: Client not found
+    patch:
+      operationId: updateAdminClientRecord
+      tags: [admin]
+      summary: Update a client record (admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdminClientRecordUpdate" }
+      responses:
+        "200":
+          description: Updated client
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminClientRecord" }
+        "400":
+          description: Invalid input
+        "404":
+          description: Client not found
+
   /admin/settings:
     get:
       operationId: adminGetSettings
@@ -1035,6 +1107,65 @@ components:
         - clientPhone
         - appointmentCount
         - totalSpentCents
+
+    AdminClientRecord:
+      type: object
+      required: [id, name, email, phone, whatsapp, dateOfBirth, internalNotes, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: [string, "null"] }
+        phone: { type: [string, "null"] }
+        whatsapp: { type: [string, "null"] }
+        dateOfBirth: { type: [string, "null"], pattern: '^\d{4}-\d{2}-\d{2}$' }
+        internalNotes: { type: [string, "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+    AdminClientRecordInput:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        email: { type: [string, "null"], maxLength: 254 }
+        phone: { type: [string, "null"], maxLength: 40 }
+        whatsapp: { type: [string, "null"], maxLength: 40 }
+        dateOfBirth: { type: [string, "null"], pattern: '^\d{4}-\d{2}-\d{2}$' }
+        internalNotes: { type: [string, "null"], maxLength: 10000 }
+    AdminClientRecordUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        email: { type: [string, "null"], maxLength: 254 }
+        phone: { type: [string, "null"], maxLength: 40 }
+        whatsapp: { type: [string, "null"], maxLength: 40 }
+        dateOfBirth: { type: [string, "null"], pattern: '^\d{4}-\d{2}-\d{2}$' }
+        internalNotes: { type: [string, "null"], maxLength: 10000 }
+    AdminClientBooking:
+      type: object
+      required: [id, bookingRef, clientName, clientEmail, clientPhone, clientWhatsapp, serviceName, date, time, status, createdAt]
+      properties:
+        id: { type: integer }
+        bookingRef: { type: string }
+        clientName: { type: string }
+        clientEmail: { type: string }
+        clientPhone: { type: string }
+        clientWhatsapp: { type: [string, "null"] }
+        serviceName: { type: [string, "null"] }
+        date: { type: string }
+        time: { type: string }
+        status: { type: string }
+        createdAt: { type: string }
+    AdminClientRecordDetail:
+      allOf:
+        - $ref: "#/components/schemas/AdminClientRecord"
+        - type: object
+          required: [bookings]
+          properties:
+            bookings:
+              type: array
+              items: { $ref: "#/components/schemas/AdminClientBooking" }
 
     AdminSettings:
       type: object

@@ -6,6 +6,7 @@ import openaiRouter from "./openai";
 import adminRouter from "./admin";
 import adminAvailabilityRouter from "./admin-availability";
 import paymentsRouter from "./payments";
+import clientRecordsRouter from "./client-records";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(openaiRouter);
 router.use(adminRouter);
 router.use(adminAvailabilityRouter);
 router.use(paymentsRouter);
+router.use(clientRecordsRouter);
 
 export default router;

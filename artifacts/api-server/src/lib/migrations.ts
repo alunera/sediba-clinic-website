@@ -12,6 +12,7 @@
 import { pool } from "@workspace/db";
 import { logger } from "./logger";
 import { reconcileServiceCatalog } from "./service-catalog";
+import { matchingClientId } from "./client-records";
 
 const MIGRATIONS = [
   // Task: persist appointment reminders across server restarts
@@ -59,6 +60,19 @@ const MIGRATIONS = [
      WHERE NOT EXISTS (
        SELECT 1 FROM services WHERE lower(category) = 'consultation'
      )`,
+  `CREATE TABLE IF NOT EXISTS client_records (
+     id SERIAL PRIMARY KEY,
+     name TEXT NOT NULL,
+     email TEXT,
+     phone TEXT,
+     whatsapp TEXT,
+     date_of_birth DATE,
+     internal_notes TEXT,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  `ALTER TABLE appointments ADD COLUMN IF NOT EXISTS client_record_id INTEGER REFERENCES client_records(id)`,
+  `CREATE INDEX IF NOT EXISTS appointments_client_record_id_idx ON appointments (client_record_id)`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can
@@ -80,6 +94,36 @@ export async function runSchemaMigrations(): Promise<void> {
   try {
     for (const sql of MIGRATIONS) {
       await client.query(sql);
+    }
+    // Backfill snapshots conservatively; leave invalid contact rows unlinked.
+    // A dedicated transaction makes each run atomic and serializes with new bookings.
+    await client.query("BEGIN");
+    try {
+      await client.query("SELECT pg_advisory_xact_lock(83412091)");
+      const { rows: profiles } = await client.query<{
+        id: number; name: string; email: string | null; phone: string | null; whatsapp: string | null;
+      }>("SELECT id, name, email, phone, whatsapp FROM client_records");
+      const { rows: bookings } = await client.query<{
+        id: number; name: string; email: string | null; phone: string | null; whatsapp: string | null;
+      }>(`SELECT id, client_name AS name, client_email AS email, client_phone AS phone,
+            client_whatsapp AS whatsapp FROM appointments WHERE client_record_id IS NULL ORDER BY id`);
+      for (const booking of bookings) {
+        if (!booking.name?.trim() || !booking.email?.trim() && !booking.phone?.trim() && !booking.whatsapp?.trim()) continue;
+        let id = matchingClientId(booking, profiles);
+        if (!id) {
+          const inserted = await client.query<{ id: number }>(
+            `INSERT INTO client_records (name, email, phone, whatsapp) VALUES ($1, $2, $3, $4) RETURNING id`,
+            [booking.name.trim(), booking.email?.trim() || null, booking.phone?.trim() || null, booking.whatsapp?.trim() || null],
+          );
+          id = inserted.rows[0]!.id;
+          profiles.push({ id, name: booking.name.trim(), email: booking.email, phone: booking.phone, whatsapp: booking.whatsapp });
+        }
+        await client.query("UPDATE appointments SET client_record_id = $1 WHERE id = $2 AND client_record_id IS NULL", [id, booking.id]);
+      }
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
     }
     const catalogPlan = await reconcileServiceCatalog(client);
     logger.info(

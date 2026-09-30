@@ -23,6 +23,7 @@ import { requireAdmin } from "../middlewares/admin-auth";
 import { releaseExpiredPendingBookings } from "./payments";
 import { isServiceBookableForNewAppointment } from "../lib/service-catalog";
 import { getLiveAvailability } from "../lib/availability";
+import { linkBookingClient } from "../lib/client-records";
 
 const router = Router();
 
@@ -180,11 +181,18 @@ router.post("/appointments", async (req, res): Promise<void> => {
       // before it can be confirmed.
       requiresPayment = appointmentRequiresPayment(totalAmountCents);
       const initialStatus = requiresPayment ? "pending_payment" : "confirmed";
+      const clientRecordId = await linkBookingClient(tx, {
+        name: restInsert.clientName,
+        email: restInsert.clientEmail,
+        phone: restInsert.clientPhone,
+        whatsapp: restInsert.clientWhatsapp,
+      });
 
       const [created] = await tx
         .insert(appointmentsTable)
         .values({
           ...restInsert,
+          clientRecordId,
           serviceId,
           date: dateStr,
           bookingRef,
@@ -246,8 +254,9 @@ router.post("/appointments", async (req, res): Promise<void> => {
     }
   }
 
+  const { clientRecordId: _clientRecordId, ...publicAppointment } = appointment;
   res.status(201).json({
-    ...appointment,
+    ...publicAppointment,
     serviceName,
   });
 });

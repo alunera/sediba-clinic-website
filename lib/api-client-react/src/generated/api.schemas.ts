@@ -203,6 +203,112 @@ export interface Client {
   firstVisit?: string | null;
 }
 
+export interface AdminClientRecord {
+  id: number;
+  name: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  phone: string | null;
+  /** @nullable */
+  whatsapp: string | null;
+  /**
+   * @nullable
+   * @pattern ^\d{4}-\d{2}-\d{2}$
+   */
+  dateOfBirth: string | null;
+  /** @nullable */
+  internalNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminClientRecordInput {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name: string;
+  /**
+   * @maxLength 254
+   * @nullable
+   */
+  email?: string | null;
+  /**
+   * @maxLength 40
+   * @nullable
+   */
+  phone?: string | null;
+  /**
+   * @maxLength 40
+   * @nullable
+   */
+  whatsapp?: string | null;
+  /**
+   * @nullable
+   * @pattern ^\d{4}-\d{2}-\d{2}$
+   */
+  dateOfBirth?: string | null;
+  /**
+   * @maxLength 10000
+   * @nullable
+   */
+  internalNotes?: string | null;
+}
+
+export interface AdminClientRecordUpdate {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name?: string;
+  /**
+   * @maxLength 254
+   * @nullable
+   */
+  email?: string | null;
+  /**
+   * @maxLength 40
+   * @nullable
+   */
+  phone?: string | null;
+  /**
+   * @maxLength 40
+   * @nullable
+   */
+  whatsapp?: string | null;
+  /**
+   * @nullable
+   * @pattern ^\d{4}-\d{2}-\d{2}$
+   */
+  dateOfBirth?: string | null;
+  /**
+   * @maxLength 10000
+   * @nullable
+   */
+  internalNotes?: string | null;
+}
+
+export interface AdminClientBooking {
+  id: number;
+  bookingRef: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  /** @nullable */
+  clientWhatsapp: string | null;
+  /** @nullable */
+  serviceName: string | null;
+  date: string;
+  time: string;
+  status: string;
+  createdAt: string;
+}
+
+export type AdminClientRecordDetail = AdminClientRecord & {
+  bookings: AdminClientBooking[];
+};
+
 export interface AdminSettings {
   googleReviewUrl?: string | null;
   clinicName?: string | null;
@@ -304,4 +410,11 @@ export type AdminRemoveAvailabilitySlotParams = {
 export type AdminClearAvailabilityDate200 = {
   removed: number;
   bookedRemaining: number;
+};
+
+export type ListAdminClientRecordsParams = {
+  /**
+   * @maxLength 200
+   */
+  search?: string;
 };

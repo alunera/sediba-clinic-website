@@ -178,7 +178,11 @@ router.get("/admin/clients", requireAdmin, async (req, res): Promise<void> => {
       clientPhone: appointmentsTable.clientPhone,
       clientWhatsapp: appointmentsTable.clientWhatsapp,
       appointmentCount: sql<number>`count(*)::int`,
-      totalSpentCents: sql<number>`sum(${appointmentsTable.totalAmountCents})::int`,
+      // Legacy contract: only count amounts for bookings with a verified completed payment.
+      totalSpentCents: sql<number>`sum(COALESCE((
+        SELECT p.amount_cents FROM payments p WHERE p.appointment_id = ${appointmentsTable.id}
+          AND p.status = 'complete' ORDER BY p.id DESC LIMIT 1
+      ), 0))::int`,
       lastVisit: sql<string>`max(${appointmentsTable.date})`,
       firstVisit: sql<string>`min(${appointmentsTable.date})`,
     })
