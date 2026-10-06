@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
-import { AlertCircle, Lock } from "lucide-react";
+import { AlertCircle, AlertTriangle, Lock } from "lucide-react";
 import { useIsMutating, useQueryClient, type Query } from "@tanstack/react-query";
 import { AppointmentRefundSection, REFUND_MUTATION_KEY } from "./appointment-refund-section";
 import {
@@ -135,6 +135,30 @@ export function AppointmentPaymentDialog({ appointment, open, onOpenChange }: { 
               )}
             </section>
 
+            {d.netReceiptsCents > d.totalCents && (
+              <div className="flex gap-3 border border-destructive/40 bg-destructive/5 p-4 text-sm" role="alert" data-testid="text-receipt-overpaid">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-destructive" aria-hidden="true" />
+                <p>Money retained after refunds ({formatRand(d.netReceiptsCents)}) is more than the booking total ({formatRand(d.totalCents)}) by {formatRand(d.netReceiptsCents - d.totalCents)}. Reconcile manually against Yoco and bank records, then record a refund if money must go back.</p>
+              </div>
+            )}
+            {(d.checkoutExceptions?.length ?? 0) > 0 && (
+              <section className="border border-amber-500/40 bg-amber-500/5 p-4 space-y-3 text-sm" aria-label="Unresolved Yoco checkouts" data-testid="section-checkout-exceptions">
+                <h3 className="text-[10px] uppercase tracking-widest text-amber-800">Unresolved Yoco checkout attempts</h3>
+                <p className="text-xs leading-relaxed">These online checkouts have no confirmed outcome. A failed or cancelled event does not prove that no money was taken. Yoco offers no documented way for this app to revoke a checkout or look up its final status, so these stay blocked and cannot be unlocked here.</p>
+                <ul className="divide-y divide-amber-500/30 border border-amber-500/30 bg-card">
+                  {d.checkoutExceptions!.map((x) => (
+                    <li key={`${x.paymentId}-${x.attemptReference}`} className="p-3 grid grid-cols-[1fr_auto] gap-1" data-testid={`row-checkout-exception-${x.paymentId}`}>
+                      <span className="text-xs">Attempt <span className="font-mono select-all" data-testid={`text-attempt-ref-${x.paymentId}`}>{x.attemptReference}</span></span>
+                      <span className="font-mono text-sm text-right">{formatRand(x.amountCents)}</span>
+                      <span className="text-xs text-muted-foreground">Yoco checkout <span className="font-mono select-all" data-testid={`text-checkout-ref-${x.paymentId}`}>{x.checkoutReference || "not issued"}</span></span>
+                      <span className="text-[10px] uppercase tracking-widest text-right text-amber-800">{x.status.replace(/_/g, " ")}</span>
+                      <span className="text-[11px] text-muted-foreground col-span-2">Started {formatJhb(x.createdAt)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs leading-relaxed">Next step: give these references to Yoco support and get written confirmation that each checkout can no longer accept payment, or whether money was received. There is no manual override; the booking stays blocked until a provider-supported resolution is available, so the app cannot safely take another payment for it.</p>
+              </section>
+            )}
             {blocked ? (
               <div className="flex gap-3 border border-amber-500/40 bg-amber-500/10 p-4 text-sm" role="status" data-testid="text-receipt-blocked">
                 <Lock className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" aria-hidden="true" />

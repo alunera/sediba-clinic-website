@@ -29,6 +29,7 @@ import AdminSettings from "@/pages/admin/settings";
 import AdminSales from "@/pages/admin/sales";
 import AdminReports from "@/pages/admin/reports";
 import AdminBookkeeping from "@/pages/admin/bookkeeping";
+import AdminStock from "@/pages/admin/stock";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/admin/appointments" component={() => <AdminLayout><AdminAppointments /></AdminLayout>} />
       <Route path="/admin/clients" component={() => <AdminLayout><AdminClients /></AdminLayout>} />
       <Route path="/admin/sales" component={() => <AdminLayout><AdminSales /></AdminLayout>} />
+      <Route path="/admin/stock" component={() => <AdminLayout><AdminStock /></AdminLayout>} />
       <Route path="/admin/reports" component={() => <AdminLayout><AdminReports /></AdminLayout>} />
       <Route path="/admin/bookkeeping" component={() => <AdminLayout><AdminBookkeeping /></AdminLayout>} />
       <Route path="/admin/settings" component={() => <AdminLayout><AdminSettings /></AdminLayout>} />

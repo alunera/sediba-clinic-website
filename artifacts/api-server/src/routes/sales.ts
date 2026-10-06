@@ -5,6 +5,7 @@ import {
   ListAdminSalesResponse, AddAdminSaleEntryResponse as CreateAdminSaleResponse, GetAdminFinancialReportResponse,
 } from "@workspace/api-zod";
 import { requireAdmin } from "../middlewares/admin-auth";
+import { deductSaleStock, StockError } from "../lib/stock";
 import { entryError, saleBalance, saleTotal, validReportDates, saleInput, saleEntryInput } from "../lib/sales";
 
 const router = Router();
@@ -14,7 +15,7 @@ const connect = () => pool.connect();
 type Connection = Awaited<ReturnType<typeof connect>>;
 type SaleRow = {
   id: number; request_id: string; client_id: number; client_name: string;
-  items: Array<{ description: string; kind: string; quantity: number; unitPriceCents: number }>;
+  items: Array<{ description: string; kind: string; quantity: number; unitPriceCents: number; productId?: number }>;
   total_cents: number; notes: string; void_reason: string; created_at: Date; voided_at: Date | null;
 };
 type EntryRow = {
@@ -79,7 +80,7 @@ router.post("/admin/sales", async (req, res) => {
   if (!parsed.success) { res.status(400).json({ error: "Provide a client, valid line items and a request ID" }); return; }
   const { requestId, clientId } = parsed.data;
   const notes = parsed.data.notes?.trim() ?? "";
-  const items = parsed.data.items.map(i => ({ description: i.description.trim(), kind: i.kind, quantity: i.quantity, unitPriceCents: i.unitPriceCents }));
+  const items = parsed.data.items.map(i => ({ description: i.description.trim(), kind: i.kind, quantity: i.quantity, unitPriceCents: i.unitPriceCents, ...(i.productId !== undefined ? { productId: i.productId } : {}) }));
   if (items.some(i => !i.description)) { res.status(400).json({ error: "Item descriptions cannot be blank" }); return; }
   let total: number;
   try { total = saleTotal(items); } catch (e) { res.status(400).json({ error: (e as Error).message }); return; }
@@ -87,7 +88,7 @@ router.post("/admin/sales", async (req, res) => {
     await tx.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`sale:${requestId}`]);
     const { rows: [existing] } = await tx.query<SaleRow>("SELECT * FROM clinic_sales WHERE request_id=$1", [requestId]);
     if (existing) {
-      const canonical = (xs: SaleRow["items"]) => xs.map(i => [i.description, i.kind, i.quantity, i.unitPriceCents]);
+      const canonical = (xs: SaleRow["items"]) => xs.map(i => [i.description, i.kind, i.quantity, i.unitPriceCents, i.productId ?? null]);
       if (existing.client_id !== clientId || existing.notes !== notes || JSON.stringify(canonical(existing.items)) !== JSON.stringify(canonical(items))) {
         throw new RequestError(409, "Request ID already used for a different sale");
       }
@@ -100,6 +101,7 @@ router.post("/admin/sales", async (req, res) => {
       "INSERT INTO clinic_sales (request_id,client_id,client_name,items,total_cents,notes) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
       [requestId, clientId, client.name, JSON.stringify(items), total, notes],
     );
+    await deductSaleStock(tx, sale!.id, items);
     return present(sale!, []);
   });
   res.status(201).json(CreateAdminSaleResponse.parse(result));
@@ -200,7 +202,7 @@ router.get("/admin/financial-report", async (req, res) => {
 });
 
 router.use((err: Error, req: import("express").Request, res: import("express").Response, _next: import("express").NextFunction) => {
-  if (err instanceof RequestError) { res.status(err.status).json({ error: err.message }); return; }
+  if (err instanceof RequestError || err instanceof StockError) { res.status(err.status).json({ error: err.message }); return; }
   req.log.error({ err }, "Sales request failed");
   res.status(500).json({ error: "Unable to complete this sales request. Please retry." });
 });

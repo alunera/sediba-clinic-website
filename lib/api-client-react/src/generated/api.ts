@@ -51,6 +51,7 @@ import type {
   ClinicSaleVoidInput,
   CreateAppointmentBody,
   CreateOpenaiConversationBody,
+  CreateStockProductBody,
   ErrorResponse,
   GetAdminFinancialReportParams,
   GetAvailabilityParams,
@@ -67,10 +68,14 @@ import type {
   OpenaiMessage,
   PaymentFormResponse,
   PaymentStatusResponse,
+  RecordStockMovementBody,
   SendOpenaiMessageBody,
   Service,
   ServiceCategory,
+  StockMovement,
+  StockProduct,
   UpdateAppointmentBody,
+  UpdateStockProductBody,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -81,6 +86,388 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+export const getListStockUrl = () => {
+  return `/api/admin/stock`;
+};
+
+export const listStock = async (
+  options?: RequestInit,
+): Promise<StockProduct[]> => {
+  return customFetch<StockProduct[]>(getListStockUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListStockQueryKey = () => {
+  return [`/api/admin/stock`] as const;
+};
+
+export const getListStockQueryOptions = <
+  TData = Awaited<ReturnType<typeof listStock>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof listStock>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListStockQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listStock>>> = ({
+    signal,
+  }) => listStock({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listStock>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListStockQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listStock>>
+>;
+export type ListStockQueryError = ErrorType<unknown>;
+
+export function useListStock<
+  TData = Awaited<ReturnType<typeof listStock>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof listStock>>, TError, TData>;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListStockQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getCreateStockProductUrl = () => {
+  return `/api/admin/stock`;
+};
+
+export const createStockProduct = async (
+  createStockProductBody: CreateStockProductBody,
+  options?: RequestInit,
+): Promise<StockProduct> => {
+  return customFetch<StockProduct>(getCreateStockProductUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createStockProductBody),
+  });
+};
+
+export const getCreateStockProductMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createStockProduct>>,
+    TError,
+    { data: BodyType<CreateStockProductBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createStockProduct>>,
+  TError,
+  { data: BodyType<CreateStockProductBody> },
+  TContext
+> => {
+  const mutationKey = ["createStockProduct"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createStockProduct>>,
+    { data: BodyType<CreateStockProductBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createStockProduct(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateStockProductMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createStockProduct>>
+>;
+export type CreateStockProductMutationBody = BodyType<CreateStockProductBody>;
+export type CreateStockProductMutationError = ErrorType<unknown>;
+
+export const useCreateStockProduct = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createStockProduct>>,
+    TError,
+    { data: BodyType<CreateStockProductBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createStockProduct>>,
+  TError,
+  { data: BodyType<CreateStockProductBody> },
+  TContext
+> => {
+  return useMutation(getCreateStockProductMutationOptions(options));
+};
+
+export const getUpdateStockProductUrl = (id: number) => {
+  return `/api/admin/stock/${id}`;
+};
+
+export const updateStockProduct = async (
+  id: number,
+  updateStockProductBody: UpdateStockProductBody,
+  options?: RequestInit,
+): Promise<StockProduct> => {
+  return customFetch<StockProduct>(getUpdateStockProductUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateStockProductBody),
+  });
+};
+
+export const getUpdateStockProductMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStockProduct>>,
+    TError,
+    { id: number; data: BodyType<UpdateStockProductBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateStockProduct>>,
+  TError,
+  { id: number; data: BodyType<UpdateStockProductBody> },
+  TContext
+> => {
+  const mutationKey = ["updateStockProduct"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateStockProduct>>,
+    { id: number; data: BodyType<UpdateStockProductBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateStockProduct(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateStockProductMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateStockProduct>>
+>;
+export type UpdateStockProductMutationBody = BodyType<UpdateStockProductBody>;
+export type UpdateStockProductMutationError = ErrorType<unknown>;
+
+export const useUpdateStockProduct = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateStockProduct>>,
+    TError,
+    { id: number; data: BodyType<UpdateStockProductBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateStockProduct>>,
+  TError,
+  { id: number; data: BodyType<UpdateStockProductBody> },
+  TContext
+> => {
+  return useMutation(getUpdateStockProductMutationOptions(options));
+};
+
+export const getListStockMovementsUrl = (id: number) => {
+  return `/api/admin/stock/${id}/movements`;
+};
+
+export const listStockMovements = async (
+  id: number,
+  options?: RequestInit,
+): Promise<StockMovement[]> => {
+  return customFetch<StockMovement[]>(getListStockMovementsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListStockMovementsQueryKey = (id: number) => {
+  return [`/api/admin/stock/${id}/movements`] as const;
+};
+
+export const getListStockMovementsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listStockMovements>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStockMovements>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListStockMovementsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listStockMovements>>
+  > = ({ signal }) => listStockMovements(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listStockMovements>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListStockMovementsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listStockMovements>>
+>;
+export type ListStockMovementsQueryError = ErrorType<unknown>;
+
+export function useListStockMovements<
+  TData = Awaited<ReturnType<typeof listStockMovements>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStockMovements>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListStockMovementsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getRecordStockMovementUrl = (id: number) => {
+  return `/api/admin/stock/${id}/movements`;
+};
+
+export const recordStockMovement = async (
+  id: number,
+  recordStockMovementBody: RecordStockMovementBody,
+  options?: RequestInit,
+): Promise<StockProduct> => {
+  return customFetch<StockProduct>(getRecordStockMovementUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(recordStockMovementBody),
+  });
+};
+
+export const getRecordStockMovementMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof recordStockMovement>>,
+    TError,
+    { id: number; data: BodyType<RecordStockMovementBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof recordStockMovement>>,
+  TError,
+  { id: number; data: BodyType<RecordStockMovementBody> },
+  TContext
+> => {
+  const mutationKey = ["recordStockMovement"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof recordStockMovement>>,
+    { id: number; data: BodyType<RecordStockMovementBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return recordStockMovement(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RecordStockMovementMutationResult = NonNullable<
+  Awaited<ReturnType<typeof recordStockMovement>>
+>;
+export type RecordStockMovementMutationBody = BodyType<RecordStockMovementBody>;
+export type RecordStockMovementMutationError = ErrorType<unknown>;
+
+export const useRecordStockMovement = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof recordStockMovement>>,
+    TError,
+    { id: number; data: BodyType<RecordStockMovementBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof recordStockMovement>>,
+  TError,
+  { id: number; data: BodyType<RecordStockMovementBody> },
+  TContext
+> => {
+  return useMutation(getRecordStockMovementMutationOptions(options));
+};
 
 export const getRecordAppointmentRefundUrl = (id: number) => {
   return `/api/admin/appointments/${id}/refunds`;

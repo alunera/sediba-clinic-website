@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Calendar, CalendarClock, Users, Settings, LogOut, FileText, Receipt, BarChart3, BookOpen } from "lucide-react";
+import { LayoutDashboard, Calendar, CalendarClock, Users, Settings, LogOut, FileText, Receipt, BarChart3, BookOpen, Package } from "lucide-react";
 import { useAdminLogout } from "@workspace/api-client-react";
 
 interface AdminLayoutProps {
@@ -51,6 +51,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { name: "Appointments", path: "/admin/appointments", icon: FileText },
     { name: "Clients", path: "/admin/clients", icon: Users },
     { name: "Sales", path: "/admin/sales", icon: Receipt },
+    { name: "Stock", path: "/admin/stock", icon: Package },
     { name: "Reports", path: "/admin/reports", icon: BarChart3, BookOpen },
     { name: "Bookkeeping", path: "/admin/bookkeeping", icon: BookOpen },
     { name: "Settings", path: "/admin/settings", icon: Settings },

@@ -7,6 +7,266 @@
  */
 import * as zod from "zod";
 
+export const listStockResponseOneNameMax = 200;
+
+export const listStockResponseOneSkuMax = 80;
+
+export const listStockResponseOneUnitMax = 40;
+
+export const listStockResponseOneReorderLevelMin = 0;
+export const listStockResponseOneReorderLevelMax = 1000000;
+
+export const listStockResponseOneUnitPriceCentsMax = 100000000;
+
+export const ListStockResponseItem = zod
+  .object({
+    name: zod.string().min(1).max(listStockResponseOneNameMax),
+    sku: zod.string().min(1).max(listStockResponseOneSkuMax),
+    unit: zod.string().min(1).max(listStockResponseOneUnitMax),
+    reorderLevel: zod
+      .number()
+      .min(listStockResponseOneReorderLevelMin)
+      .max(listStockResponseOneReorderLevelMax),
+    unitPriceCents: zod
+      .number()
+      .min(1)
+      .max(listStockResponseOneUnitPriceCentsMax),
+    active: zod.boolean(),
+  })
+  .and(
+    zod.object({
+      id: zod.number(),
+      onHand: zod.number(),
+      version: zod.number(),
+    }),
+  );
+export const ListStockResponse = zod.array(ListStockResponseItem);
+
+export const createStockProductBodyOneNameMax = 200;
+
+export const createStockProductBodyOneSkuMax = 80;
+
+export const createStockProductBodyOneUnitMax = 40;
+
+export const createStockProductBodyOneReorderLevelMin = 0;
+export const createStockProductBodyOneReorderLevelMax = 1000000;
+
+export const createStockProductBodyOneUnitPriceCentsMax = 100000000;
+
+export const createStockProductBodyTwoRequestIdMin = 16;
+export const createStockProductBodyTwoRequestIdMax = 100;
+
+export const createStockProductBodyTwoOpeningQuantityMin = 0;
+export const createStockProductBodyTwoOpeningQuantityMax = 1000000;
+
+export const CreateStockProductBody = zod
+  .object({
+    name: zod.string().min(1).max(createStockProductBodyOneNameMax),
+    sku: zod.string().min(1).max(createStockProductBodyOneSkuMax),
+    unit: zod.string().min(1).max(createStockProductBodyOneUnitMax),
+    reorderLevel: zod
+      .number()
+      .min(createStockProductBodyOneReorderLevelMin)
+      .max(createStockProductBodyOneReorderLevelMax),
+    unitPriceCents: zod
+      .number()
+      .min(1)
+      .max(createStockProductBodyOneUnitPriceCentsMax),
+    active: zod.boolean(),
+  })
+  .and(
+    zod.object({
+      requestId: zod
+        .string()
+        .min(createStockProductBodyTwoRequestIdMin)
+        .max(createStockProductBodyTwoRequestIdMax),
+      openingQuantity: zod
+        .number()
+        .min(createStockProductBodyTwoOpeningQuantityMin)
+        .max(createStockProductBodyTwoOpeningQuantityMax),
+    }),
+  );
+
+export const createStockProductResponseOneNameMax = 200;
+
+export const createStockProductResponseOneSkuMax = 80;
+
+export const createStockProductResponseOneUnitMax = 40;
+
+export const createStockProductResponseOneReorderLevelMin = 0;
+export const createStockProductResponseOneReorderLevelMax = 1000000;
+
+export const createStockProductResponseOneUnitPriceCentsMax = 100000000;
+
+export const CreateStockProductResponse = zod
+  .object({
+    name: zod.string().min(1).max(createStockProductResponseOneNameMax),
+    sku: zod.string().min(1).max(createStockProductResponseOneSkuMax),
+    unit: zod.string().min(1).max(createStockProductResponseOneUnitMax),
+    reorderLevel: zod
+      .number()
+      .min(createStockProductResponseOneReorderLevelMin)
+      .max(createStockProductResponseOneReorderLevelMax),
+    unitPriceCents: zod
+      .number()
+      .min(1)
+      .max(createStockProductResponseOneUnitPriceCentsMax),
+    active: zod.boolean(),
+  })
+  .and(
+    zod.object({
+      id: zod.number(),
+      onHand: zod.number(),
+      version: zod.number(),
+    }),
+  );
+
+export const UpdateStockProductParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updateStockProductBodyOneNameMax = 200;
+
+export const updateStockProductBodyOneSkuMax = 80;
+
+export const updateStockProductBodyOneUnitMax = 40;
+
+export const updateStockProductBodyOneReorderLevelMin = 0;
+export const updateStockProductBodyOneReorderLevelMax = 1000000;
+
+export const updateStockProductBodyOneUnitPriceCentsMax = 100000000;
+
+export const UpdateStockProductBody = zod
+  .object({
+    name: zod.string().min(1).max(updateStockProductBodyOneNameMax),
+    sku: zod.string().min(1).max(updateStockProductBodyOneSkuMax),
+    unit: zod.string().min(1).max(updateStockProductBodyOneUnitMax),
+    reorderLevel: zod
+      .number()
+      .min(updateStockProductBodyOneReorderLevelMin)
+      .max(updateStockProductBodyOneReorderLevelMax),
+    unitPriceCents: zod
+      .number()
+      .min(1)
+      .max(updateStockProductBodyOneUnitPriceCentsMax),
+    active: zod.boolean(),
+  })
+  .and(
+    zod.object({
+      version: zod.number().min(1),
+    }),
+  );
+
+export const updateStockProductResponseOneNameMax = 200;
+
+export const updateStockProductResponseOneSkuMax = 80;
+
+export const updateStockProductResponseOneUnitMax = 40;
+
+export const updateStockProductResponseOneReorderLevelMin = 0;
+export const updateStockProductResponseOneReorderLevelMax = 1000000;
+
+export const updateStockProductResponseOneUnitPriceCentsMax = 100000000;
+
+export const UpdateStockProductResponse = zod
+  .object({
+    name: zod.string().min(1).max(updateStockProductResponseOneNameMax),
+    sku: zod.string().min(1).max(updateStockProductResponseOneSkuMax),
+    unit: zod.string().min(1).max(updateStockProductResponseOneUnitMax),
+    reorderLevel: zod
+      .number()
+      .min(updateStockProductResponseOneReorderLevelMin)
+      .max(updateStockProductResponseOneReorderLevelMax),
+    unitPriceCents: zod
+      .number()
+      .min(1)
+      .max(updateStockProductResponseOneUnitPriceCentsMax),
+    active: zod.boolean(),
+  })
+  .and(
+    zod.object({
+      id: zod.number(),
+      onHand: zod.number(),
+      version: zod.number(),
+    }),
+  );
+
+export const ListStockMovementsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const ListStockMovementsResponseItem = zod.object({
+  id: zod.number(),
+  productId: zod.number(),
+  kind: zod.string(),
+  quantity: zod.number(),
+  reason: zod.string(),
+  saleId: zod.number().nullish(),
+  createdAt: zod.string(),
+});
+export const ListStockMovementsResponse = zod.array(
+  ListStockMovementsResponseItem,
+);
+
+export const RecordStockMovementParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const recordStockMovementBodyRequestIdMin = 16;
+export const recordStockMovementBodyRequestIdMax = 100;
+
+export const recordStockMovementBodyQuantityMin = -1000000;
+export const recordStockMovementBodyQuantityMax = 1000000;
+
+export const recordStockMovementBodyReasonMax = 1000;
+
+export const RecordStockMovementBody = zod.object({
+  requestId: zod
+    .string()
+    .min(recordStockMovementBodyRequestIdMin)
+    .max(recordStockMovementBodyRequestIdMax),
+  kind: zod.enum(["received", "adjustment", "return"]),
+  quantity: zod
+    .number()
+    .min(recordStockMovementBodyQuantityMin)
+    .max(recordStockMovementBodyQuantityMax),
+  reason: zod.string().min(1).max(recordStockMovementBodyReasonMax),
+});
+
+export const recordStockMovementResponseOneNameMax = 200;
+
+export const recordStockMovementResponseOneSkuMax = 80;
+
+export const recordStockMovementResponseOneUnitMax = 40;
+
+export const recordStockMovementResponseOneReorderLevelMin = 0;
+export const recordStockMovementResponseOneReorderLevelMax = 1000000;
+
+export const recordStockMovementResponseOneUnitPriceCentsMax = 100000000;
+
+export const RecordStockMovementResponse = zod
+  .object({
+    name: zod.string().min(1).max(recordStockMovementResponseOneNameMax),
+    sku: zod.string().min(1).max(recordStockMovementResponseOneSkuMax),
+    unit: zod.string().min(1).max(recordStockMovementResponseOneUnitMax),
+    reorderLevel: zod
+      .number()
+      .min(recordStockMovementResponseOneReorderLevelMin)
+      .max(recordStockMovementResponseOneReorderLevelMax),
+    unitPriceCents: zod
+      .number()
+      .min(1)
+      .max(recordStockMovementResponseOneUnitPriceCentsMax),
+    active: zod.boolean(),
+  })
+  .and(
+    zod.object({
+      id: zod.number(),
+      onHand: zod.number(),
+      version: zod.number(),
+    }),
+  );
+
 export const RecordAppointmentRefundParams = zod.object({
   id: zod.coerce.number(),
 });
@@ -44,6 +304,18 @@ export const RecordAppointmentRefundResponse = zod.object({
   outstandingCents: zod.number(),
   inSalon: zod.boolean(),
   blockedReason: zod.string(),
+  checkoutExceptions: zod
+    .array(
+      zod.object({
+        paymentId: zod.number(),
+        attemptReference: zod.string(),
+        checkoutReference: zod.string(),
+        status: zod.string(),
+        amountCents: zod.number(),
+        createdAt: zod.string(),
+      }),
+    )
+    .optional(),
   refundedCents: zod.number(),
   netReceiptsCents: zod.number(),
   refunds: zod.array(
@@ -236,6 +508,18 @@ export const GetAppointmentReceiptsResponse = zod.object({
   outstandingCents: zod.number(),
   inSalon: zod.boolean(),
   blockedReason: zod.string(),
+  checkoutExceptions: zod
+    .array(
+      zod.object({
+        paymentId: zod.number(),
+        attemptReference: zod.string(),
+        checkoutReference: zod.string(),
+        status: zod.string(),
+        amountCents: zod.number(),
+        createdAt: zod.string(),
+      }),
+    )
+    .optional(),
   refundedCents: zod.number(),
   netReceiptsCents: zod.number(),
   refunds: zod.array(
@@ -295,6 +579,18 @@ export const RecordAppointmentReceiptResponse = zod.object({
   outstandingCents: zod.number(),
   inSalon: zod.boolean(),
   blockedReason: zod.string(),
+  checkoutExceptions: zod
+    .array(
+      zod.object({
+        paymentId: zod.number(),
+        attemptReference: zod.string(),
+        checkoutReference: zod.string(),
+        status: zod.string(),
+        amountCents: zod.number(),
+        createdAt: zod.string(),
+      }),
+    )
+    .optional(),
   refundedCents: zod.number(),
   netReceiptsCents: zod.number(),
   refunds: zod.array(
@@ -334,6 +630,7 @@ export const ListAdminSalesResponseItem = zod.object({
   clientName: zod.string(),
   items: zod.array(
     zod.object({
+      productId: zod.number().min(1).optional(),
       description: zod
         .string()
         .min(1)
@@ -400,6 +697,7 @@ export const CreateAdminSaleBody = zod.object({
   items: zod
     .array(
       zod.object({
+        productId: zod.number().min(1).optional(),
         description: zod
           .string()
           .min(1)
@@ -454,6 +752,7 @@ export const AddAdminSaleEntryResponse = zod.object({
   clientName: zod.string(),
   items: zod.array(
     zod.object({
+      productId: zod.number().min(1).optional(),
       description: zod
         .string()
         .min(1)
@@ -519,6 +818,7 @@ export const VoidAdminSaleResponse = zod.object({
   clientName: zod.string(),
   items: zod.array(
     zod.object({
+      productId: zod.number().min(1).optional(),
       description: zod
         .string()
         .min(1)

@@ -10,11 +10,14 @@ import {
   useListAdminClientRecords,
   getListAdminClientRecordsQueryKey,
   getGetAdminFinancialReportQueryKey,
+  useListStock,
+  getListStockQueryKey,
   type ClinicSale,
   type ClinicSaleItemKind,
   type ClinicSaleEntryInputMethod,
   type ClinicSaleEntryInputKind,
 } from "@workspace/api-client-react";
+import { STOCK_QUERY_OPTS } from "@/pages/admin/stock";
 import { useToast } from "@/hooks/use-toast";
 import { createIdempotencyKeeper, errMsg, escapeHtml, formatJhb, formatRand, methodLabel, parseRandToCents, printDocument } from "@/lib/money";
 
@@ -38,6 +41,7 @@ function useInvalidateMoney() {
   return () => {
     qc.invalidateQueries({ queryKey: getListAdminSalesQueryKey() });
     qc.invalidateQueries({ queryKey: getGetAdminFinancialReportQueryKey() });
+    qc.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === "string" && q.queryKey[0].startsWith(getListStockQueryKey()[0]) });
   };
 }
 
@@ -49,7 +53,10 @@ function StatusBadge({ status, id }: { status: string; id: number | string }) {
 export default function AdminSales() {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(() => {
+    const v = Number(new URLSearchParams(window.location.search).get("sale"));
+    return Number.isInteger(v) && v > 0 ? v : null;
+  });
   const [creating, setCreating] = useState(false);
   const list = useListAdminSales({ query: { queryKey: getListAdminSalesQueryKey(), staleTime: 15_000, refetchOnWindowFocus: true } });
   const sales = list.data ?? [];
@@ -82,7 +89,7 @@ export default function AdminSales() {
         <Info className="w-4 h-4 shrink-0 mt-1 text-primary" aria-hidden="true" />
         <div>
           <p className="font-medium">Do not re-enter online bookings here.</p>
-          <p className="text-muted-foreground text-xs mt-1">Yoco payments for bookings are included in Reports automatically. Use this register only for extra or non-booking sales. Recording a sale does not deduct stock.</p>
+          <p className="text-muted-foreground text-xs mt-1">Yoco payments for bookings are included in Reports automatically. Use this register only for extra or non-booking sales. Stocked products are deducted from stock when the sale is created.</p>
         </div>
       </aside>
 
@@ -185,7 +192,7 @@ function PanelHeader({ eyebrow, title, onBack, action }: { eyebrow: string; titl
 
 /* ---------------- Create ---------------- */
 
-type Line = { key: number; description: string; kind: ClinicSaleItemKind; quantity: string; price: string };
+type Line = { key: number; productId?: number; description: string; kind: ClinicSaleItemKind; quantity: string; price: string };
 let lineSeq = 1;
 const blankLine = (): Line => ({ key: lineSeq++, description: "", kind: "treatment", quantity: "1", price: "" });
 
@@ -230,6 +237,13 @@ function CreateSale({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const pending = create.isPending;
+  const stock = useListStock({ query: { queryKey: getListStockQueryKey(), ...STOCK_QUERY_OPTS } });
+  const activeProducts = (stock.data ?? []).filter((p) => p.active).sort((a, b) => a.name.localeCompare(b.name));
+  const productById = new Map((stock.data ?? []).map((p) => [p.id, p]));
+  const pickProduct = (key: number, id: string) => {
+    const p = productById.get(Number(id));
+    update(key, p ? { productId: p.id, description: p.name.slice(0, 200), price: (p.unitPriceCents / 100).toFixed(2) } : { productId: undefined, description: "", price: "" });
+  };
 
   const parsed = lines.map((l) => ({ q: /^\d+$/.test(l.quantity.trim()) ? Number(l.quantity) : NaN, c: parseRandToCents(l.price) }));
   const total = parsed.reduce((t, p) => (Number.isFinite(p.q) && p.c ? t + p.q * p.c : t), 0);
@@ -241,6 +255,14 @@ function CreateSale({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
     const er: Record<string, string> = {};
     if (!client) er.client = "Choose an existing client.";
     lines.forEach((l, i) => {
+      if (l.kind === "product") {
+        const p = l.productId ? productById.get(l.productId) : undefined;
+        if (!p || !p.active) er[`d${l.key}`] = "Choose an active stock product.";
+        else if (Number.isInteger(parsed[i].q)) {
+          const want = lines.reduce((t, x, j) => (x.productId === p.id && Number.isFinite(parsed[j].q) ? t + parsed[j].q : t), 0);
+          if (want > p.onHand) er[`q${l.key}`] = `Only ${p.onHand} ${p.unit} available.`;
+        }
+      }
       if (!l.description.trim()) er[`d${l.key}`] = "Description is required.";
       else if (l.description.trim().length > 200) er[`d${l.key}`] = "200 characters maximum.";
       const q = parsed[i].q;
@@ -255,7 +277,7 @@ function CreateSale({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
     const body = {
       clientId: client.id,
       notes: notes.trim() || undefined,
-      items: lines.map((l, i) => ({ description: l.description.trim(), kind: l.kind, quantity: parsed[i].q, unitPriceCents: parsed[i].c as number })),
+      items: lines.map((l, i) => ({ ...(l.kind === "product" && l.productId ? { productId: l.productId } : {}), description: l.description.trim(), kind: l.kind, quantity: parsed[i].q, unitPriceCents: parsed[i].c as number })),
     };
     const requestId = keeper.current.get(body);
     setSubmitError(null);
@@ -266,7 +288,7 @@ function CreateSale({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
         toast({ title: "Sale recorded", description: `${sale.reference} for ${sale.clientName}, ${formatRand(sale.totalCents)}. Unpaid until a payment is recorded.` });
         onCreated(sale.id);
       },
-      onError: (err) => { invalidate(); setSubmitError(errMsg(err)); },
+      onError: (err) => { invalidate(); setSubmitError(`${errMsg(err)} If the connection failed, retry unchanged details to confirm the outcome safely before starting another sale.`); },
     });
   };
 
@@ -286,7 +308,14 @@ function CreateSale({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
               <div className="flex gap-2">
                 <div className="flex-1">
                   <label htmlFor={`d-${l.key}`} className="sr-only">Description, line {i + 1}</label>
-                  <input id={`d-${l.key}`} value={l.description} maxLength={200} disabled={pending} onChange={(e) => update(l.key, { description: e.target.value })} placeholder="e.g. Hydrating serum 30ml" aria-invalid={!!errors[`d${l.key}`]} className={inputCls(errors[`d${l.key}`])} data-testid={`input-line-description-${i}`} />
+                  {l.kind === "product" ? (
+                    <select id={`d-${l.key}`} value={l.productId ?? ""} disabled={pending || stock.isLoading} onChange={(e) => pickProduct(l.key, e.target.value)} aria-invalid={!!errors[`d${l.key}`]} className={inputCls(errors[`d${l.key}`])} data-testid={`select-line-product-${i}`}>
+                      <option value="">{stock.isLoading ? "Loading stock..." : activeProducts.length ? "Choose stock product" : "No active stock products"}</option>
+                      {activeProducts.map((p) => <option key={p.id} value={p.id} disabled={p.onHand <= 0}>{p.name} ({p.sku}) · {p.onHand} {p.unit} available</option>)}
+                    </select>
+                  ) : <input id={`d-${l.key}`} value={l.description} maxLength={200} disabled={pending} onChange={(e) => update(l.key, { description: e.target.value })} placeholder="e.g. Hydrating serum 30ml" aria-invalid={!!errors[`d${l.key}`]} className={inputCls(errors[`d${l.key}`])} data-testid={`input-line-description-${i}`} />}
+                  {l.kind === "product" && l.productId && productById.get(l.productId) && <p className="text-[11px] text-muted-foreground mt-1" data-testid={`text-line-available-${i}`}>{productById.get(l.productId)!.onHand} {productById.get(l.productId)!.unit} available now. Final check happens when the sale is saved.</p>}
+                  {l.kind === "product" && stock.isError && <p className="text-[11px] text-destructive mt-1">Stock could not be refreshed. <button type="button" className="underline" onClick={() => stock.refetch()}>Retry</button></p>}
                   {errors[`d${l.key}`] && <p className="text-xs text-destructive mt-1">{errors[`d${l.key}`]}</p>}
                 </div>
                 <button type="button" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} disabled={pending || lines.length === 1} aria-label={`Remove line ${i + 1}`} className="p-2.5 border border-border hover:bg-muted disabled:opacity-30 self-start" data-testid={`button-remove-line-${i}`}><Trash2 className="w-4 h-4" /></button>
@@ -294,7 +323,7 @@ function CreateSale({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
               <div className="grid grid-cols-[1fr_5rem_1fr] gap-2">
                 <div>
                   <label htmlFor={`k-${l.key}`} className="text-[9px] uppercase tracking-widest text-muted-foreground">Type</label>
-                  <select id={`k-${l.key}`} value={l.kind} disabled={pending} onChange={(e) => update(l.key, { kind: e.target.value as ClinicSaleItemKind })} className={inputCls()} data-testid={`select-line-kind-${i}`}>
+                  <select id={`k-${l.key}`} value={l.kind} disabled={pending} onChange={(e) => update(l.key, { kind: e.target.value as ClinicSaleItemKind, productId: undefined, description: "", price: "" })} className={inputCls()} data-testid={`select-line-kind-${i}`}>
                     <option value="treatment">Treatment</option><option value="product">Product</option>
                   </select>
                 </div>
@@ -323,7 +352,7 @@ function CreateSale({ onCancel, onCreated }: { onCancel: () => void; onCreated: 
           <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Sale total</span>
           <span className="font-serif text-3xl" data-testid="text-new-sale-total">{formatRand(total)}</span>
         </div>
-        <p className="text-xs text-muted-foreground">The sale starts as unpaid. Record money received afterwards. No stock is deducted.</p>
+        <p className="text-xs text-muted-foreground">The sale starts as unpaid. Record money received afterwards. Stock for product lines is deducted as soon as the sale is created, even before payment. Refunds and voids do not restore stock.</p>
         {submitError && <p className="text-sm text-destructive border border-destructive/40 p-3" role="alert" data-testid="error-create-sale">{submitError} Submitting again is safe and will not create a duplicate.</p>}
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <button type="button" onClick={onCancel} disabled={pending} className={btnGhost} data-testid="button-cancel-sale">Cancel</button>
@@ -379,7 +408,7 @@ ${sale.notes ? `<p>Notes: ${escapeHtml(sale.notes)}</p>` : ""}
               <tbody className="divide-y divide-border">
                 {sale.items.map((i, idx) => (
                   <tr key={idx} data-testid={`row-sale-item-${idx}`}>
-                    <td className="py-2.5">{i.description} <span className="text-[10px] uppercase tracking-widest text-muted-foreground ml-1">{i.kind}</span></td>
+                    <td className="py-2.5">{i.description} <span className="text-[10px] uppercase tracking-widest text-muted-foreground ml-1">{i.kind}</span>{i.kind === "product" && !i.productId && <span className="text-[10px] uppercase tracking-widest text-muted-foreground ml-1" data-testid={`text-untracked-${idx}`}>· untracked (historical)</span>}</td>
                     <td className="py-2.5 text-right">{i.quantity}</td>
                     <td className="py-2.5 text-right font-mono">{formatRand(i.unitPriceCents)}</td>
                     <td className="py-2.5 text-right font-mono">{formatRand(i.quantity * i.unitPriceCents)}</td>

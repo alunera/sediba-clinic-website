@@ -19,6 +19,95 @@ tags:
   - name: admin
     description: Admin management operations
 paths:
+  /admin/stock:
+    get:
+      operationId: listStock
+      tags: [admin]
+      responses:
+        "200":
+          description: Stock products including archived products
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/StockProduct" } }
+    post:
+      operationId: createStockProduct
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - { $ref: "#/components/schemas/StockProductInput" }
+                - type: object
+                  required: [requestId, openingQuantity]
+                  properties:
+                    requestId: { type: string, minLength: 16, maxLength: 100 }
+                    openingQuantity: { type: integer, minimum: 0, maximum: 1000000 }
+      responses:
+        "200":
+          description: Created product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StockProduct" }
+  /admin/stock/{id}:
+    patch:
+      operationId: updateStockProduct
+      tags: [admin]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - { $ref: "#/components/schemas/StockProductInput" }
+                - type: object
+                  required: [version]
+                  properties:
+                    version: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StockProduct" }
+  /admin/stock/{id}/movements:
+    get:
+      operationId: listStockMovements
+      tags: [admin]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Immutable stock history
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/StockMovement" } }
+    post:
+      operationId: recordStockMovement
+      tags: [admin]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requestId, kind, quantity, reason]
+              properties:
+                requestId: { type: string, minLength: 16, maxLength: 100 }
+                kind: { type: string, enum: [received, adjustment, return] }
+                quantity: { type: integer, minimum: -1000000, maximum: 1000000 }
+                reason: { type: string, minLength: 1, maxLength: 1000 }
+      responses:
+        "200":
+          description: Stock movement recorded
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StockProduct" }
   /admin/appointments/{id}/refunds:
     post:
       operationId: recordAppointmentRefund
@@ -1620,6 +1709,7 @@ components:
       type: object
       required: [description, kind, quantity, unitPriceCents]
       properties:
+        productId: { type: integer, minimum: 1 }
         description: { type: string, minLength: 1, maxLength: 200 }
         kind: { type: string, enum: [treatment, product] }
         quantity: { type: integer, minimum: 1, maximum: 1000 }
@@ -1761,6 +1851,18 @@ components:
         outstandingCents: { type: integer }
         inSalon: { type: boolean }
         blockedReason: { type: string }
+        checkoutExceptions:
+          type: array
+          items:
+            type: object
+            required: [paymentId, attemptReference, checkoutReference, status, amountCents, createdAt]
+            properties:
+              paymentId: { type: integer }
+              attemptReference: { type: string }
+              checkoutReference: { type: string }
+              status: { type: string }
+              amountCents: { type: integer }
+              createdAt: { type: string }
         refundedCents: { type: integer }
         netReceiptsCents: { type: integer }
         refunds:
@@ -1769,3 +1871,33 @@ components:
         receipts:
           type: array
           items: { $ref: "#/components/schemas/AppointmentReceipt" }
+    StockProductInput:
+      type: object
+      required: [name, sku, unit, reorderLevel, unitPriceCents, active]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        sku: { type: string, minLength: 1, maxLength: 80 }
+        unit: { type: string, minLength: 1, maxLength: 40 }
+        reorderLevel: { type: integer, minimum: 0, maximum: 1000000 }
+        unitPriceCents: { type: integer, minimum: 1, maximum: 100000000 }
+        active: { type: boolean }
+    StockProduct:
+      allOf:
+        - { $ref: "#/components/schemas/StockProductInput" }
+        - type: object
+          required: [id, onHand, version]
+          properties:
+            id: { type: integer }
+            onHand: { type: integer }
+            version: { type: integer }
+    StockMovement:
+      type: object
+      required: [id, productId, kind, quantity, reason, createdAt]
+      properties:
+        id: { type: integer }
+        productId: { type: integer }
+        kind: { type: string }
+        quantity: { type: integer }
+        reason: { type: string }
+        saleId: { type: integer, nullable: true }
+        createdAt: { type: string }

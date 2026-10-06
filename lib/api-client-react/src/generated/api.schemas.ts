@@ -530,6 +530,8 @@ export const ClinicSaleItemKind = {
 } as const;
 
 export interface ClinicSaleItem {
+  /** @minimum 1 */
+  productId?: number;
   /**
    * @minLength 1
    * @maxLength 200
@@ -780,6 +782,15 @@ export interface AppointmentRefund {
   createdAt: string;
 }
 
+export type AppointmentReceiptsCheckoutExceptionsItem = {
+  paymentId: number;
+  attemptReference: string;
+  checkoutReference: string;
+  status: string;
+  amountCents: number;
+  createdAt: string;
+};
+
 export interface AppointmentReceipts {
   appointmentId: number;
   bookingStatus: string;
@@ -788,11 +799,103 @@ export interface AppointmentReceipts {
   outstandingCents: number;
   inSalon: boolean;
   blockedReason: string;
+  checkoutExceptions?: AppointmentReceiptsCheckoutExceptionsItem[];
   refundedCents: number;
   netReceiptsCents: number;
   refunds: AppointmentRefund[];
   receipts: AppointmentReceipt[];
 }
+
+export interface StockProductInput {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name: string;
+  /**
+   * @minLength 1
+   * @maxLength 80
+   */
+  sku: string;
+  /**
+   * @minLength 1
+   * @maxLength 40
+   */
+  unit: string;
+  /**
+   * @minimum 0
+   * @maximum 1000000
+   */
+  reorderLevel: number;
+  /**
+   * @minimum 1
+   * @maximum 100000000
+   */
+  unitPriceCents: number;
+  active: boolean;
+}
+
+export type StockProduct = StockProductInput & {
+  id: number;
+  onHand: number;
+  version: number;
+};
+
+export interface StockMovement {
+  id: number;
+  productId: number;
+  kind: string;
+  quantity: number;
+  reason: string;
+  saleId?: number | null;
+  createdAt: string;
+}
+
+export type CreateStockProductBody = StockProductInput & {
+  /**
+   * @minLength 16
+   * @maxLength 100
+   */
+  requestId: string;
+  /**
+   * @minimum 0
+   * @maximum 1000000
+   */
+  openingQuantity: number;
+};
+
+export type UpdateStockProductBody = StockProductInput & {
+  /** @minimum 1 */
+  version: number;
+};
+
+export type RecordStockMovementBodyKind =
+  (typeof RecordStockMovementBodyKind)[keyof typeof RecordStockMovementBodyKind];
+
+export const RecordStockMovementBodyKind = {
+  received: "received",
+  adjustment: "adjustment",
+  return: "return",
+} as const;
+
+export type RecordStockMovementBody = {
+  /**
+   * @minLength 16
+   * @maxLength 100
+   */
+  requestId: string;
+  kind: RecordStockMovementBodyKind;
+  /**
+   * @minimum -1000000
+   * @maximum 1000000
+   */
+  quantity: number;
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   */
+  reason: string;
+};
 
 export type GetBookkeepingParams = {
   from: string;

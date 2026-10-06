@@ -136,6 +136,25 @@ const MIGRATIONS = [
   `CREATE INDEX IF NOT EXISTS appointment_refunds_payment ON appointment_refunds(payment_id)`,
   `CREATE INDEX IF NOT EXISTS appointment_refunds_date ON appointment_refunds(created_at)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS appointment_refunds_yoco_reference ON appointment_refunds(lower(reference)) WHERE method='yoco'`,
+  `CREATE TABLE IF NOT EXISTS stock_products (
+    id SERIAL PRIMARY KEY, request_id TEXT NOT NULL UNIQUE, creation_input JSONB NOT NULL,
+    name TEXT NOT NULL, sku TEXT NOT NULL UNIQUE, unit TEXT NOT NULL,
+    reorder_level INTEGER NOT NULL CHECK (reorder_level BETWEEN 0 AND 1000000),
+    unit_price_cents INTEGER NOT NULL CHECK (unit_price_cents BETWEEN 1 AND 100000000),
+    active BOOLEAN NOT NULL DEFAULT true,
+    on_hand INTEGER NOT NULL DEFAULT 0 CHECK(on_hand BETWEEN 0 AND 1000000),
+    version INTEGER NOT NULL DEFAULT 1
+  )`,
+  `CREATE TABLE IF NOT EXISTS stock_movements (
+    id SERIAL PRIMARY KEY, product_id INTEGER NOT NULL REFERENCES stock_products(id),
+    request_id TEXT NOT NULL UNIQUE,
+    kind TEXT NOT NULL CHECK(kind IN ('opening','received','adjustment','return','sale')),
+    quantity INTEGER NOT NULL CHECK(quantity BETWEEN -1000000 AND 1000000 AND quantity<>0),
+    reason TEXT NOT NULL, sale_id INTEGER REFERENCES clinic_sales(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS stock_movements_product ON stock_movements(product_id,id)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS stock_movements_sale_product ON stock_movements(sale_id,product_id) WHERE sale_id IS NOT NULL`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can

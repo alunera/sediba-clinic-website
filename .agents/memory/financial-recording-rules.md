@@ -32,3 +32,9 @@ Appointment refunds are initially records of money already returned outside the 
 **Why:** Refunding money, changing appointment status and reconciling bank movements are separate actions; combining them implicitly would create incorrect balances or schedule changes.
 
 **How to apply:** Require the original completed payment and evidence of the external refund. If provider refund synchronization is added later, reconcile against manually recorded provider refund references rather than importing the same refund as another outgoing entry.
+
+Stock is committed when a stocked-product sale is created, not when money is collected. Neither refunds nor voiding a sale prove that usable goods returned to the clinic.
+
+**Why:** Payment events and physical movements can occur separately. Automatically restocking a refunded product could make damaged or unreturned goods available for sale.
+
+**How to apply:** Record an explicit physical return or correction with a reason. Keep historic untracked product sales distinct; never retroactively deduct opening stock for them. Do not treat stock quantities or selling prices as cost accounting for the queued profit reports.

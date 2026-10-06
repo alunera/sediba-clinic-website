@@ -23,6 +23,10 @@ function present(appt: typeof appointmentsTable.$inferSelect, attempts: Awaited<
     appointmentId: appt.id, bookingStatus: appt.status, totalCents: appt.totalAmountCents,
     ...balance,
     ...refundBalance(balance.paidCents, refunds),
+    checkoutExceptions: attempts.filter(p => p.provider === "yoco" && p.status !== "complete").map(p => ({
+      paymentId: p.id, attemptReference: p.checkoutId, checkoutReference: p.providerCheckoutId ?? "",
+      status: p.status, amountCents: p.amountCents, createdAt: p.createdAt.toISOString(),
+    })),
     refunds: refunds.map(r => ({ ...r, createdAt: r.createdAt.toISOString() })),
     blockedReason: receiptBlockedReason(appt.status, appt.totalAmountCents, attempts),
     receipts: attempts.filter(p => p.status === "complete").map(p => ({

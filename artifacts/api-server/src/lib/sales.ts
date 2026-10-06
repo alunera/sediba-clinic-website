@@ -3,7 +3,8 @@ import { CreateAdminSaleBody, AddAdminSaleEntryBody } from "@workspace/api-zod";
 // Orval currently emits z.number() for OpenAPI integers. Enforce integer money at the boundary.
 export const saleInput = CreateAdminSaleBody.refine(data =>
   Number.isSafeInteger(data.clientId) && data.items.every(item =>
-    Number.isSafeInteger(item.quantity) && Number.isSafeInteger(item.unitPriceCents)),
+    Number.isSafeInteger(item.quantity) && Number.isSafeInteger(item.unitPriceCents) &&
+    (item.productId === undefined || (Number.isSafeInteger(item.productId) && item.kind === "product"))),
   { message: "Client ID, quantity and cents must be integers" });
 export const saleEntryInput = AddAdminSaleEntryBody.refine(data => Number.isSafeInteger(data.amountCents),
   { message: "Amount in cents must be an integer" });
