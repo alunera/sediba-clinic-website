@@ -88,6 +88,46 @@ export default function BookingConfirmation() {
   }
 
   // ── Payment-state screens ────────────────────────────────────────────────
+  const inSalon = !!paymentStatus?.inSalon;
+  const salonPaid = paymentStatus?.paidCents ?? 0;
+  const salonOutstanding = paymentStatus?.outstandingCents ?? 0;
+
+  if (inSalon && salonOutstanding > 0 && appointment.status !== "cancelled") {
+    return (
+      <div className="min-h-screen pt-32 pb-24 bg-background flex flex-col items-center">
+        <div className="container max-w-2xl px-6 text-center">
+          <span className="text-primary font-sans uppercase tracking-[0.2em] text-xs mb-4 block">Part Payment Received</span>
+          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-foreground mb-4 break-words" data-testid="text-partial-heading">
+            Balance Payable at the Clinic
+          </h1>
+          <p className="text-muted-foreground font-light mb-8">
+            We have received a partial payment for this booking in salon. Your booking stays pending until the remaining balance is paid at the clinic.
+          </p>
+          <div className="bg-card border border-border p-5 sm:p-8 mb-8 space-y-4">
+            <span className="uppercase tracking-widest text-[10px] text-muted-foreground block">Booking Reference</span>
+            <span className="font-mono text-2xl tracking-[0.2em] block">{appointment.bookingRef}</span>
+            <div className="flex justify-between items-center border-t border-border pt-4">
+              <span className="uppercase tracking-widest text-[10px] text-muted-foreground">Paid</span>
+              <span className="font-serif text-xl" data-testid="text-paid-cents">R{(salonPaid / 100).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="uppercase tracking-widest text-[10px] text-muted-foreground">Remaining Balance</span>
+              <span className="font-serif text-xl text-primary" data-testid="text-outstanding-cents">R{(salonOutstanding / 100).toFixed(2)}</span>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button disabled className="rounded-none uppercase tracking-widest text-xs px-10 py-6" data-testid="button-pay-at-clinic">
+              Pay Remaining at Clinic
+            </Button>
+            <Button variant="outline" onClick={() => setLocation("/")} className="rounded-none uppercase tracking-widest text-xs px-8 border-border">
+              Return Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (appointment.status === "pending_payment" || appointment.status === "payment_failed") {
     const checkoutDidNotOpen = paymentParam === "retry";
     const failed =
@@ -135,10 +175,10 @@ export default function BookingConfirmation() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button
               onClick={handleRetryPayment}
-              disabled={retrying || initiatePayment.isPending}
+              disabled={retrying || initiatePayment.isPending || inSalon}
               className="rounded-none uppercase tracking-widest text-xs px-10 py-6 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              {retrying ? "Redirecting..." : failed ? "Complete Payment" : "Reopen Payment Page"}
+              {inSalon ? "Pay Remaining at Clinic" : retrying ? "Redirecting..." : failed ? "Complete Payment" : "Reopen Payment Page"}
             </Button>
             <Button
               variant="outline"
@@ -170,7 +210,8 @@ export default function BookingConfirmation() {
 
   const paymentWasVerified =
     appointment.appointmentType === "treatment" ||
-    paymentStatus?.paymentStatus === "complete";
+    paymentStatus?.paymentStatus === "complete" ||
+    (inSalon && salonOutstanding === 0 && salonPaid > 0);
 
   const handleCalendarDownload = () => {
     // Generate a basic .ics file content

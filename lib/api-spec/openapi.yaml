@@ -19,6 +19,40 @@ tags:
   - name: admin
     description: Admin management operations
 paths:
+  /admin/appointments/{id}/receipts:
+    get:
+      operationId: getAppointmentReceipts
+      tags: [admin]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Appointment payment balance and history
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentReceipts" }
+    post:
+      operationId: recordAppointmentReceipt
+      tags: [admin]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentReceiptInput" }
+      responses:
+        "200":
+          description: Recorded in-salon receipt and updated booking
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentReceipts" }
   /admin/sales:
     get:
       operationId: listAdminSales
@@ -939,10 +973,16 @@ components:
           type: string
         amountCents:
           type: integer
+        paidCents: { type: integer }
+        outstandingCents: { type: integer }
+        inSalon: { type: boolean }
       required:
         - bookingStatus
         - paymentStatus
         - amountCents
+        - paidCents
+        - outstandingCents
+        - inSalon
 
     Appointment:
       type: object
@@ -1008,9 +1048,13 @@ components:
           properties:
             paymentStatus:
               type: string
-              enum: [paid, pending, failed, unpaid]
+              enum: [paid, part_paid, pending, failed, unpaid]
+            paidCents: { type: integer }
+            outstandingCents: { type: integer }
           required:
             - paymentStatus
+            - paidCents
+            - outstandingCents
 
     CreateAppointmentBody:
       type: object
@@ -1458,7 +1502,7 @@ components:
       properties:
         reference: { type: string }
         clientName: { type: string }
-        source: { type: string, enum: [manual_sale, booking_payment] }
+        source: { type: string, enum: [manual_sale, booking_payment, booking_in_salon] }
         kind: { type: string, enum: [payment, refund] }
         amountCents: { type: integer }
         method: { type: string }
@@ -1477,3 +1521,36 @@ components:
         rows:
           type: array
           items: { $ref: "#/components/schemas/ClinicFinancialRow" }
+
+    AppointmentReceiptInput:
+      type: object
+      required: [requestId, amountCents, method, reference, received]
+      properties:
+        requestId: { type: string, minLength: 16, maxLength: 100 }
+        amountCents: { type: integer, minimum: 1, maximum: 100000000 }
+        method: { type: string, enum: [cash, eft, card_external] }
+        reference: { type: string, minLength: 1, maxLength: 1000 }
+        received: { type: boolean }
+    AppointmentReceipt:
+      type: object
+      required: [id, amountCents, method, reference, createdAt]
+      properties:
+        id: { type: integer }
+        amountCents: { type: integer }
+        method: { type: string }
+        reference: { type: string }
+        createdAt: { type: string }
+    AppointmentReceipts:
+      type: object
+      required: [appointmentId, bookingStatus, totalCents, paidCents, outstandingCents, inSalon, blockedReason, receipts]
+      properties:
+        appointmentId: { type: integer }
+        bookingStatus: { type: string }
+        totalCents: { type: integer }
+        paidCents: { type: integer }
+        outstandingCents: { type: integer }
+        inSalon: { type: boolean }
+        blockedReason: { type: string }
+        receipts:
+          type: array
+          items: { $ref: "#/components/schemas/AppointmentReceipt" }

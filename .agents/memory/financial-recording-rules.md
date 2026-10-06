@@ -9,6 +9,12 @@ Keep manual sales separate from online bookings; reports combine manual receipts
 
 **How to apply:** Make these boundaries explicit in forms and reports. Preserve financial history through additive transactions, not edits/deletes. Refunds reduce net receipts but do not reopen previously paid debt; an existing unpaid balance remains unchanged.
 
+Appointment payments received at the clinic must attach to the existing booking, never be copied into manual sales. Partial in-salon payments retain a balance and disable new online checkout initiation; fully paid pending bookings confirm.
+
+**Why:** Two independent payment paths could collect twice. The documented Yoco Checkout API does not provide a verified link-revocation operation we can rely on. Cancel/failure redirects do not prove a hosted link can no longer accept money.
+
+**How to apply:** Block in-salon collection when an unresolved Yoco checkout exists, even after a failed payment event; expose the reconciliation requirement instead of guessing expiry. Persist a checkout reservation before contacting the provider so a lost response cannot permit another payment method. Do not auto-expire bookings that already have recorded receipts.
+
 The current Orval-generated Zod validators use ordinary numbers even for OpenAPI integer fields.
 
 **Why:** A boundary test accepted fractional cents despite an integer schema.

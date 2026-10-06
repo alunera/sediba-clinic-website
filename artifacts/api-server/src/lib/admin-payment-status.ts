@@ -1,9 +1,10 @@
-export type AdminPaymentStatus = "paid" | "pending" | "failed" | "unpaid";
+export type AdminPaymentStatus = "paid" | "part_paid" | "pending" | "failed" | "unpaid";
 
 type PaymentAttempt = {
   appointmentId: number;
   id: number;
   status: string;
+  amountCents?: number;
 };
 
 export function groupPaymentAttempts(
@@ -23,8 +24,13 @@ export function groupPaymentAttempts(
 export function deriveAdminPaymentStatus(
   attempts: PaymentAttempt[],
   bookingStatus: string,
+  totalCents?: number,
 ): AdminPaymentStatus {
-  if (attempts.some((attempt) => attempt.status === "complete")) {
+  if (totalCents !== undefined) {
+    const paid = attempts.filter(p => p.status === "complete").reduce((sum, p) => sum + (p.amountCents ?? 0), 0);
+    if (paid > 0) return paid >= totalCents ? "paid" : "part_paid";
+  }
+  if (totalCents === undefined && attempts.some((attempt) => attempt.status === "complete")) {
     return "paid";
   }
 

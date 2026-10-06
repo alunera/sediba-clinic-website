@@ -159,7 +159,7 @@ router.get("/admin/financial-report", async (req, res) => {
     const range = `>= ($1::date::timestamp AT TIME ZONE 'Africa/Johannesburg') AND %DATE% < (($2::date + 1)::timestamp AT TIME ZONE 'Africa/Johannesburg')`;
     const inRange = (column: string) => `${column} ${range.replace("%DATE%", column)}`;
     const { rows } = await tx.query<{
-      reference: string; clientName: string; source: "manual_sale" | "booking_payment";
+      reference: string; clientName: string; source: "manual_sale" | "booking_payment" | "booking_in_salon";
       kind: "payment" | "refund"; amountCents: number; method: string; createdAt: Date;
     }>(`
       SELECT 'SED-' || lpad(s.id::text,6,'0') AS reference, s.client_name AS "clientName",
@@ -167,7 +167,9 @@ router.get("/admin/financial-report", async (req, res) => {
       FROM clinic_sale_entries e JOIN clinic_sales s ON s.id=e.sale_id
       WHERE ${inRange("e.created_at")}
       UNION ALL
-      SELECT p.booking_ref, a.client_name, 'booking_payment', 'payment', p.amount_cents, 'yoco', p.updated_at
+      SELECT p.booking_ref, a.client_name,
+        CASE WHEN p.provider='in_salon' THEN 'booking_in_salon' ELSE 'booking_payment' END,
+        'payment', p.amount_cents, CASE WHEN p.provider='in_salon' THEN p.method ELSE 'yoco' END, p.updated_at
       FROM payments p JOIN appointments a ON a.id=p.appointment_id
       WHERE p.status='complete' AND ${inRange("p.updated_at")}
       ORDER BY "createdAt" DESC`, [from, to]);

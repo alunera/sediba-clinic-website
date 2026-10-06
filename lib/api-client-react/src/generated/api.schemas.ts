@@ -34,6 +34,9 @@ export interface PaymentStatusResponse {
   bookingStatus: string;
   paymentStatus: string;
   amountCents: number;
+  paidCents: number;
+  outstandingCents: number;
+  inSalon: boolean;
 }
 
 export type AppointmentStatus =
@@ -81,6 +84,7 @@ export type AdminAppointmentPaymentStatus =
 
 export const AdminAppointmentPaymentStatus = {
   paid: "paid",
+  part_paid: "part_paid",
   pending: "pending",
   failed: "failed",
   unpaid: "unpaid",
@@ -88,6 +92,8 @@ export const AdminAppointmentPaymentStatus = {
 
 export type AdminAppointment = Appointment & {
   paymentStatus: AdminAppointmentPaymentStatus;
+  paidCents: number;
+  outstandingCents: number;
 };
 
 export type CreateAppointmentBodyAppointmentType =
@@ -514,6 +520,7 @@ export type ClinicFinancialRowSource =
 export const ClinicFinancialRowSource = {
   manual_sale: "manual_sale",
   booking_payment: "booking_payment",
+  booking_in_salon: "booking_in_salon",
 } as const;
 
 export type ClinicFinancialRowKind =
@@ -543,6 +550,54 @@ export interface ClinicFinancialReport {
   manualSalesCents: number;
   outstandingCents: number;
   rows: ClinicFinancialRow[];
+}
+
+export type AppointmentReceiptInputMethod =
+  (typeof AppointmentReceiptInputMethod)[keyof typeof AppointmentReceiptInputMethod];
+
+export const AppointmentReceiptInputMethod = {
+  cash: "cash",
+  eft: "eft",
+  card_external: "card_external",
+} as const;
+
+export interface AppointmentReceiptInput {
+  /**
+   * @minLength 16
+   * @maxLength 100
+   */
+  requestId: string;
+  /**
+   * @minimum 1
+   * @maximum 100000000
+   */
+  amountCents: number;
+  method: AppointmentReceiptInputMethod;
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   */
+  reference: string;
+  received: boolean;
+}
+
+export interface AppointmentReceipt {
+  id: number;
+  amountCents: number;
+  method: string;
+  reference: string;
+  createdAt: string;
+}
+
+export interface AppointmentReceipts {
+  appointmentId: number;
+  bookingStatus: string;
+  totalCents: number;
+  paidCents: number;
+  outstandingCents: number;
+  inSalon: boolean;
+  blockedReason: string;
+  receipts: AppointmentReceipt[];
 }
 
 export type GetAdminFinancialReportParams = {

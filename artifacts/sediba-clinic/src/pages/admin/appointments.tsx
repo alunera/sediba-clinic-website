@@ -3,8 +3,12 @@ import { format, parseISO } from "date-fns";
 import { 
   useAdminListAppointments, 
   getAdminListAppointmentsQueryKey,
-  useAdminUpdateAppointment
+  useAdminUpdateAppointment,
+  type AdminAppointment
 } from "@workspace/api-client-react";
+import { Wallet } from "lucide-react";
+import { AppointmentPaymentDialog } from "@/components/admin/appointment-payment-dialog";
+import { formatRand } from "@/lib/money";
 import { useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -13,9 +17,10 @@ type StatusTab = 'all' | 'pending' | 'pending_payment' | 'payment_failed' | 'con
 export default function AdminAppointments() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<StatusTab>('all');
+  const [payingId, setPayingId] = useState<number | null>(null);
   
   const { data: appointments = [], isLoading } = useAdminListAppointments({
-    query: { queryKey: getAdminListAppointmentsQueryKey() }
+    query: { queryKey: getAdminListAppointmentsQueryKey(), refetchOnWindowFocus: true, refetchInterval: 60_000 }
   });
 
   const updateAppointment = useAdminUpdateAppointment();
@@ -26,7 +31,7 @@ export default function AdminAppointments() {
       filtered = filtered.filter(a => a.status === activeTab);
     }
     // Sort descending by date and time
-    return filtered.sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       const dateCompare = b.date.localeCompare(a.date);
       if (dateCompare !== 0) return dateCompare;
       return b.time.localeCompare(a.time);
@@ -62,6 +67,10 @@ export default function AdminAppointments() {
       label: "Paid",
       className: "bg-green-500/20 text-green-700 border-green-500/30",
     },
+    part_paid: {
+      label: "Part-paid",
+      className: "bg-sky-600/15 text-sky-800 border-sky-600/30",
+    },
     pending: {
       label: "Pending",
       className: "bg-amber-500/20 text-amber-700 border-amber-500/30",
@@ -86,6 +95,8 @@ export default function AdminAppointments() {
     { id: 'cancelled', label: 'Cancelled' },
     { id: 'no-show', label: 'No-Show' }
   ];
+
+  const payingAppt: AdminAppointment | undefined = payingId == null ? undefined : appointments.find(a => a.id === payingId);
 
   if (isLoading) {
     return (
@@ -122,7 +133,7 @@ export default function AdminAppointments() {
 
       <div className="bg-card border border-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left min-w-[1000px]">
+          <table className="w-full text-sm text-left min-w-[1100px]">
             <thead className="bg-muted/50 text-[10px] uppercase tracking-widest text-muted-foreground">
               <tr>
                 <th className="px-6 py-4 font-normal">Ref</th>
@@ -163,10 +174,14 @@ export default function AdminAppointments() {
                       <div className="font-medium">{format(parseISO(appt.date), "MMM d, yyyy")}</div>
                       <div className="text-xs text-muted-foreground">{appt.time}</div>
                     </td>
-                    <td className="px-6 py-4">R{(appt.totalAmountCents / 100).toFixed(2)}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border ${paymentStatusStyles[appt.paymentStatus].className}`}>
-                        {paymentStatusStyles[appt.paymentStatus].label}
+                      <div data-testid={`text-total-${appt.id}`}>{formatRand(appt.totalAmountCents)}</div>
+                      {appt.paidCents > 0 && <div className="text-xs text-muted-foreground" data-testid={`text-paid-${appt.id}`}>Paid {formatRand(appt.paidCents)}</div>}
+                      {appt.outstandingCents > 0 && appt.paidCents > 0 && <div className="text-xs text-amber-700" data-testid={`text-outstanding-${appt.id}`}>Due {formatRand(appt.outstandingCents)}</div>}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border ${(paymentStatusStyles[appt.paymentStatus] ?? paymentStatusStyles.unpaid).className}`}>
+                        {(paymentStatusStyles[appt.paymentStatus] ?? paymentStatusStyles.unpaid).label}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -175,6 +190,7 @@ export default function AdminAppointments() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
                       <Select 
                         value={appt.status} 
                         onValueChange={(val) => handleUpdateStatus(appt.id, val)}
@@ -192,6 +208,16 @@ export default function AdminAppointments() {
                           <SelectItem value="no-show">No-Show</SelectItem>
                         </SelectContent>
                       </Select>
+                      <button
+                        type="button"
+                        onClick={() => setPayingId(appt.id)}
+                        aria-label={`Payments for ${appt.bookingRef}`}
+                        className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] uppercase tracking-widest border border-border hover:bg-muted"
+                        data-testid={`button-payments-${appt.id}`}
+                      >
+                        <Wallet className="w-3.5 h-3.5" aria-hidden="true" />Payments
+                      </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -200,6 +226,14 @@ export default function AdminAppointments() {
           </table>
         </div>
       </div>
+      {payingAppt && (
+        <AppointmentPaymentDialog
+          key={payingAppt.id}
+          appointment={payingAppt}
+          open
+          onOpenChange={(o) => { if (!o) setPayingId(null); }}
+        />
+      )}
     </div>
   );
 }

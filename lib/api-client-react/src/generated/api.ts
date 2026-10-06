@@ -34,6 +34,8 @@ import type {
   AdminSettings,
   AdminUpdateAppointmentBody,
   Appointment,
+  AppointmentReceiptInput,
+  AppointmentReceipts,
   AvailableSlot,
   Client,
   ClinicFinancialReport,
@@ -72,6 +74,169 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+export const getGetAppointmentReceiptsUrl = (id: number) => {
+  return `/api/admin/appointments/${id}/receipts`;
+};
+
+export const getAppointmentReceipts = async (
+  id: number,
+  options?: RequestInit,
+): Promise<AppointmentReceipts> => {
+  return customFetch<AppointmentReceipts>(getGetAppointmentReceiptsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAppointmentReceiptsQueryKey = (id: number) => {
+  return [`/api/admin/appointments/${id}/receipts`] as const;
+};
+
+export const getGetAppointmentReceiptsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAppointmentReceipts>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAppointmentReceipts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAppointmentReceiptsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAppointmentReceipts>>
+  > = ({ signal }) => getAppointmentReceipts(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAppointmentReceipts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAppointmentReceiptsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAppointmentReceipts>>
+>;
+export type GetAppointmentReceiptsQueryError = ErrorType<unknown>;
+
+export function useGetAppointmentReceipts<
+  TData = Awaited<ReturnType<typeof getAppointmentReceipts>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAppointmentReceipts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAppointmentReceiptsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getRecordAppointmentReceiptUrl = (id: number) => {
+  return `/api/admin/appointments/${id}/receipts`;
+};
+
+export const recordAppointmentReceipt = async (
+  id: number,
+  appointmentReceiptInput: AppointmentReceiptInput,
+  options?: RequestInit,
+): Promise<AppointmentReceipts> => {
+  return customFetch<AppointmentReceipts>(getRecordAppointmentReceiptUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(appointmentReceiptInput),
+  });
+};
+
+export const getRecordAppointmentReceiptMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof recordAppointmentReceipt>>,
+    TError,
+    { id: number; data: BodyType<AppointmentReceiptInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof recordAppointmentReceipt>>,
+  TError,
+  { id: number; data: BodyType<AppointmentReceiptInput> },
+  TContext
+> => {
+  const mutationKey = ["recordAppointmentReceipt"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof recordAppointmentReceipt>>,
+    { id: number; data: BodyType<AppointmentReceiptInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return recordAppointmentReceipt(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RecordAppointmentReceiptMutationResult = NonNullable<
+  Awaited<ReturnType<typeof recordAppointmentReceipt>>
+>;
+export type RecordAppointmentReceiptMutationBody =
+  BodyType<AppointmentReceiptInput>;
+export type RecordAppointmentReceiptMutationError = ErrorType<unknown>;
+
+export const useRecordAppointmentReceipt = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof recordAppointmentReceipt>>,
+    TError,
+    { id: number; data: BodyType<AppointmentReceiptInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof recordAppointmentReceipt>>,
+  TError,
+  { id: number; data: BodyType<AppointmentReceiptInput> },
+  TContext
+> => {
+  return useMutation(getRecordAppointmentReceiptMutationOptions(options));
+};
 
 export const getListAdminSalesUrl = () => {
   return `/api/admin/sales`;

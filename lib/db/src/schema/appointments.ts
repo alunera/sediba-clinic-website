@@ -68,6 +68,9 @@ export const paymentsTable = pgTable(
     webhookEventId: text("webhook_event_id"),
     amountCents: integer("amount_cents").notNull(),
     provider: text("provider").notNull().default("yoco"),
+    method: text("method"),
+    receiptReference: text("receipt_reference"),
+    checkoutUrl: text("checkout_url"),
     /** created | complete | failed | cancelled */
     status: text("status").notNull().default("created"),
     /** Raw ITN payload for auditing/debugging. */

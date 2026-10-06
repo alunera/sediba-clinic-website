@@ -7,6 +7,73 @@
  */
 import * as zod from "zod";
 
+export const GetAppointmentReceiptsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetAppointmentReceiptsResponse = zod.object({
+  appointmentId: zod.number(),
+  bookingStatus: zod.string(),
+  totalCents: zod.number(),
+  paidCents: zod.number(),
+  outstandingCents: zod.number(),
+  inSalon: zod.boolean(),
+  blockedReason: zod.string(),
+  receipts: zod.array(
+    zod.object({
+      id: zod.number(),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reference: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
+export const RecordAppointmentReceiptParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const recordAppointmentReceiptBodyRequestIdMin = 16;
+export const recordAppointmentReceiptBodyRequestIdMax = 100;
+
+export const recordAppointmentReceiptBodyAmountCentsMax = 100000000;
+
+export const recordAppointmentReceiptBodyReferenceMax = 1000;
+
+export const RecordAppointmentReceiptBody = zod.object({
+  requestId: zod
+    .string()
+    .min(recordAppointmentReceiptBodyRequestIdMin)
+    .max(recordAppointmentReceiptBodyRequestIdMax),
+  amountCents: zod
+    .number()
+    .min(1)
+    .max(recordAppointmentReceiptBodyAmountCentsMax),
+  method: zod.enum(["cash", "eft", "card_external"]),
+  reference: zod.string().min(1).max(recordAppointmentReceiptBodyReferenceMax),
+  received: zod.boolean(),
+});
+
+export const RecordAppointmentReceiptResponse = zod.object({
+  appointmentId: zod.number(),
+  bookingStatus: zod.string(),
+  totalCents: zod.number(),
+  paidCents: zod.number(),
+  outstandingCents: zod.number(),
+  inSalon: zod.boolean(),
+  blockedReason: zod.string(),
+  receipts: zod.array(
+    zod.object({
+      id: zod.number(),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reference: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
 export const listAdminSalesResponseItemsItemDescriptionMax = 200;
 
 export const listAdminSalesResponseItemsItemQuantityMax = 1000;
@@ -264,7 +331,7 @@ export const GetAdminFinancialReportResponse = zod.object({
     zod.object({
       reference: zod.string(),
       clientName: zod.string(),
-      source: zod.enum(["manual_sale", "booking_payment"]),
+      source: zod.enum(["manual_sale", "booking_payment", "booking_in_salon"]),
       kind: zod.enum(["payment", "refund"]),
       amountCents: zod.number(),
       method: zod.string(),
@@ -572,6 +639,9 @@ export const GetPaymentStatusResponse = zod.object({
   bookingStatus: zod.string(),
   paymentStatus: zod.string(),
   amountCents: zod.number(),
+  paidCents: zod.number(),
+  outstandingCents: zod.number(),
+  inSalon: zod.boolean(),
 });
 
 /**
@@ -606,7 +676,15 @@ export const AdminListAppointmentsResponseItem = zod
   })
   .and(
     zod.object({
-      paymentStatus: zod.enum(["paid", "pending", "failed", "unpaid"]),
+      paymentStatus: zod.enum([
+        "paid",
+        "part_paid",
+        "pending",
+        "failed",
+        "unpaid",
+      ]),
+      paidCents: zod.number(),
+      outstandingCents: zod.number(),
     }),
   );
 export const AdminListAppointmentsResponse = zod.array(

@@ -8,7 +8,7 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function monthStart(today: string) { return `${today.slice(0, 8)}01`; }
 
-const SOURCE_LABEL: Record<string, string> = { manual_sale: "Manual sale", booking_payment: "Booking (Yoco)" };
+const SOURCE_LABEL: Record<string, string> = { manual_sale: "Manual sale", booking_payment: "Booking (Yoco)", booking_in_salon: "Booking (in salon)" };
 
 export default function AdminReports() {
   const today = jhbToday();
@@ -54,7 +54,7 @@ export default function AdminReports() {
     const ok = printDocument(`Sediba receipts ${r.from} to ${r.to}`, `<h1>SEDIBA</h1><p class="eyebrow">Receipts summary · ${r.from} to ${r.to} (Johannesburg)</p>
 <table class="tot"><tr><td>Received</td><td class="r">${formatRand(r.receivedCents)}</td></tr><tr><td>Refunded</td><td class="r">${formatRand(r.refundedCents)}</td></tr><tr><td><b>Net receipts</b></td><td class="r"><b>${formatRand(r.netReceiptsCents)}</b></td></tr><tr><td>Manual sales created</td><td class="r">${formatRand(r.manualSalesCents)}</td></tr><tr><td>Manual unpaid (all dates)</td><td class="r">${formatRand(r.outstandingCents)}</td></tr></table>
 <table><thead><tr><th>Date</th><th>Ref</th><th>Client</th><th>Source</th><th>Type</th><th>Method</th><th class="r">Amount</th></tr></thead><tbody>${rows || '<tr><td colspan="7">No transactions.</td></tr>'}</tbody></table>
-<div class="note">Net receipts are money in minus money refunded. Not profit. Excludes expenses, tax, provider fees and settlements, and refunds issued directly in the Yoco dashboard that are not reflected in booking records. Not a full set of accounts.</div>`);
+<div class="note">Net receipts are money in minus money refunded. Not profit. Includes booking payments taken online (Yoco) and in salon. Excludes expenses, tax, provider fees and settlements, and refunds issued directly in the Yoco dashboard that are not reflected in booking records. Not a full set of accounts.</div>`);
     if (!ok) toast({ variant: "destructive", title: "Print window blocked", description: "Allow pop-ups for this site to print." });
   };
 
@@ -65,7 +65,7 @@ export default function AdminReports() {
       <div>
         <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Money in, money out</p>
         <h1 className="font-serif text-3xl mt-1">Reports</h1>
-        <p className="text-muted-foreground mt-1 text-sm max-w-2xl">Receipts recorded against online bookings (Yoco) and the manual sales register, for an inclusive Johannesburg date range.</p>
+        <p className="text-muted-foreground mt-1 text-sm max-w-2xl">Receipts recorded against bookings, paid online through Yoco or in salon (cash, EFT, external card), and the manual sales register, for an inclusive Johannesburg date range.</p>
       </div>
 
       <form onSubmit={apply} noValidate className="bg-card border border-border p-4 sm:p-6 grid gap-4 sm:grid-cols-[1fr_1fr_auto] items-end" aria-label="Report date range">
@@ -110,7 +110,7 @@ export default function AdminReports() {
           </section>
           <section className="grid gap-px bg-border border border-border sm:grid-cols-2" aria-label="Manual register">
             <Stat label="Manual sales created in range" value={d.manualSalesCents} testId="text-manual-sales" hint="Value of register sales opened in this range, paid or not. Voided sales excluded." />
-            <Stat label="Manual sales unpaid (all dates)" value={d.outstandingCents} testId="text-outstanding" hint="Current balance owed across every manual sale, regardless of the range above." />
+            <Stat label="Manual sales unpaid (all dates)" value={d.outstandingCents} testId="text-outstanding" hint="Current balance owed across every manual sale, regardless of the range above. Manual sales only; booking balances are not included." />
           </section>
 
           <div className="bg-card border border-border">
@@ -141,7 +141,7 @@ export default function AdminReports() {
                         <td className="p-3 sm:px-6 whitespace-nowrap text-muted-foreground">{formatJhb(r.createdAt)}</td>
                         <td className="p-3 font-mono text-xs">{r.reference}</td>
                         <td className="p-3">{r.clientName}</td>
-                        <td className="p-3"><span className={`text-[10px] uppercase tracking-widest px-2 py-1 ${r.source === "booking_payment" ? "bg-primary/10 text-primary" : "bg-muted"}`}>{SOURCE_LABEL[r.source] ?? r.source}</span></td>
+                        <td className="p-3"><span className={`text-[10px] uppercase tracking-widest px-2 py-1 ${r.source.startsWith("booking_") ? "bg-primary/10 text-primary" : "bg-muted"}`}>{SOURCE_LABEL[r.source] ?? r.source}</span></td>
                         <td className="p-3 text-muted-foreground">{methodLabel(r.method)}</td>
                         <td className={`p-3 sm:px-6 text-right font-mono whitespace-nowrap ${r.kind === "refund" ? "text-destructive" : ""}`}>{r.kind === "refund" ? "Refund -" : ""}{formatRand(r.amountCents)}</td>
                       </tr>
@@ -158,7 +158,7 @@ export default function AdminReports() {
         <Info className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
         <div className="space-y-2">
           <p><span className="text-foreground font-medium">This is a receipts report, not accounting.</span> Net receipts are money received minus money refunded. They are not profit.</p>
-          <p>Excludes expenses, VAT and other tax, payment provider fees and settlement timing, and any refund issued directly in the Yoco dashboard that is not reflected in the booking payment records. Use your accountant's books for financial statements.</p>
+          <p>Excludes expenses, VAT and other tax, payment provider fees and settlement timing, and any refund issued directly in the Yoco dashboard that is not reflected in the booking payment records. Booking receipts include both online Yoco payments and in-salon payments recorded against appointments. Use your accountant's books for financial statements.</p>
         </div>
       </aside>
     </div>

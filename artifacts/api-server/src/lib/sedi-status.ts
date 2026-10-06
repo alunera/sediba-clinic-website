@@ -16,6 +16,7 @@ type StatusPaymentAttempt = {
   appointmentId: number;
   id: number;
   status: string;
+  amountCents: number;
 };
 
 export type AuthorizedStatusLookup = {
@@ -54,6 +55,7 @@ const defaultDependencies: SediStatusDependencies = {
         appointmentId: paymentsTable.appointmentId,
         id: paymentsTable.id,
         status: paymentsTable.status,
+        amountCents: paymentsTable.amountCents,
       })
       .from(paymentsTable)
       .where(eq(paymentsTable.appointmentId, appointmentId))
@@ -77,7 +79,7 @@ export async function readAuthorizedBookingPaymentStatus(
   if (!appointment) return undefined;
 
   const attempts = await dependencies.paymentAttempts(appointment.id);
-  const paymentStatus = deriveAdminPaymentStatus(attempts, appointment.status);
+  const paymentStatus = deriveAdminPaymentStatus(attempts, appointment.status, appointment.totalAmountCents);
   const paymentSatisfied =
     !appointmentRequiresPayment(appointment.totalAmountCents) ||
     paymentStatus === "paid";

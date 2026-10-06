@@ -97,6 +97,10 @@ const MIGRATIONS = [
   )`,
   `CREATE INDEX IF NOT EXISTS clinic_sale_entries_sale_idx ON clinic_sale_entries (sale_id)`,
   `CREATE INDEX IF NOT EXISTS clinic_sale_entries_date_idx ON clinic_sale_entries (created_at)`,
+  `ALTER TABLE payments
+     ADD COLUMN IF NOT EXISTS method TEXT,
+     ADD COLUMN IF NOT EXISTS receipt_reference TEXT,
+     ADD COLUMN IF NOT EXISTS checkout_url TEXT`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can

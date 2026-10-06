@@ -17,7 +17,7 @@ function dependencies(
     }),
     paymentAttempts: vi.fn().mockResolvedValue(
       paymentStatus
-        ? [{ appointmentId: 42, id: 7, status: paymentStatus }]
+        ? [{ appointmentId: 42, id: 7, status: paymentStatus, amountCents: totalAmountCents }]
         : [],
     ),
   };

@@ -4,6 +4,7 @@ import { appointmentsTable, servicesTable, adminConfigTable, paymentsTable } fro
 import { and, eq, sql } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/admin-auth";
 import { logger } from "../lib/logger";
+import { bookingBalance, readBookingPayments } from "../lib/booking-receipts";
 import {
   deriveAdminPaymentStatus,
   groupPaymentAttempts,
@@ -83,6 +84,8 @@ router.get("/admin/appointments", requireAdmin, async (req, res): Promise<void> 
         id: paymentsTable.id,
         appointmentId: paymentsTable.appointmentId,
         status: paymentsTable.status,
+        amountCents: paymentsTable.amountCents,
+        provider: paymentsTable.provider,
       })
       .from(paymentsTable)
       .orderBy(paymentsTable.id),
@@ -92,9 +95,11 @@ router.get("/admin/appointments", requireAdmin, async (req, res): Promise<void> 
   res.json(
     appointments.map((appointment) => ({
       ...appointment,
+      ...bookingBalance(appointment.totalAmountCents, paymentAttempts.filter(p => p.appointmentId === appointment.id)),
       paymentStatus: deriveAdminPaymentStatus(
         attemptsByAppointment.get(appointment.id) ?? [],
         appointment.status,
+        appointment.totalAmountCents,
       ),
     })),
   );
@@ -112,7 +117,7 @@ router.patch("/admin/appointments/:id", requireAdmin, async (req, res): Promise<
   if (status) updateData.status = status;
   if (notes !== undefined) updateData.notes = notes;
 
-  if (status === "confirmed") {
+  if (status === "confirmed" || status === "completed") {
     const [current] = await db
       .select({
         status: appointmentsTable.status,
@@ -124,34 +129,25 @@ router.patch("/admin/appointments/:id", requireAdmin, async (req, res): Promise<
 
     if (
       current &&
-      current.status !== "confirmed" &&
       appointmentRequiresPayment(current.totalAmountCents)
     ) {
-      const [paid] = await db
-        .select({ id: paymentsTable.id })
-        .from(paymentsTable)
-        .where(
-          and(
-            eq(paymentsTable.appointmentId, id),
-            eq(paymentsTable.status, "complete"),
-          ),
-        )
-        .limit(1);
-      if (!appointmentCanBeConfirmed(current.totalAmountCents, Boolean(paid))) {
+      const balance = bookingBalance(current.totalAmountCents, await readBookingPayments(db, id));
+      if (!appointmentCanBeConfirmed(current.totalAmountCents, balance.outstandingCents === 0)) {
         res.status(409).json({
           error:
-            "This booking has not been paid. It can only be confirmed automatically once payment is verified.",
+            "This booking is not fully paid. Record the remaining payment against the appointment first.",
         });
         return;
       }
     }
   }
 
-  const [updated] = await db
-    .update(appointmentsTable)
-    .set(updateData)
-    .where(eq(appointmentsTable.id, id))
-    .returning();
+  const [updated] = await db.transaction(async tx => {
+    const [current] = await tx.select().from(appointmentsTable).where(eq(appointmentsTable.id, id));
+    if (!current) return [];
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`slot:${current.date} ${current.time}`}))`);
+    return tx.update(appointmentsTable).set(updateData).where(eq(appointmentsTable.id, id)).returning();
+  });
 
   if (!updated) {
     res.status(404).json({ error: "Appointment not found" });
@@ -180,8 +176,8 @@ router.get("/admin/clients", requireAdmin, async (req, res): Promise<void> => {
       appointmentCount: sql<number>`count(*)::int`,
       // Legacy contract: only count amounts for bookings with a verified completed payment.
       totalSpentCents: sql<number>`sum(COALESCE((
-        SELECT p.amount_cents FROM payments p WHERE p.appointment_id = ${appointmentsTable.id}
-          AND p.status = 'complete' ORDER BY p.id DESC LIMIT 1
+        SELECT SUM(p.amount_cents) FROM payments p WHERE p.appointment_id = ${appointmentsTable.id}
+          AND p.status = 'complete'
       ), 0))::int`,
       lastVisit: sql<string>`max(${appointmentsTable.date})`,
       firstVisit: sql<string>`min(${appointmentsTable.date})`,
