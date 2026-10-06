@@ -122,7 +122,7 @@ export default function AdminBookkeeping() {
         <Info className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
         <div className="space-y-2">
           <p><span className="text-foreground font-medium">A cash record, not a full set of accounts.</span> Net cash movement is receipts minus refunds, paid expenses and deposit fees in the range. It is not profit and not your bank balance.</p>
-          <p>Not included: unpaid bills, VAT accounting, stock and cost of goods, and any refund issued directly in the Yoco dashboard that is not reflected in sale or booking records. Voiding corrects the record only; it never refunds or moves money. Give your accountant the CSV and bank statements for financial statements.</p>
+          <p>Not included: unpaid bills, VAT accounting, stock and cost of goods, and any refund not yet recorded. Appointment refunds arrive here only when staff record them in the appointment Payments dialog after the money has actually been returned, including refunds already issued in the Yoco dashboard. Recording is manual; there is no automatic Yoco refund sync. Voiding corrects the record only; it never refunds or moves money. Give your accountant the CSV and bank statements for financial statements.</p>
         </div>
       </aside>
     </div>

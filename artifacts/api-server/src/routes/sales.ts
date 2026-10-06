@@ -172,6 +172,13 @@ router.get("/admin/financial-report", async (req, res) => {
         'payment', p.amount_cents, CASE WHEN p.provider='in_salon' THEN p.method ELSE 'yoco' END, p.updated_at
       FROM payments p JOIN appointments a ON a.id=p.appointment_id
       WHERE p.status='complete' AND ${inRange("p.updated_at")}
+      UNION ALL
+      SELECT p.booking_ref, a.client_name,
+        CASE WHEN p.provider='in_salon' THEN 'booking_in_salon' ELSE 'booking_payment' END,
+        'refund', r.amount_cents, r.method, r.created_at
+      FROM appointment_refunds r JOIN payments p ON p.id=r.payment_id
+      JOIN appointments a ON a.id=p.appointment_id
+      WHERE ${inRange("r.created_at")}
       ORDER BY "createdAt" DESC`, [from, to]);
     const { rows: [sales] } = await tx.query<{ total: string }>(
       `SELECT COALESCE(sum(total_cents),0) AS total FROM clinic_sales s WHERE voided_at IS NULL AND ${inRange("s.created_at")}`, [from, to],

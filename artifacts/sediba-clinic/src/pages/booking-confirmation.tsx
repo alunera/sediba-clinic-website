@@ -91,6 +91,18 @@ export default function BookingConfirmation() {
   const inSalon = !!paymentStatus?.inSalon;
   const salonPaid = paymentStatus?.paidCents ?? 0;
   const salonOutstanding = paymentStatus?.outstandingCents ?? 0;
+  const refunded = paymentStatus?.refundedCents ?? 0;
+  const hasRefund = refunded > 0;
+  const refundNotice = hasRefund ? (
+    <div className="border border-border bg-muted/40 p-5 mb-8 text-left space-y-3" data-testid="notice-refund">
+      <span className="uppercase tracking-widest text-[10px] text-muted-foreground block">Refund recorded</span>
+      <p className="text-sm text-muted-foreground">The clinic has recorded money returned to you for this booking.</p>
+      <div className="flex justify-between text-sm"><span>Paid</span><span className="font-mono">R{((paymentStatus?.paidCents ?? 0) / 100).toFixed(2)}</span></div>
+      <div className="flex justify-between text-sm"><span>Returned to you</span><span className="font-mono" data-testid="text-refunded-cents">-R{(refunded / 100).toFixed(2)}</span></div>
+      <div className="flex justify-between text-sm border-t border-border pt-3"><span>Net retained by clinic</span><span className="font-mono" data-testid="text-net-cents">R{((paymentStatus?.netReceiptsCents ?? 0) / 100).toFixed(2)}</span></div>
+      <p className="text-xs text-muted-foreground">Questions about this refund? Contact the clinic quoting your booking reference.</p>
+    </div>
+  ) : null;
 
   if (inSalon && salonOutstanding > 0 && appointment.status !== "cancelled") {
     return (
@@ -115,6 +127,7 @@ export default function BookingConfirmation() {
               <span className="font-serif text-xl text-primary" data-testid="text-outstanding-cents">R{(salonOutstanding / 100).toFixed(2)}</span>
             </div>
           </div>
+          {refundNotice}
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button disabled className="rounded-none uppercase tracking-widest text-xs px-10 py-6" data-testid="button-pay-at-clinic">
               Pay Remaining at Clinic
@@ -128,7 +141,7 @@ export default function BookingConfirmation() {
     );
   }
 
-  if (appointment.status === "pending_payment" || appointment.status === "payment_failed") {
+  if ((appointment.status === "pending_payment" || appointment.status === "payment_failed") && !hasRefund) {
     const checkoutDidNotOpen = paymentParam === "retry";
     const failed =
       appointment.status === "payment_failed" ||
@@ -199,8 +212,9 @@ export default function BookingConfirmation() {
         <h1 className="font-serif text-3xl mb-4">Booking No Longer Active</h1>
         <p className="text-muted-foreground mb-8 max-w-md">
           This reservation ({appointment.bookingRef}) was cancelled — unpaid bookings are released after 30 minutes.
-          Please make a new booking.
+          {hasRefund ? "" : "Please make a new booking."}
         </p>
+        <div className="w-full max-w-md">{refundNotice}</div>
         <Button onClick={() => setLocation("/book")} className="rounded-none uppercase tracking-widest text-xs px-8">
           Book Again
         </Button>
@@ -286,6 +300,8 @@ export default function BookingConfirmation() {
             </div>
           </div>
         </div>
+
+        {refundNotice}
 
         <div className="text-center mb-12 text-sm text-muted-foreground/80 space-y-2">
           <p className="font-serif text-lg text-foreground">Sediba Aesthetic & Wellness Clinic</p>

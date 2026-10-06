@@ -1,4 +1,4 @@
-import { db, paymentsTable } from "@workspace/db";
+import { db, paymentsTable, appointmentRefundsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 type ReceiptAttempt = { status: string; amountCents: number; provider: string };
@@ -22,4 +22,10 @@ export function receiptBlockedReason(status: string, total: number, attempts: Re
 export type BookingTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export async function readBookingPayments(executor: BookingTransaction | typeof db, id: number) {
   return executor.select().from(paymentsTable).where(eq(paymentsTable.appointmentId, id)).orderBy(paymentsTable.id);
+}
+export async function readBookingRefunds(executor: BookingTransaction | typeof db, id: number) {
+  const rows = await executor.select({ refund: appointmentRefundsTable }).from(appointmentRefundsTable)
+    .innerJoin(paymentsTable, eq(appointmentRefundsTable.paymentId, paymentsTable.id))
+    .where(eq(paymentsTable.appointmentId, id)).orderBy(appointmentRefundsTable.id);
+  return rows.map(r => r.refund);
 }

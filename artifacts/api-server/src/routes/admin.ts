@@ -75,6 +75,8 @@ router.get("/admin/appointments", requireAdmin, async (req, res): Promise<void> 
         policyAgreed: appointmentsTable.policyAgreed,
         appointmentType: appointmentsTable.appointmentType,
         createdAt: appointmentsTable.createdAt,
+        refundedCents: sql<number>`COALESCE((SELECT SUM(r.amount_cents) FROM appointment_refunds r
+          JOIN payments p ON p.id=r.payment_id WHERE p.appointment_id=${appointmentsTable.id}),0)::int`,
       })
       .from(appointmentsTable)
       .leftJoin(servicesTable, eq(appointmentsTable.serviceId, servicesTable.id))

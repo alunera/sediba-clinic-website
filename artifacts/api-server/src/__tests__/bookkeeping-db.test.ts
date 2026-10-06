@@ -5,12 +5,12 @@ import { randomUUID } from "node:crypto";
 import { pool } from "@workspace/db";
 import { GetBookkeepingResponse } from "@workspace/api-zod";
 import router from "../routes/bookkeeping";
-import { clinicToday } from "../lib/bookkeeping";
 
 describe.skipIf(process.env.BOOKKEEPING_DB_TEST !== "1")("bookkeeping database contract", () => {
   it("preserves money and audit history through retries, competing matches and corrections", async () => {
     const prefix = `book-test-${randomUUID()}`;
-    const date = clinicToday();
+    // Keep report totals isolated from other financial integration suites running today.
+    const date = "2001-01-15";
     const app = express();
     app.use(express.json());
     app.use((req, _res, next) => {
@@ -37,8 +37,8 @@ describe.skipIf(process.env.BOOKKEEPING_DB_TEST !== "1")("bookkeeping database c
       const { rows: [sale] } = await pool.query(`INSERT INTO clinic_sales(request_id,client_id,client_name,items,total_cents)
         VALUES($1,$2,$1,'[]',10000) RETURNING id`, [prefix,clientId]);
       saleId = sale.id;
-      const { rows: entries } = await pool.query(`INSERT INTO clinic_sale_entries(sale_id,request_id,kind,amount_cents,method,reason)
-        VALUES($1,$2,'payment',6000,'cash',$2),($1,$3,'payment',4000,'eft',$3) RETURNING id`, [saleId,`${prefix}-r1`,`${prefix}-r2`]);
+      const { rows: entries } = await pool.query(`INSERT INTO clinic_sale_entries(sale_id,request_id,kind,amount_cents,method,reason,created_at)
+        VALUES($1,$2,'payment',6000,'cash',$2,$4::date),($1,$3,'payment',4000,'eft',$3,$4::date) RETURNING id`, [saleId,`${prefix}-r1`,`${prefix}-r2`,date]);
       const keys = entries.map(e => `sale:${e.id}`);
       const range = `?from=${date}&to=${date}`;
       expect((await call(range,undefined,false)).status).toBe(401);

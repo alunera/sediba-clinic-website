@@ -19,6 +19,23 @@ tags:
   - name: admin
     description: Admin management operations
 paths:
+  /admin/appointments/{id}/refunds:
+    post:
+      operationId: recordAppointmentRefund
+      tags: [admin]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentRefundInput" }
+      responses:
+        "200":
+          description: Externally issued refund recorded against an original payment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AppointmentReceipts" }
   /admin/bookkeeping:
     get:
       operationId: getBookkeeping
@@ -1139,6 +1156,8 @@ components:
         paidCents: { type: integer }
         outstandingCents: { type: integer }
         inSalon: { type: boolean }
+        refundedCents: { type: integer }
+        netReceiptsCents: { type: integer }
       required:
         - bookingStatus
         - paymentStatus
@@ -1146,6 +1165,8 @@ components:
         - paidCents
         - outstandingCents
         - inSalon
+        - refundedCents
+        - netReceiptsCents
 
     Appointment:
       type: object
@@ -1214,10 +1235,12 @@ components:
               enum: [paid, part_paid, pending, failed, unpaid]
             paidCents: { type: integer }
             outstandingCents: { type: integer }
+            refundedCents: { type: integer }
           required:
             - paymentStatus
             - paidCents
             - outstandingCents
+            - refundedCents
 
     CreateAppointmentBody:
       type: object
@@ -1696,16 +1719,40 @@ components:
         received: { type: boolean }
     AppointmentReceipt:
       type: object
-      required: [id, amountCents, method, reference, createdAt]
+      required: [id, amountCents, method, reference, createdAt, refundedCents, refundableCents]
       properties:
         id: { type: integer }
         amountCents: { type: integer }
         method: { type: string }
         reference: { type: string }
         createdAt: { type: string }
+        refundedCents: { type: integer }
+        refundableCents: { type: integer }
+    AppointmentRefundInput:
+      type: object
+      required: [requestId, paymentId, amountCents, method, reference, reason, returned]
+      properties:
+        requestId: { type: string, minLength: 16, maxLength: 100 }
+        paymentId: { type: integer, minimum: 1 }
+        amountCents: { type: integer, minimum: 1, maximum: 100000000 }
+        method: { type: string, enum: [cash, eft, card_external, yoco] }
+        reference: { type: string, minLength: 1, maxLength: 200 }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+        returned: { type: boolean }
+    AppointmentRefund:
+      type: object
+      required: [id, paymentId, amountCents, method, reference, reason, createdAt]
+      properties:
+        id: { type: integer }
+        paymentId: { type: integer }
+        amountCents: { type: integer }
+        method: { type: string }
+        reference: { type: string }
+        reason: { type: string }
+        createdAt: { type: string }
     AppointmentReceipts:
       type: object
-      required: [appointmentId, bookingStatus, totalCents, paidCents, outstandingCents, inSalon, blockedReason, receipts]
+      required: [appointmentId, bookingStatus, totalCents, paidCents, outstandingCents, inSalon, blockedReason, receipts, refundedCents, netReceiptsCents, refunds]
       properties:
         appointmentId: { type: integer }
         bookingStatus: { type: string }
@@ -1714,6 +1761,11 @@ components:
         outstandingCents: { type: integer }
         inSalon: { type: boolean }
         blockedReason: { type: string }
+        refundedCents: { type: integer }
+        netReceiptsCents: { type: integer }
+        refunds:
+          type: array
+          items: { $ref: "#/components/schemas/AppointmentRefund" }
         receipts:
           type: array
           items: { $ref: "#/components/schemas/AppointmentReceipt" }

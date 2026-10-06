@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { AlertCircle, Lock } from "lucide-react";
-import { useQueryClient, type Query } from "@tanstack/react-query";
+import { useIsMutating, useQueryClient, type Query } from "@tanstack/react-query";
+import { AppointmentRefundSection, REFUND_MUTATION_KEY } from "./appointment-refund-section";
 import {
   useGetAppointmentReceipts,
   getGetAppointmentReceiptsQueryKey,
@@ -12,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createIdempotencyKeeper, errMsg, formatJhb, formatRand, methodLabel, parseRandToCents } from "@/lib/money";
 
-const RELATED_PREFIXES = ["/api/admin/appointments", "/api/admin/financial-report", "/api/admin/client", "/api/admin/availability", "/api/appointments", "/api/payments"];
+const RELATED_PREFIXES = ["/api/admin/appointments", "/api/admin/financial-report", "/api/admin/client", "/api/admin/bookkeeping", "/api/admin/availability", "/api/appointments", "/api/payments"];
 
 function isRelated(q: Query) {
   const k = q.queryKey[0];
@@ -39,12 +40,14 @@ export function AppointmentPaymentDialog({ appointment, open, onOpenChange }: { 
   const blocked = d?.blockedReason?.trim() ?? "";
   const outstanding = d?.outstandingCents ?? 0;
   const canRecord = !!d && !blocked && outstanding > 0;
-  const submitting = record.isPending;
+  const refunding = useIsMutating({ mutationKey: REFUND_MUTATION_KEY }) > 0;
+  const submitting = record.isPending || refunding;
+  const invalidateRelated = () => { qc.invalidateQueries({ predicate: isRelated }); };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     setNotice(null);
-    if (!canRecord) return;
+    if (!canRecord || submitting) return;
     const cents = parseRandToCents(amount);
     if (cents === null || cents < 1) return setError("Enter a valid Rand amount, e.g. 250 or 250.50.");
     if (cents > outstanding) return setError(`Amount cannot exceed the outstanding balance of ${formatRand(outstanding)}.`);
@@ -83,7 +86,7 @@ export function AppointmentPaymentDialog({ appointment, open, onOpenChange }: { 
 
         {detail.isLoading ? (
           <div className="space-y-3 animate-pulse" aria-busy="true"><div className="h-20 bg-muted" /><div className="h-32 bg-muted" /></div>
-        ) : detail.isError || !d ? (
+        ) : !d ? (
           <div className="border border-border p-6 text-center space-y-3" role="alert">
             <AlertCircle className="w-5 h-5 mx-auto text-destructive" />
             <p className="text-sm">{errMsg(detail.error)}</p>
@@ -91,6 +94,11 @@ export function AppointmentPaymentDialog({ appointment, open, onOpenChange }: { 
           </div>
         ) : (
           <div className="space-y-6">
+            {detail.isError && (
+              <p className="text-xs border border-amber-500/40 bg-amber-500/10 p-3" role="status" data-testid="text-receipts-stale">
+                Could not refresh just now; showing the last loaded figures. Your entries are kept. <button type="button" onClick={() => detail.refetch()} className="underline">Retry</button>
+              </p>
+            )}
             <dl className="grid grid-cols-3 gap-px bg-border border border-border text-center">
               {[["Total", d.totalCents, "total"], ["Paid", d.paidCents, "paid"], ["Outstanding", d.outstandingCents, "outstanding"]].map(([l, v, t]) => (
                 <div key={t as string} className={`p-3 ${t === "outstanding" && d.outstandingCents > 0 ? "bg-amber-500/10" : "bg-card"}`}>
@@ -99,6 +107,14 @@ export function AppointmentPaymentDialog({ appointment, open, onOpenChange }: { 
                 </div>
               ))}
             </dl>
+            {(d.refundedCents ?? 0) > 0 && (
+              <dl className="grid grid-cols-3 gap-px bg-border border border-border text-center -mt-4" data-testid="summary-refunds">
+                <div className="p-3 bg-card"><dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Received</dt><dd className="font-mono text-sm mt-1" data-testid="text-receipt-received">{formatRand(d.paidCents)}</dd></div>
+                <div className="p-3 bg-card"><dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Refunded</dt><dd className="font-mono text-sm mt-1 text-destructive" data-testid="text-receipt-refunded">-{formatRand(d.refundedCents)}</dd></div>
+                <div className="p-3 bg-muted/50"><dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Net retained</dt><dd className="font-mono text-sm mt-1" data-testid="text-receipt-net">{formatRand(d.netReceiptsCents)}</dd></div>
+              </dl>
+            )}
+            {(d.refundedCents ?? 0) > 0 && <p className="text-[11px] text-muted-foreground -mt-3">Outstanding is based on money received before refunds; a refund never reopens a balance due.</p>}
 
             <section aria-label="Payment history">
               <h3 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">History{detail.isFetching ? " · refreshing" : ""}</h3>
@@ -112,7 +128,7 @@ export function AppointmentPaymentDialog({ appointment, open, onOpenChange }: { 
                         <p>{methodLabel(r.method)} <span className="text-muted-foreground text-xs">· {formatJhb(r.createdAt)}</span></p>
                         <p className="text-xs text-muted-foreground break-words">{r.reference}</p>
                       </div>
-                      <span className="font-mono whitespace-nowrap">{formatRand(r.amountCents)}</span>
+                      <span className="text-right"><span className="font-mono whitespace-nowrap block">{formatRand(r.amountCents)}</span>{r.refundedCents > 0 && <span className="text-[11px] text-destructive whitespace-nowrap block">-{formatRand(r.refundedCents)} refunded</span>}</span>
                     </li>
                   ))}
                 </ul>
@@ -163,6 +179,7 @@ export function AppointmentPaymentDialog({ appointment, open, onOpenChange }: { 
               </form>
             )}
             {notice && (blocked || outstanding <= 0) && <p className="text-xs text-green-700" role="status">{notice}</p>}
+            <AppointmentRefundSection appointmentId={id} data={d} invalidateRelated={invalidateRelated} />
           </div>
         )}
       </DialogContent>

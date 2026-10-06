@@ -177,12 +177,18 @@ export default function AdminAppointments() {
                     <td className="px-6 py-4">
                       <div data-testid={`text-total-${appt.id}`}>{formatRand(appt.totalAmountCents)}</div>
                       {appt.paidCents > 0 && <div className="text-xs text-muted-foreground" data-testid={`text-paid-${appt.id}`}>Paid {formatRand(appt.paidCents)}</div>}
+                      {(appt.refundedCents ?? 0) > 0 && <div className="text-xs text-destructive" data-testid={`text-refunded-${appt.id}`}>Refunded {formatRand(appt.refundedCents)} · Net {formatRand(Math.max(0, appt.paidCents - appt.refundedCents))}</div>}
                       {appt.outstandingCents > 0 && appt.paidCents > 0 && <div className="text-xs text-amber-700" data-testid={`text-outstanding-${appt.id}`}>Due {formatRand(appt.outstandingCents)}</div>}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border ${(paymentStatusStyles[appt.paymentStatus] ?? paymentStatusStyles.unpaid).className}`}>
                         {(paymentStatusStyles[appt.paymentStatus] ?? paymentStatusStyles.unpaid).label}
                       </span>
+                      {(appt.refundedCents ?? 0) > 0 && (
+                        <span className="ml-1 inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border bg-destructive/10 text-destructive border-destructive/30" data-testid={`badge-refunded-${appt.id}`}>
+                          {appt.refundedCents >= appt.paidCents ? "Refunded" : "Part-refunded"}
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] uppercase tracking-wider border ${getStatusColor(appt.status)}`}>

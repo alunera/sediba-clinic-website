@@ -176,6 +176,8 @@ export interface PaymentStatusResponse {
   paidCents: number;
   outstandingCents: number;
   inSalon: boolean;
+  refundedCents: number;
+  netReceiptsCents: number;
 }
 
 export type AppointmentStatus =
@@ -233,6 +235,7 @@ export type AdminAppointment = Appointment & {
   paymentStatus: AdminAppointmentPaymentStatus;
   paidCents: number;
   outstandingCents: number;
+  refundedCents: number;
 };
 
 export type CreateAppointmentBodyAppointmentType =
@@ -726,6 +729,55 @@ export interface AppointmentReceipt {
   method: string;
   reference: string;
   createdAt: string;
+  refundedCents: number;
+  refundableCents: number;
+}
+
+export type AppointmentRefundInputMethod =
+  (typeof AppointmentRefundInputMethod)[keyof typeof AppointmentRefundInputMethod];
+
+export const AppointmentRefundInputMethod = {
+  cash: "cash",
+  eft: "eft",
+  card_external: "card_external",
+  yoco: "yoco",
+} as const;
+
+export interface AppointmentRefundInput {
+  /**
+   * @minLength 16
+   * @maxLength 100
+   */
+  requestId: string;
+  /** @minimum 1 */
+  paymentId: number;
+  /**
+   * @minimum 1
+   * @maximum 100000000
+   */
+  amountCents: number;
+  method: AppointmentRefundInputMethod;
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  reference: string;
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   */
+  reason: string;
+  returned: boolean;
+}
+
+export interface AppointmentRefund {
+  id: number;
+  paymentId: number;
+  amountCents: number;
+  method: string;
+  reference: string;
+  reason: string;
+  createdAt: string;
 }
 
 export interface AppointmentReceipts {
@@ -736,6 +788,9 @@ export interface AppointmentReceipts {
   outstandingCents: number;
   inSalon: boolean;
   blockedReason: string;
+  refundedCents: number;
+  netReceiptsCents: number;
+  refunds: AppointmentRefund[];
   receipts: AppointmentReceipt[];
 }
 

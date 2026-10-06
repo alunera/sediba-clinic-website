@@ -125,6 +125,17 @@ const MIGRATIONS = [
   `CREATE UNIQUE INDEX IF NOT EXISTS book_deposit_items_active_receipt ON book_deposit_items (receipt_key) WHERE voided_at IS NULL`,
   `CREATE INDEX IF NOT EXISTS book_expenses_date ON book_expenses(date)`,
   `CREATE INDEX IF NOT EXISTS book_deposits_date ON book_deposits(date)`,
+  `CREATE TABLE IF NOT EXISTS appointment_refunds (
+    id SERIAL PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,
+    payment_id INTEGER NOT NULL REFERENCES payments(id),
+    amount_cents INTEGER NOT NULL CHECK (amount_cents > 0 AND amount_cents <= 100000000),
+    method TEXT NOT NULL CHECK (method IN ('cash','eft','card_external','yoco')),
+    reference TEXT NOT NULL, reason TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS appointment_refunds_payment ON appointment_refunds(payment_id)`,
+  `CREATE INDEX IF NOT EXISTS appointment_refunds_date ON appointment_refunds(created_at)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS appointment_refunds_yoco_reference ON appointment_refunds(lower(reference)) WHERE method='yoco'`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can

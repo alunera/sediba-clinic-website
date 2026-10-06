@@ -6,7 +6,8 @@ import { and, eq, lt, ne, sql } from "drizzle-orm";
 import { assertYocoReady, createYocoCheckout, verifyYocoWebhook } from "../lib/yoco";
 import { sendBookingConfirmation, scheduleReminderMessage } from "../lib/whatsapp";
 import { logger } from "../lib/logger";
-import { bookingBalance, readBookingPayments } from "../lib/booking-receipts";
+import { bookingBalance, readBookingPayments, readBookingRefunds } from "../lib/booking-receipts";
+import { refundBalance } from "../lib/appointment-refunds";
 
 const router = Router();
 export const PENDING_PAYMENT_TTL_MIN = 30;
@@ -106,25 +107,32 @@ router.get("/payments/status", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid booking reference" });
     return;
   }
-  const [appt] = await db.select({
-    id: appointmentsTable.id,
-    bookingStatus: appointmentsTable.status,
-    totalAmountCents: appointmentsTable.totalAmountCents,
-  }).from(appointmentsTable).where(eq(appointmentsTable.bookingRef, ref)).limit(1);
-  if (!appt) {
+  const status = await db.transaction(async tx => {
+    await tx.execute(sql`SET TRANSACTION ISOLATION LEVEL REPEATABLE READ`);
+    const [appt] = await tx.select({
+      id: appointmentsTable.id,
+      bookingStatus: appointmentsTable.status,
+      totalAmountCents: appointmentsTable.totalAmountCents,
+    }).from(appointmentsTable).where(eq(appointmentsTable.bookingRef, ref)).limit(1);
+    if (!appt) return null;
+    const attempts = await readBookingPayments(tx, appt.id);
+    const balance = bookingBalance(appt.totalAmountCents, attempts);
+    const refunded = refundBalance(balance.paidCents, await readBookingRefunds(tx, appt.id));
+    return {
+      bookingStatus: appt.bookingStatus,
+      paymentStatus: balance.paidCents > 0
+        ? (balance.outstandingCents === 0 ? "complete" : "partial")
+        : attempts.at(-1)?.status ?? "none",
+      amountCents: appt.totalAmountCents,
+      ...balance,
+      ...refunded,
+    };
+  });
+  if (!status) {
     res.status(404).json({ error: "Booking not found" });
     return;
   }
-  const attempts = await readBookingPayments(db, appt.id);
-  const balance = bookingBalance(appt.totalAmountCents, attempts);
-  res.json({
-    bookingStatus: appt.bookingStatus,
-    paymentStatus: balance.paidCents > 0
-      ? (balance.outstandingCents === 0 ? "complete" : "partial")
-      : attempts.at(-1)?.status ?? "none",
-    amountCents: appt.totalAmountCents,
-    ...balance,
-  });
+  res.json(status);
 });
 
 router.post("/payments/yoco/webhook", async (req, res): Promise<void> => {

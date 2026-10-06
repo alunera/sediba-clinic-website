@@ -54,7 +54,7 @@ export default function AdminReports() {
     const ok = printDocument(`Sediba receipts ${r.from} to ${r.to}`, `<h1>SEDIBA</h1><p class="eyebrow">Receipts summary · ${r.from} to ${r.to} (Johannesburg)</p>
 <table class="tot"><tr><td>Received</td><td class="r">${formatRand(r.receivedCents)}</td></tr><tr><td>Refunded</td><td class="r">${formatRand(r.refundedCents)}</td></tr><tr><td><b>Net receipts</b></td><td class="r"><b>${formatRand(r.netReceiptsCents)}</b></td></tr><tr><td>Manual sales created</td><td class="r">${formatRand(r.manualSalesCents)}</td></tr><tr><td>Manual unpaid (all dates)</td><td class="r">${formatRand(r.outstandingCents)}</td></tr></table>
 <table><thead><tr><th>Date</th><th>Ref</th><th>Client</th><th>Source</th><th>Type</th><th>Method</th><th class="r">Amount</th></tr></thead><tbody>${rows || '<tr><td colspan="7">No transactions.</td></tr>'}</tbody></table>
-<div class="note">Net receipts are money in minus money refunded. Not profit. Includes booking payments taken online (Yoco) and in salon. Excludes expenses, tax, provider fees and settlements, and refunds issued directly in the Yoco dashboard that are not reflected in booking records. Not a full set of accounts.</div>`);
+<div class="note">Net receipts are money in minus money refunded. Not profit. Includes booking payments taken online (Yoco) and in salon. Excludes expenses, tax, provider fees and settlements. Appointment refunds appear only once recorded manually in the appointment Payments dialog after the money was actually returned; Yoco dashboard refunds are not synced automatically. Not a full set of accounts.</div>`);
     if (!ok) toast({ variant: "destructive", title: "Print window blocked", description: "Allow pop-ups for this site to print." });
   };
 
@@ -158,7 +158,7 @@ export default function AdminReports() {
         <Info className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
         <div className="space-y-2">
           <p><span className="text-foreground font-medium">This is a receipts report, not accounting.</span> Net receipts are money received minus money refunded. They are not profit.</p>
-          <p>Excludes expenses, VAT and other tax, payment provider fees and settlement timing, and any refund issued directly in the Yoco dashboard that is not reflected in the booking payment records. Booking receipts include both online Yoco payments and in-salon payments recorded against appointments. Use your accountant's books for financial statements.</p>
+          <p>Excludes expenses, VAT and other tax, payment provider fees and settlement timing, and any refund not yet recorded. Appointment refunds enter this report only when staff record them in the appointment Payments dialog after the money has actually been returned (cash, EFT, external card, or a refund already issued in the Yoco dashboard). Recording is manual; there is no automatic Yoco refund sync. Booking receipts include both online Yoco payments and in-salon payments recorded against appointments. Use your accountant's books for financial statements.</p>
         </div>
       </aside>
     </div>

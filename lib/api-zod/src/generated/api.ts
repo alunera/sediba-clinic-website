@@ -7,6 +7,69 @@
  */
 import * as zod from "zod";
 
+export const RecordAppointmentRefundParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const recordAppointmentRefundBodyRequestIdMin = 16;
+export const recordAppointmentRefundBodyRequestIdMax = 100;
+
+export const recordAppointmentRefundBodyAmountCentsMax = 100000000;
+
+export const recordAppointmentRefundBodyReferenceMax = 200;
+
+export const recordAppointmentRefundBodyReasonMax = 1000;
+
+export const RecordAppointmentRefundBody = zod.object({
+  requestId: zod
+    .string()
+    .min(recordAppointmentRefundBodyRequestIdMin)
+    .max(recordAppointmentRefundBodyRequestIdMax),
+  paymentId: zod.number().min(1),
+  amountCents: zod
+    .number()
+    .min(1)
+    .max(recordAppointmentRefundBodyAmountCentsMax),
+  method: zod.enum(["cash", "eft", "card_external", "yoco"]),
+  reference: zod.string().min(1).max(recordAppointmentRefundBodyReferenceMax),
+  reason: zod.string().min(1).max(recordAppointmentRefundBodyReasonMax),
+  returned: zod.boolean(),
+});
+
+export const RecordAppointmentRefundResponse = zod.object({
+  appointmentId: zod.number(),
+  bookingStatus: zod.string(),
+  totalCents: zod.number(),
+  paidCents: zod.number(),
+  outstandingCents: zod.number(),
+  inSalon: zod.boolean(),
+  blockedReason: zod.string(),
+  refundedCents: zod.number(),
+  netReceiptsCents: zod.number(),
+  refunds: zod.array(
+    zod.object({
+      id: zod.number(),
+      paymentId: zod.number(),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reference: zod.string(),
+      reason: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+  receipts: zod.array(
+    zod.object({
+      id: zod.number(),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reference: zod.string(),
+      createdAt: zod.string(),
+      refundedCents: zod.number(),
+      refundableCents: zod.number(),
+    }),
+  ),
+});
+
 export const GetBookkeepingQueryParams = zod.object({
   from: zod.coerce.string(),
   to: zod.coerce.string(),
@@ -173,6 +236,19 @@ export const GetAppointmentReceiptsResponse = zod.object({
   outstandingCents: zod.number(),
   inSalon: zod.boolean(),
   blockedReason: zod.string(),
+  refundedCents: zod.number(),
+  netReceiptsCents: zod.number(),
+  refunds: zod.array(
+    zod.object({
+      id: zod.number(),
+      paymentId: zod.number(),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reference: zod.string(),
+      reason: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
   receipts: zod.array(
     zod.object({
       id: zod.number(),
@@ -180,6 +256,8 @@ export const GetAppointmentReceiptsResponse = zod.object({
       method: zod.string(),
       reference: zod.string(),
       createdAt: zod.string(),
+      refundedCents: zod.number(),
+      refundableCents: zod.number(),
     }),
   ),
 });
@@ -217,6 +295,19 @@ export const RecordAppointmentReceiptResponse = zod.object({
   outstandingCents: zod.number(),
   inSalon: zod.boolean(),
   blockedReason: zod.string(),
+  refundedCents: zod.number(),
+  netReceiptsCents: zod.number(),
+  refunds: zod.array(
+    zod.object({
+      id: zod.number(),
+      paymentId: zod.number(),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reference: zod.string(),
+      reason: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
   receipts: zod.array(
     zod.object({
       id: zod.number(),
@@ -224,6 +315,8 @@ export const RecordAppointmentReceiptResponse = zod.object({
       method: zod.string(),
       reference: zod.string(),
       createdAt: zod.string(),
+      refundedCents: zod.number(),
+      refundableCents: zod.number(),
     }),
   ),
 });
@@ -796,6 +889,8 @@ export const GetPaymentStatusResponse = zod.object({
   paidCents: zod.number(),
   outstandingCents: zod.number(),
   inSalon: zod.boolean(),
+  refundedCents: zod.number(),
+  netReceiptsCents: zod.number(),
 });
 
 /**
@@ -839,6 +934,7 @@ export const AdminListAppointmentsResponseItem = zod
       ]),
       paidCents: zod.number(),
       outstandingCents: zod.number(),
+      refundedCents: zod.number(),
     }),
   );
 export const AdminListAppointmentsResponse = zod.array(

@@ -86,6 +86,18 @@ export const paymentsTable = pgTable(
 
 export type Payment = typeof paymentsTable.$inferSelect;
 
+/** Bookkeeping evidence of refunds already issued outside this system. */
+export const appointmentRefundsTable = pgTable("appointment_refunds", {
+  id: serial("id").primaryKey(),
+  requestId: text("request_id").notNull().unique(),
+  paymentId: integer("payment_id").notNull().references(() => paymentsTable.id),
+  amountCents: integer("amount_cents").notNull(),
+  method: text("method").notNull(),
+  reference: text("reference").notNull(),
+  reason: text("reason").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const insertServiceSchema = createInsertSchema(servicesTable).omit({ id: true });
 export const insertAppointmentSchema = createInsertSchema(appointmentsTable).omit({ id: true, createdAt: true });
 

@@ -26,3 +26,9 @@ The initial bookkeeping scope is cash-basis tracking, not full accounts. Existin
 **Why:** Recounting payouts as income or deducting fees twice would distort the future profit-and-loss report. Product purchases paid today are not automatically cost of goods sold today.
 
 **How to apply:** Keep cash movement separate from profit and bank balances. Preserve voided financial records with reasons. Build unpaid-bill, stock costing and accrual treatment explicitly before presenting full accounts; manual statement matching is not an automatic bank feed or provider verification.
+
+Appointment refunds are initially records of money already returned outside the app. They do not cancel appointments, reopen debt or reverse a previously matched bank deposit.
+
+**Why:** Refunding money, changing appointment status and reconciling bank movements are separate actions; combining them implicitly would create incorrect balances or schedule changes.
+
+**How to apply:** Require the original completed payment and evidence of the external refund. If provider refund synchronization is added later, reconcile against manually recorded provider refund references rather than importing the same refund as another outgoing entry.

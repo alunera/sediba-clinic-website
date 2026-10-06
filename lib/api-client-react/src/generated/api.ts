@@ -36,6 +36,7 @@ import type {
   Appointment,
   AppointmentReceiptInput,
   AppointmentReceipts,
+  AppointmentRefundInput,
   AvailableSlot,
   BookDepositInput,
   BookExpenseInput,
@@ -80,6 +81,88 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+export const getRecordAppointmentRefundUrl = (id: number) => {
+  return `/api/admin/appointments/${id}/refunds`;
+};
+
+export const recordAppointmentRefund = async (
+  id: number,
+  appointmentRefundInput: AppointmentRefundInput,
+  options?: RequestInit,
+): Promise<AppointmentReceipts> => {
+  return customFetch<AppointmentReceipts>(getRecordAppointmentRefundUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(appointmentRefundInput),
+  });
+};
+
+export const getRecordAppointmentRefundMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof recordAppointmentRefund>>,
+    TError,
+    { id: number; data: BodyType<AppointmentRefundInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof recordAppointmentRefund>>,
+  TError,
+  { id: number; data: BodyType<AppointmentRefundInput> },
+  TContext
+> => {
+  const mutationKey = ["recordAppointmentRefund"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof recordAppointmentRefund>>,
+    { id: number; data: BodyType<AppointmentRefundInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return recordAppointmentRefund(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RecordAppointmentRefundMutationResult = NonNullable<
+  Awaited<ReturnType<typeof recordAppointmentRefund>>
+>;
+export type RecordAppointmentRefundMutationBody =
+  BodyType<AppointmentRefundInput>;
+export type RecordAppointmentRefundMutationError = ErrorType<unknown>;
+
+export const useRecordAppointmentRefund = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof recordAppointmentRefund>>,
+    TError,
+    { id: number; data: BodyType<AppointmentRefundInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof recordAppointmentRefund>>,
+  TError,
+  { id: number; data: BodyType<AppointmentRefundInput> },
+  TContext
+> => {
+  return useMutation(getRecordAppointmentRefundMutationOptions(options));
+};
 
 export const getGetBookkeepingUrl = (params: GetBookkeepingParams) => {
   const normalizedParams = new URLSearchParams();

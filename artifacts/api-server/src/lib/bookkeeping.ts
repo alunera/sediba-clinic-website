@@ -36,4 +36,9 @@ export const receiptSql = `
     'receipt', a.client_name, p.booking_ref, 'booking',
     CASE WHEN p.provider='in_salon' THEN p.method ELSE 'yoco' END, p.amount_cents, ''
   FROM payments p JOIN appointments a ON a.id=p.appointment_id WHERE p.status='complete'
+  UNION ALL
+  SELECT 'booking-refund:' || r.id, to_char(r.created_at AT TIME ZONE 'Africa/Johannesburg','YYYY-MM-DD'),
+    'refund', a.client_name, p.booking_ref, 'booking', r.method, r.amount_cents, ''
+  FROM appointment_refunds r JOIN payments p ON p.id=r.payment_id
+  JOIN appointments a ON a.id=p.appointment_id
 `;
