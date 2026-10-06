@@ -37,6 +37,11 @@ import type {
   AppointmentReceiptInput,
   AppointmentReceipts,
   AvailableSlot,
+  BookDepositInput,
+  BookExpenseInput,
+  BookSaved,
+  BookVoidInput,
+  Bookkeeping,
   Client,
   ClinicFinancialReport,
   ClinicSale,
@@ -50,6 +55,7 @@ import type {
   GetAvailabilityParams,
   GetAvailableDates200,
   GetAvailableDatesParams,
+  GetBookkeepingParams,
   GetPaymentStatusParams,
   HealthStatus,
   InitiatePaymentBody,
@@ -74,6 +80,415 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+export const getGetBookkeepingUrl = (params: GetBookkeepingParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/bookkeeping?${stringifiedParams}`
+    : `/api/admin/bookkeeping`;
+};
+
+export const getBookkeeping = async (
+  params: GetBookkeepingParams,
+  options?: RequestInit,
+): Promise<Bookkeeping> => {
+  return customFetch<Bookkeeping>(getGetBookkeepingUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBookkeepingQueryKey = (params?: GetBookkeepingParams) => {
+  return [`/api/admin/bookkeeping`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetBookkeepingQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBookkeeping>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetBookkeepingParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBookkeeping>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBookkeepingQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBookkeeping>>> = ({
+    signal,
+  }) => getBookkeeping(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBookkeeping>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBookkeepingQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBookkeeping>>
+>;
+export type GetBookkeepingQueryError = ErrorType<unknown>;
+
+export function useGetBookkeeping<
+  TData = Awaited<ReturnType<typeof getBookkeeping>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetBookkeepingParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBookkeeping>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBookkeepingQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getCreateBookExpenseUrl = () => {
+  return `/api/admin/bookkeeping/expenses`;
+};
+
+export const createBookExpense = async (
+  bookExpenseInput: BookExpenseInput,
+  options?: RequestInit,
+): Promise<BookSaved> => {
+  return customFetch<BookSaved>(getCreateBookExpenseUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bookExpenseInput),
+  });
+};
+
+export const getCreateBookExpenseMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBookExpense>>,
+    TError,
+    { data: BodyType<BookExpenseInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBookExpense>>,
+  TError,
+  { data: BodyType<BookExpenseInput> },
+  TContext
+> => {
+  const mutationKey = ["createBookExpense"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBookExpense>>,
+    { data: BodyType<BookExpenseInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createBookExpense(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBookExpenseMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBookExpense>>
+>;
+export type CreateBookExpenseMutationBody = BodyType<BookExpenseInput>;
+export type CreateBookExpenseMutationError = ErrorType<unknown>;
+
+export const useCreateBookExpense = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBookExpense>>,
+    TError,
+    { data: BodyType<BookExpenseInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBookExpense>>,
+  TError,
+  { data: BodyType<BookExpenseInput> },
+  TContext
+> => {
+  return useMutation(getCreateBookExpenseMutationOptions(options));
+};
+
+export const getVoidBookExpenseUrl = (id: number) => {
+  return `/api/admin/bookkeeping/expenses/${id}/void`;
+};
+
+export const voidBookExpense = async (
+  id: number,
+  bookVoidInput: BookVoidInput,
+  options?: RequestInit,
+): Promise<BookSaved> => {
+  return customFetch<BookSaved>(getVoidBookExpenseUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bookVoidInput),
+  });
+};
+
+export const getVoidBookExpenseMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof voidBookExpense>>,
+    TError,
+    { id: number; data: BodyType<BookVoidInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof voidBookExpense>>,
+  TError,
+  { id: number; data: BodyType<BookVoidInput> },
+  TContext
+> => {
+  const mutationKey = ["voidBookExpense"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof voidBookExpense>>,
+    { id: number; data: BodyType<BookVoidInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return voidBookExpense(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type VoidBookExpenseMutationResult = NonNullable<
+  Awaited<ReturnType<typeof voidBookExpense>>
+>;
+export type VoidBookExpenseMutationBody = BodyType<BookVoidInput>;
+export type VoidBookExpenseMutationError = ErrorType<unknown>;
+
+export const useVoidBookExpense = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof voidBookExpense>>,
+    TError,
+    { id: number; data: BodyType<BookVoidInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof voidBookExpense>>,
+  TError,
+  { id: number; data: BodyType<BookVoidInput> },
+  TContext
+> => {
+  return useMutation(getVoidBookExpenseMutationOptions(options));
+};
+
+export const getCreateBookDepositUrl = () => {
+  return `/api/admin/bookkeeping/deposits`;
+};
+
+export const createBookDeposit = async (
+  bookDepositInput: BookDepositInput,
+  options?: RequestInit,
+): Promise<BookSaved> => {
+  return customFetch<BookSaved>(getCreateBookDepositUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bookDepositInput),
+  });
+};
+
+export const getCreateBookDepositMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBookDeposit>>,
+    TError,
+    { data: BodyType<BookDepositInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBookDeposit>>,
+  TError,
+  { data: BodyType<BookDepositInput> },
+  TContext
+> => {
+  const mutationKey = ["createBookDeposit"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBookDeposit>>,
+    { data: BodyType<BookDepositInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createBookDeposit(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBookDepositMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBookDeposit>>
+>;
+export type CreateBookDepositMutationBody = BodyType<BookDepositInput>;
+export type CreateBookDepositMutationError = ErrorType<unknown>;
+
+export const useCreateBookDeposit = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBookDeposit>>,
+    TError,
+    { data: BodyType<BookDepositInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBookDeposit>>,
+  TError,
+  { data: BodyType<BookDepositInput> },
+  TContext
+> => {
+  return useMutation(getCreateBookDepositMutationOptions(options));
+};
+
+export const getVoidBookDepositUrl = (id: number) => {
+  return `/api/admin/bookkeeping/deposits/${id}/void`;
+};
+
+export const voidBookDeposit = async (
+  id: number,
+  bookVoidInput: BookVoidInput,
+  options?: RequestInit,
+): Promise<BookSaved> => {
+  return customFetch<BookSaved>(getVoidBookDepositUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(bookVoidInput),
+  });
+};
+
+export const getVoidBookDepositMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof voidBookDeposit>>,
+    TError,
+    { id: number; data: BodyType<BookVoidInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof voidBookDeposit>>,
+  TError,
+  { id: number; data: BodyType<BookVoidInput> },
+  TContext
+> => {
+  const mutationKey = ["voidBookDeposit"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof voidBookDeposit>>,
+    { id: number; data: BodyType<BookVoidInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return voidBookDeposit(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type VoidBookDepositMutationResult = NonNullable<
+  Awaited<ReturnType<typeof voidBookDeposit>>
+>;
+export type VoidBookDepositMutationBody = BodyType<BookVoidInput>;
+export type VoidBookDepositMutationError = ErrorType<unknown>;
+
+export const useVoidBookDeposit = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof voidBookDeposit>>,
+    TError,
+    { id: number; data: BodyType<BookVoidInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof voidBookDeposit>>,
+  TError,
+  { id: number; data: BodyType<BookVoidInput> },
+  TContext
+> => {
+  return useMutation(getVoidBookDepositMutationOptions(options));
+};
 
 export const getGetAppointmentReceiptsUrl = (id: number) => {
   return `/api/admin/appointments/${id}/receipts`;

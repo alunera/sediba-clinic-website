@@ -20,3 +20,9 @@ The current Orval-generated Zod validators use ordinary numbers even for OpenAPI
 **Why:** A boundary test accepted fractional cents despite an integer schema.
 
 **How to apply:** Refine generated validators with safe-integer checks for money, quantities and IDs; do not assume the OpenAPI integer declaration is enforced at runtime.
+
+The initial bookkeeping scope is cash-basis tracking, not full accounts. Existing receipts remain the income source; matching a bank deposit is a transfer, not another sale. Provider fees recorded with a deposit must not also be entered as standalone expenses.
+
+**Why:** Recounting payouts as income or deducting fees twice would distort the future profit-and-loss report. Product purchases paid today are not automatically cost of goods sold today.
+
+**How to apply:** Keep cash movement separate from profit and bank balances. Preserve voided financial records with reasons. Build unpaid-bill, stock costing and accrual treatment explicitly before presenting full accounts; manual statement matching is not an automatic bank feed or provider verification.

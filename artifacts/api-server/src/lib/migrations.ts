@@ -101,6 +101,30 @@ const MIGRATIONS = [
      ADD COLUMN IF NOT EXISTS method TEXT,
      ADD COLUMN IF NOT EXISTS receipt_reference TEXT,
      ADD COLUMN IF NOT EXISTS checkout_url TEXT`,
+  `CREATE TABLE IF NOT EXISTS book_expenses (
+    id SERIAL PRIMARY KEY, request_id TEXT NOT NULL UNIQUE,
+    date DATE NOT NULL, category TEXT NOT NULL CHECK (category IN ('rent','utilities','salaries','consumables','product_purchases','marketing','transport','bank_fees','other')),
+    payee TEXT NOT NULL, reference TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL CHECK (amount_cents > 0 AND amount_cents <= 100000000),
+    method TEXT NOT NULL CHECK (method IN ('cash','eft','card_external')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(), void_reason TEXT NOT NULL DEFAULT '', voided_at TIMESTAMPTZ
+  )`,
+  `CREATE TABLE IF NOT EXISTS book_deposits (
+    id SERIAL PRIMARY KEY, request_id TEXT NOT NULL UNIQUE, date DATE NOT NULL, reference TEXT NOT NULL,
+    bank_cents INTEGER NOT NULL CHECK (bank_cents > 0 AND bank_cents <= 100000000),
+    fee_cents INTEGER NOT NULL CHECK (fee_cents >= 0 AND fee_cents <= 100000000),
+    gross_cents INTEGER NOT NULL CHECK (gross_cents > 0 AND gross_cents <= 100000000),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(), void_reason TEXT NOT NULL DEFAULT '', voided_at TIMESTAMPTZ,
+    CHECK (bank_cents + fee_cents = gross_cents)
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS book_deposits_active_reference ON book_deposits (lower(reference)) WHERE voided_at IS NULL`,
+  `CREATE TABLE IF NOT EXISTS book_deposit_items (
+    deposit_id INTEGER NOT NULL REFERENCES book_deposits(id), receipt_key TEXT NOT NULL,
+    voided_at TIMESTAMPTZ, PRIMARY KEY (deposit_id, receipt_key)
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS book_deposit_items_active_receipt ON book_deposit_items (receipt_key) WHERE voided_at IS NULL`,
+  `CREATE INDEX IF NOT EXISTS book_expenses_date ON book_expenses(date)`,
+  `CREATE INDEX IF NOT EXISTS book_deposits_date ON book_deposits(date)`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can

@@ -7,6 +7,160 @@
  */
 import * as zod from "zod";
 
+export const GetBookkeepingQueryParams = zod.object({
+  from: zod.coerce.string(),
+  to: zod.coerce.string(),
+});
+
+export const GetBookkeepingResponse = zod.object({
+  from: zod.string(),
+  to: zod.string(),
+  receivedCents: zod.number(),
+  refundedCents: zod.number(),
+  expenseCents: zod.number(),
+  netCashCents: zod.number(),
+  rows: zod.array(
+    zod.object({
+      key: zod.string(),
+      date: zod.string(),
+      kind: zod.enum(["receipt", "refund", "expense", "fee"]),
+      description: zod.string(),
+      reference: zod.string(),
+      category: zod.string(),
+      method: zod.string(),
+      amountCents: zod.number(),
+      voidReason: zod.string(),
+      depositId: zod.number().nullable(),
+    }),
+  ),
+  unmatchedReceipts: zod.array(
+    zod.object({
+      key: zod.string(),
+      date: zod.string(),
+      kind: zod.enum(["receipt", "refund", "expense", "fee"]),
+      description: zod.string(),
+      reference: zod.string(),
+      category: zod.string(),
+      method: zod.string(),
+      amountCents: zod.number(),
+      voidReason: zod.string(),
+      depositId: zod.number().nullable(),
+    }),
+  ),
+  deposits: zod.array(
+    zod.object({
+      id: zod.number(),
+      date: zod.string(),
+      reference: zod.string(),
+      bankCents: zod.number(),
+      feeCents: zod.number(),
+      grossCents: zod.number(),
+      receiptKeys: zod.array(zod.string()),
+      voidReason: zod.string(),
+    }),
+  ),
+});
+
+export const createBookExpenseBodyRequestIdMin = 16;
+export const createBookExpenseBodyRequestIdMax = 100;
+
+export const createBookExpenseBodyPayeeMax = 200;
+
+export const createBookExpenseBodyReferenceMax = 1000;
+
+export const createBookExpenseBodyAmountCentsMax = 100000000;
+
+export const CreateBookExpenseBody = zod.object({
+  requestId: zod
+    .string()
+    .min(createBookExpenseBodyRequestIdMin)
+    .max(createBookExpenseBodyRequestIdMax),
+  date: zod.string(),
+  category: zod.enum([
+    "rent",
+    "utilities",
+    "salaries",
+    "consumables",
+    "product_purchases",
+    "marketing",
+    "transport",
+    "bank_fees",
+    "other",
+  ]),
+  payee: zod.string().min(1).max(createBookExpenseBodyPayeeMax),
+  reference: zod.string().min(1).max(createBookExpenseBodyReferenceMax),
+  amountCents: zod.number().min(1).max(createBookExpenseBodyAmountCentsMax),
+  method: zod.enum(["cash", "eft", "card_external"]),
+  paid: zod.boolean(),
+});
+
+export const CreateBookExpenseResponse = zod.object({
+  success: zod.boolean(),
+});
+
+export const VoidBookExpenseParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const voidBookExpenseBodyReasonMax = 1000;
+
+export const VoidBookExpenseBody = zod.object({
+  reason: zod.string().min(1).max(voidBookExpenseBodyReasonMax),
+});
+
+export const VoidBookExpenseResponse = zod.object({
+  success: zod.boolean(),
+});
+
+export const createBookDepositBodyRequestIdMin = 16;
+export const createBookDepositBodyRequestIdMax = 100;
+
+export const createBookDepositBodyReferenceMax = 200;
+
+export const createBookDepositBodyBankCentsMax = 100000000;
+
+export const createBookDepositBodyFeeCentsMin = 0;
+export const createBookDepositBodyFeeCentsMax = 100000000;
+
+export const createBookDepositBodyReceiptKeysMax = 200;
+
+export const CreateBookDepositBody = zod.object({
+  requestId: zod
+    .string()
+    .min(createBookDepositBodyRequestIdMin)
+    .max(createBookDepositBodyRequestIdMax),
+  date: zod.string(),
+  reference: zod.string().min(1).max(createBookDepositBodyReferenceMax),
+  bankCents: zod.number().min(1).max(createBookDepositBodyBankCentsMax),
+  feeCents: zod
+    .number()
+    .min(createBookDepositBodyFeeCentsMin)
+    .max(createBookDepositBodyFeeCentsMax),
+  receiptKeys: zod
+    .array(zod.string())
+    .min(1)
+    .max(createBookDepositBodyReceiptKeysMax),
+  verified: zod.boolean(),
+});
+
+export const CreateBookDepositResponse = zod.object({
+  success: zod.boolean(),
+});
+
+export const VoidBookDepositParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const voidBookDepositBodyReasonMax = 1000;
+
+export const VoidBookDepositBody = zod.object({
+  reason: zod.string().min(1).max(voidBookDepositBodyReasonMax),
+});
+
+export const VoidBookDepositResponse = zod.object({
+  success: zod.boolean(),
+});
+
 export const GetAppointmentReceiptsParams = zod.object({
   id: zod.coerce.number(),
 });

@@ -5,6 +5,145 @@
  * API specification for Sediba Aesthetic & Wellness Clinic
  * OpenAPI spec version: 0.1.0
  */
+export interface BookSaved {
+  success: boolean;
+}
+
+export interface BookVoidInput {
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   */
+  reason: string;
+}
+
+export type BookExpenseInputCategory =
+  (typeof BookExpenseInputCategory)[keyof typeof BookExpenseInputCategory];
+
+export const BookExpenseInputCategory = {
+  rent: "rent",
+  utilities: "utilities",
+  salaries: "salaries",
+  consumables: "consumables",
+  product_purchases: "product_purchases",
+  marketing: "marketing",
+  transport: "transport",
+  bank_fees: "bank_fees",
+  other: "other",
+} as const;
+
+export type BookExpenseInputMethod =
+  (typeof BookExpenseInputMethod)[keyof typeof BookExpenseInputMethod];
+
+export const BookExpenseInputMethod = {
+  cash: "cash",
+  eft: "eft",
+  card_external: "card_external",
+} as const;
+
+export interface BookExpenseInput {
+  /**
+   * @minLength 16
+   * @maxLength 100
+   */
+  requestId: string;
+  date: string;
+  category: BookExpenseInputCategory;
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  payee: string;
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   */
+  reference: string;
+  /**
+   * @minimum 1
+   * @maximum 100000000
+   */
+  amountCents: number;
+  method: BookExpenseInputMethod;
+  paid: boolean;
+}
+
+export interface BookDepositInput {
+  /**
+   * @minLength 16
+   * @maxLength 100
+   */
+  requestId: string;
+  date: string;
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  reference: string;
+  /**
+   * @minimum 1
+   * @maximum 100000000
+   */
+  bankCents: number;
+  /**
+   * @minimum 0
+   * @maximum 100000000
+   */
+  feeCents: number;
+  /**
+   * @minItems 1
+   * @maxItems 200
+   */
+  receiptKeys: string[];
+  verified: boolean;
+}
+
+export type BookRowKind = (typeof BookRowKind)[keyof typeof BookRowKind];
+
+export const BookRowKind = {
+  receipt: "receipt",
+  refund: "refund",
+  expense: "expense",
+  fee: "fee",
+} as const;
+
+export interface BookRow {
+  key: string;
+  date: string;
+  kind: BookRowKind;
+  description: string;
+  reference: string;
+  category: string;
+  method: string;
+  amountCents: number;
+  voidReason: string;
+  /** @nullable */
+  depositId: number | null;
+}
+
+export interface BookDeposit {
+  id: number;
+  date: string;
+  reference: string;
+  bankCents: number;
+  feeCents: number;
+  grossCents: number;
+  receiptKeys: string[];
+  voidReason: string;
+}
+
+export interface Bookkeeping {
+  from: string;
+  to: string;
+  receivedCents: number;
+  refundedCents: number;
+  expenseCents: number;
+  netCashCents: number;
+  rows: BookRow[];
+  unmatchedReceipts: BookRow[];
+  deposits: BookDeposit[];
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -599,6 +738,11 @@ export interface AppointmentReceipts {
   blockedReason: string;
   receipts: AppointmentReceipt[];
 }
+
+export type GetBookkeepingParams = {
+  from: string;
+  to: string;
+};
 
 export type GetAdminFinancialReportParams = {
   from: string;
