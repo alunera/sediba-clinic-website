@@ -126,9 +126,9 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { title: "Skin Treatments", image: "/skin.jpg", desc: "Dermalogica facials, DMK enzyme therapy, and advanced skin resurfacing." },
-              { title: "Nail & Grooming", image: "/nail.jpg", desc: "Manicures, pedicures, CND Shellac, lash lifts, and precision waxing." },
-              { title: "Massage & Wellness", image: "/wellness.jpg", desc: "Swedish, aromatherapy, hot stone, sports massage, and lymphatic drainage." }
+              { title: "Skin Treatments", image: "/skin.jpg", desc: "Personalised skin treatments for hydration, clarity, brightness, sensitivity and renewal." },
+              { title: "Hands & Feet", image: "/nail.jpg", desc: "Manicures, pedicures, gel finishes, and nourishing hand and foot rituals." },
+              { title: "Body & Wellness", image: "/wellness.jpg", desc: "Full-body relaxation, deep tissue massage, back and neck care, and aromatherapy." }
             ].map((cat, i) => (
               <motion.div
                 key={i}
@@ -136,8 +136,9 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: i * 0.2 }}
-                className="group cursor-pointer"
+                className="group"
               >
+                <Link href="/services" className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" aria-label={`Explore ${cat.title}`}>
                 <div className="relative aspect-[3/4] overflow-hidden mb-6">
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 z-10" />
                   <img
@@ -148,6 +149,7 @@ export default function Home() {
                 </div>
                 <h3 className="font-serif text-2xl text-foreground mb-3">{cat.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{cat.desc}</p>
+                </Link>
               </motion.div>
             ))}
           </div>

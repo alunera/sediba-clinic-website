@@ -20,3 +20,9 @@ Leave receipt printing out for now.
 **Why:** The user asked to defer it.
 
 **How to apply:** Do not include receipt printing in the remaining-work priorities or do further printing work unless the user brings it back into scope.
+
+Leave galleries out. The user confirmed that domain transfer is done.
+
+**Why:** The user explicitly removed galleries from scope and confirmed the domain-transfer status.
+
+**How to apply:** Do not include galleries or domain transfer in the remaining build work. This does not replace verification of newly released features on the live website.
