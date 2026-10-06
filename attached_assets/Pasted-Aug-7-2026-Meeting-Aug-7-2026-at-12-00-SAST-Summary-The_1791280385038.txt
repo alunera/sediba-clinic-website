@@ -1,0 +1,68 @@
+Aug 7, 2026
+Meeting Aug 7, 2026 at 12:00 SAST
+
+
+Summary
+The meeting covered website refinement and concluded with a decision to build a comprehensive, AI-integrated management system.
+
+Website and Service Planning
+The team audited the service menu and aligned on a clean website design strategy. This process prioritized removing outdated service offerings to improve site clarity.
+
+Custom Business System Consolidation
+A major decision was made to build an all-in-one management platform to replace expensive third-party software. This new system will integrate booking, bookkeeping, and automated client communication features.
+
+Marketing and Operational Strategy
+Discussions highlighted the benefits of maintaining a solo practice model for better control and work-life balance. Participants also evaluated product liability and the potential for AI-generated content in marketing.
+
+
+Decisions
+Aligned
+Sediba website template adopted The Sediba website design template is adopted as the primary reference for the new website layout.
+Treatment menu structure finalized The treatment menu categories are set to include facials, add-ons, massages, and waxing, with images added for each category to improve readability.
+All-in-one management system approved The business will migrate to an all-in-one management system integrated directly into the website for bookings, CRM, and bookkeeping, replacing disparate third-party platforms.
+
+We've updated the Decisions section using your feedback.
+Let us know what you think: Helpful or Not Helpful
+
+
+Next steps
+[Makwena Poopedi] Update Service List: Send the updated list of spa services for the website to Nompumelelo.
+[Makwena Poopedi] Provide Images: Send the necessary images for the treatments and website sections to Nompumelelo.
+[Nompumelelo] Resend CDA Reference: Resend the website layout created for CDA to Makwena Poopedi for design comparison.
+[Nompumelelo] Transfer Website: Complete the transfer of the new website onto the current domain.
+[Nompumelelo] Develop System: Build an all-in-one platform for bookings, client database, AI communication, and bookkeeping. Integrate this system onto the website.
+[Nompumelelo] Provide Requirements List: Compile and send a list of required information for the system setup to Makwena Poopedi.
+[Makwena Poopedi] Remove Old Software: Decommission the current Salon Bridge software once the new all-in-one system is functional.
+[Nompumelelo] Send Pharmacy Info: Provide the link and details regarding the new skincare brand for review.
+[Nompumelelo] Send Meeting Notes: Email a copy of the discussed points for reference.
+[Nompumelelo] Send Development Requirements: Provide the list of necessary items for the next phase of business development.
+[Makwena Poopedi] Review Pharmacy Brand: Evaluate the business information and product range for potential integration.
+
+
+Details
+Meeting Opening and Personal Check-ins: Nompumelelo and Makwena Poopedi reconnected, discussing their recent recovery from the flu and personal travel experiences. Makwena Poopedi shared a positive experience with the flu vaccination, noting it was the first time they had received one, which prevented illness during the season.
+Pricing Strategy and Categorization: Makwena Poopedi expressed challenges in pricing for specific treatments due to the complexity of combining multiple drugs, noting the need to categorize services clearly for clients. They discussed using a structured approach similar to a previously shared website, focusing on categories such as power cleanses, skin analysis, and customized treatments.
+Website Content Planning: The participants reviewed the website categories, which will include facials, add-ons, massages, waxing, and potentially laser/tattoo removal in the future. Makwena Poopedi expressed a preference for the design style of the CDA website project, specifically its clean graphics and simplicity.
+Website Migration and Technical Setup: Nompumelelo confirmed that technical login issues had been resolved and that they were preparing to transfer the website to Makwena Poopedi's actual domain. They agreed to review the site page by page, with Makwena Poopedi noting that the logo was not appearing correctly on the mobile version.
+Audit of Service Menu: Nompumelelo and Makwena Poopedi walked through the current treatment menu. They decided to remove outdated sections, specifically a previous spa iteration, and determined that the services menu needed auditing, including the removal of DMK enzyme therapy and the addition of specific dermatology and nail grooming treatments.
+Website Design Refinements: Nompumelelo requested that Makwena Poopedi provide specific images for the treatment sections to improve readability and prevent overwhelming the site visitors. Makwena Poopedi agreed to send a list of services to be kept or removed in writing.
+Transition to All-in-One Business System: The conversation shifted to business management software, with Makwena Poopedi mentioning the high costs of current platforms like Salon Bridge, which charges 2005. Nompumelelo proposed building an all-in-one system on the existing website that integrates booking, reminders, stock-taking, and bookkeeping to streamline operations and save on multiple software subscriptions.
+AI and Business Automation: Nompumelelo detailed the features of the proposed AI-integrated system, which would include automated WhatsApp booking and reminders, and a feature to solicit customer reviews directly for Google. Makwena Poopedi admitted to being new to AI, specifically noting they had only recently started using ChatGPT, and expressed interest in how AI could generate social media content to reduce their workload.
+Efficiency and Client Management: The pair discussed the importance of following up with clients and generating reviews to boost Google presence. Nompumelelo emphasized that the new system would handle these tasks automatically, allowing the business owner to focus on providing treatments.
+Data Migration and System Demonstration: Nompumelelo explained that the new system would require the client database. Nompumelelo provided a demonstration of the booking system, showing how it would allow Makwena Poopedi to see appointments, manage the client list, and showcase before-and-after galleries.
+AI Receptionist and Availability: The discussion covered the AI receptionist feature, which can handle inquiries and bookings 24/7. Makwena Poopedi highlighted the importance of WhatsApp in their business, noting that many clients prefer this communication channel.
+Deposit and Calendar Control: Makwena Poopedi expressed concerns about "time wasters" and confirmed the requirement for 100% deposit payment to secure bookings. They emphasized the need to retain control over their calendar to avoid being forced to work on days they intend to be off, a concern Nompumelelo addressed by confirming the AI can suggest slots while allowing the owner to maintain overall control.
+Bookkeeping and Reporting Requirements: Makwena Poopedi specified the need for detailed bookkeeping and reporting, such as tracking top-selling products and profit/loss, which other software had failed to provide effectively. Nompumelelo committed to integrating these requirements into the one-platform solution.
+Project Roadmap and Next Steps: The pair agreed to proceed with the all-in-one system, effectively replacing Salon Bridge. Nompumelelo set a timeline to touch base again in roughly two weeks to review progress, and requested that Makwena Poopedi provide the list of services for the website update.
+Hosting and Domain Maintenance: Makwena Poopedi confirmed they would continue to pay for their current domain hosting annually, and Nompumelelo noted they would simply integrate the new website onto that existing domain.
+Marketing and Content Creation: The discussion turned to email marketing, which Makwena Poopedi was hesitant about due to the workload, having previously tried blogging for three months before stopping. They expressed interest in using AI to create educational content and avatars, as the skin care industry moves rapidly with new developments like growth factors.
+Business Niche and Client Base: Makwena Poopedi defined their ideal clientele as serious, professional individuals who are invested in their skin health. They noted that these clients often book 12 months in advance and that they avoid "freebie" seekers or influencers, preferring to focus on quality, recurring business.
+Up-selling and Performance: Makwena Poopedi reported that their up-selling strategy has been highly effective, noting that despite only working 14 days in July, they surpassed revenue from other months.
+Introduction of Pharmacy Brand: Nompumelelo introduced a brand called Pharmacy, a Turkish skincare and nutrition line developed by Dr. C. Tuna, suggesting it as an addition to the clinic's up-sell product range. Makwena Poopedi questioned the efficacy of the products, which Nompumelelo supported by citing local acne-related results.
+Product Safety and Liability: The conversation turned to the risks of ingredient safety, with Makwena Poopedi discussing the dangers of untested products and legal concerns related to their own previous attempts at white-labeling skincare. Makwena Poopedi reaffirmed that they prefer established brands like DMK, which has been in business for 40 years.
+Pharmacy Brand Logistics: Nompumelelo explained that Pharmacy products are imported from the US, taking approximately 10 days to arrive, and are currently stored by a doctor in Rosebank. They promised to send the information to Makwena Poopedi for review.
+Closing and Business Philosophy: In closing, they discussed the challenges of managing staff, with Makwena Poopedi recounting negative experiences with younger employees and the smell of acrylic nails affecting the clinic's relaxation environment. Makwena Poopedi expressed satisfaction with their current model of working alone, which allows for better work-life balance and control over the business.
+
+
+You should review Gemini's notes to make sure they're accurate. Get tips and learn how Gemini takes notes
+How is the quality of these specific notes? Take a short survey to let us know your feedback, including how helpful the notes were for your needs.
