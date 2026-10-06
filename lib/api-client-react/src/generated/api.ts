@@ -36,9 +36,15 @@ import type {
   Appointment,
   AvailableSlot,
   Client,
+  ClinicFinancialReport,
+  ClinicSale,
+  ClinicSaleEntryInput,
+  ClinicSaleInput,
+  ClinicSaleVoidInput,
   CreateAppointmentBody,
   CreateOpenaiConversationBody,
   ErrorResponse,
+  GetAdminFinancialReportParams,
   GetAvailabilityParams,
   GetAvailableDates200,
   GetAvailableDatesParams,
@@ -66,6 +72,412 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+export const getListAdminSalesUrl = () => {
+  return `/api/admin/sales`;
+};
+
+export const listAdminSales = async (
+  options?: RequestInit,
+): Promise<ClinicSale[]> => {
+  return customFetch<ClinicSale[]>(getListAdminSalesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAdminSalesQueryKey = () => {
+  return [`/api/admin/sales`] as const;
+};
+
+export const getListAdminSalesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminSales>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminSales>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAdminSalesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdminSales>>> = ({
+    signal,
+  }) => listAdminSales({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminSales>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminSalesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminSales>>
+>;
+export type ListAdminSalesQueryError = ErrorType<unknown>;
+
+export function useListAdminSales<
+  TData = Awaited<ReturnType<typeof listAdminSales>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminSales>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminSalesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getCreateAdminSaleUrl = () => {
+  return `/api/admin/sales`;
+};
+
+export const createAdminSale = async (
+  clinicSaleInput: ClinicSaleInput,
+  options?: RequestInit,
+): Promise<ClinicSale> => {
+  return customFetch<ClinicSale>(getCreateAdminSaleUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(clinicSaleInput),
+  });
+};
+
+export const getCreateAdminSaleMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminSale>>,
+    TError,
+    { data: BodyType<ClinicSaleInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAdminSale>>,
+  TError,
+  { data: BodyType<ClinicSaleInput> },
+  TContext
+> => {
+  const mutationKey = ["createAdminSale"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAdminSale>>,
+    { data: BodyType<ClinicSaleInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAdminSale(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAdminSaleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAdminSale>>
+>;
+export type CreateAdminSaleMutationBody = BodyType<ClinicSaleInput>;
+export type CreateAdminSaleMutationError = ErrorType<unknown>;
+
+export const useCreateAdminSale = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAdminSale>>,
+    TError,
+    { data: BodyType<ClinicSaleInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAdminSale>>,
+  TError,
+  { data: BodyType<ClinicSaleInput> },
+  TContext
+> => {
+  return useMutation(getCreateAdminSaleMutationOptions(options));
+};
+
+export const getAddAdminSaleEntryUrl = (id: number) => {
+  return `/api/admin/sales/${id}/entries`;
+};
+
+export const addAdminSaleEntry = async (
+  id: number,
+  clinicSaleEntryInput: ClinicSaleEntryInput,
+  options?: RequestInit,
+): Promise<ClinicSale> => {
+  return customFetch<ClinicSale>(getAddAdminSaleEntryUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(clinicSaleEntryInput),
+  });
+};
+
+export const getAddAdminSaleEntryMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addAdminSaleEntry>>,
+    TError,
+    { id: number; data: BodyType<ClinicSaleEntryInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addAdminSaleEntry>>,
+  TError,
+  { id: number; data: BodyType<ClinicSaleEntryInput> },
+  TContext
+> => {
+  const mutationKey = ["addAdminSaleEntry"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addAdminSaleEntry>>,
+    { id: number; data: BodyType<ClinicSaleEntryInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return addAdminSaleEntry(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddAdminSaleEntryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addAdminSaleEntry>>
+>;
+export type AddAdminSaleEntryMutationBody = BodyType<ClinicSaleEntryInput>;
+export type AddAdminSaleEntryMutationError = ErrorType<unknown>;
+
+export const useAddAdminSaleEntry = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addAdminSaleEntry>>,
+    TError,
+    { id: number; data: BodyType<ClinicSaleEntryInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof addAdminSaleEntry>>,
+  TError,
+  { id: number; data: BodyType<ClinicSaleEntryInput> },
+  TContext
+> => {
+  return useMutation(getAddAdminSaleEntryMutationOptions(options));
+};
+
+export const getVoidAdminSaleUrl = (id: number) => {
+  return `/api/admin/sales/${id}/void`;
+};
+
+export const voidAdminSale = async (
+  id: number,
+  clinicSaleVoidInput: ClinicSaleVoidInput,
+  options?: RequestInit,
+): Promise<ClinicSale> => {
+  return customFetch<ClinicSale>(getVoidAdminSaleUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(clinicSaleVoidInput),
+  });
+};
+
+export const getVoidAdminSaleMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof voidAdminSale>>,
+    TError,
+    { id: number; data: BodyType<ClinicSaleVoidInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof voidAdminSale>>,
+  TError,
+  { id: number; data: BodyType<ClinicSaleVoidInput> },
+  TContext
+> => {
+  const mutationKey = ["voidAdminSale"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof voidAdminSale>>,
+    { id: number; data: BodyType<ClinicSaleVoidInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return voidAdminSale(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type VoidAdminSaleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof voidAdminSale>>
+>;
+export type VoidAdminSaleMutationBody = BodyType<ClinicSaleVoidInput>;
+export type VoidAdminSaleMutationError = ErrorType<unknown>;
+
+export const useVoidAdminSale = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof voidAdminSale>>,
+    TError,
+    { id: number; data: BodyType<ClinicSaleVoidInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof voidAdminSale>>,
+  TError,
+  { id: number; data: BodyType<ClinicSaleVoidInput> },
+  TContext
+> => {
+  return useMutation(getVoidAdminSaleMutationOptions(options));
+};
+
+export const getGetAdminFinancialReportUrl = (
+  params: GetAdminFinancialReportParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/financial-report?${stringifiedParams}`
+    : `/api/admin/financial-report`;
+};
+
+export const getAdminFinancialReport = async (
+  params: GetAdminFinancialReportParams,
+  options?: RequestInit,
+): Promise<ClinicFinancialReport> => {
+  return customFetch<ClinicFinancialReport>(
+    getGetAdminFinancialReportUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetAdminFinancialReportQueryKey = (
+  params?: GetAdminFinancialReportParams,
+) => {
+  return [`/api/admin/financial-report`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetAdminFinancialReportQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminFinancialReport>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetAdminFinancialReportParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminFinancialReport>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetAdminFinancialReportQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAdminFinancialReport>>
+  > = ({ signal }) =>
+    getAdminFinancialReport(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminFinancialReport>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminFinancialReportQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminFinancialReport>>
+>;
+export type GetAdminFinancialReportQueryError = ErrorType<unknown>;
+
+export function useGetAdminFinancialReport<
+  TData = Awaited<ReturnType<typeof getAdminFinancialReport>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetAdminFinancialReportParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminFinancialReport>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminFinancialReportQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * Returns server health status

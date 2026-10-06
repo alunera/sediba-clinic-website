@@ -7,6 +7,7 @@ import adminRouter from "./admin";
 import adminAvailabilityRouter from "./admin-availability";
 import paymentsRouter from "./payments";
 import clientRecordsRouter from "./client-records";
+import salesRouter from "./sales";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(adminRouter);
 router.use(adminAvailabilityRouter);
 router.use(paymentsRouter);
 router.use(clientRecordsRouter);
+router.use(salesRouter);
 
 export default router;

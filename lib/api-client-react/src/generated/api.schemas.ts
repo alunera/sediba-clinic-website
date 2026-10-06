@@ -373,6 +373,183 @@ export interface OpenaiError {
   error: string;
 }
 
+export type ClinicSaleItemKind =
+  (typeof ClinicSaleItemKind)[keyof typeof ClinicSaleItemKind];
+
+export const ClinicSaleItemKind = {
+  treatment: "treatment",
+  product: "product",
+} as const;
+
+export interface ClinicSaleItem {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  description: string;
+  kind: ClinicSaleItemKind;
+  /**
+   * @minimum 1
+   * @maximum 1000
+   */
+  quantity: number;
+  /**
+   * @minimum 1
+   * @maximum 100000000
+   */
+  unitPriceCents: number;
+}
+
+export interface ClinicSaleInput {
+  /**
+   * @minLength 16
+   * @maxLength 100
+   */
+  requestId: string;
+  /** @minimum 1 */
+  clientId: number;
+  /** @maxLength 2000 */
+  notes?: string;
+  /**
+   * @minItems 1
+   * @maxItems 50
+   */
+  items: ClinicSaleItem[];
+}
+
+export type ClinicSaleEntryInputKind =
+  (typeof ClinicSaleEntryInputKind)[keyof typeof ClinicSaleEntryInputKind];
+
+export const ClinicSaleEntryInputKind = {
+  payment: "payment",
+  refund: "refund",
+} as const;
+
+export type ClinicSaleEntryInputMethod =
+  (typeof ClinicSaleEntryInputMethod)[keyof typeof ClinicSaleEntryInputMethod];
+
+export const ClinicSaleEntryInputMethod = {
+  cash: "cash",
+  eft: "eft",
+  card_external: "card_external",
+} as const;
+
+export interface ClinicSaleEntryInput {
+  /**
+   * @minLength 16
+   * @maxLength 100
+   */
+  requestId: string;
+  kind: ClinicSaleEntryInputKind;
+  /**
+   * @minimum 1
+   * @maximum 100000000
+   */
+  amountCents: number;
+  method: ClinicSaleEntryInputMethod;
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   */
+  reason: string;
+}
+
+export interface ClinicSaleVoidInput {
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   */
+  reason: string;
+}
+
+export type ClinicSaleEntryKind =
+  (typeof ClinicSaleEntryKind)[keyof typeof ClinicSaleEntryKind];
+
+export const ClinicSaleEntryKind = {
+  payment: "payment",
+  refund: "refund",
+} as const;
+
+export interface ClinicSaleEntry {
+  id: number;
+  kind: ClinicSaleEntryKind;
+  amountCents: number;
+  method: string;
+  reason: string;
+  createdAt: string;
+}
+
+export type ClinicSaleStatus =
+  (typeof ClinicSaleStatus)[keyof typeof ClinicSaleStatus];
+
+export const ClinicSaleStatus = {
+  unpaid: "unpaid",
+  part_paid: "part_paid",
+  paid: "paid",
+  partially_refunded: "partially_refunded",
+  refunded: "refunded",
+  void: "void",
+} as const;
+
+export interface ClinicSale {
+  id: number;
+  reference: string;
+  clientId: number;
+  clientName: string;
+  items: ClinicSaleItem[];
+  totalCents: number;
+  paidCents: number;
+  refundedCents: number;
+  outstandingCents: number;
+  status: ClinicSaleStatus;
+  notes: string;
+  voidReason: string;
+  createdAt: string;
+  entries: ClinicSaleEntry[];
+}
+
+export type ClinicFinancialRowSource =
+  (typeof ClinicFinancialRowSource)[keyof typeof ClinicFinancialRowSource];
+
+export const ClinicFinancialRowSource = {
+  manual_sale: "manual_sale",
+  booking_payment: "booking_payment",
+} as const;
+
+export type ClinicFinancialRowKind =
+  (typeof ClinicFinancialRowKind)[keyof typeof ClinicFinancialRowKind];
+
+export const ClinicFinancialRowKind = {
+  payment: "payment",
+  refund: "refund",
+} as const;
+
+export interface ClinicFinancialRow {
+  reference: string;
+  clientName: string;
+  source: ClinicFinancialRowSource;
+  kind: ClinicFinancialRowKind;
+  amountCents: number;
+  method: string;
+  createdAt: string;
+}
+
+export interface ClinicFinancialReport {
+  from: string;
+  to: string;
+  receivedCents: number;
+  refundedCents: number;
+  netReceiptsCents: number;
+  manualSalesCents: number;
+  outstandingCents: number;
+  rows: ClinicFinancialRow[];
+}
+
+export type GetAdminFinancialReportParams = {
+  from: string;
+  to: string;
+};
+
 export type GetAvailabilityParams = {
   date: string;
   serviceId?: number;

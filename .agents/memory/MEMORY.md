@@ -1,3 +1,4 @@
 - [api-zod index.ts codegen clobber](api-zod-index-clobber.md) — orval codegen overwrites lib/api-zod/src/index.ts with a broken double-export; must reset after every codegen run
 - [Sedi service catalog](sedi-service-catalog.md) — Sedi must quote the newer branded Services-page menu, not the legacy live-booking catalog.
 - [Salonbridge transition](salonbridge-transition.md) — Client profiles come first; verify sales, reporting and messaging separately before calling it a replacement.
+- [Financial recording rules](financial-recording-rules.md) — Keep manual and booking receipts separate; refunds do not reopen debt; validate integer money explicitly.

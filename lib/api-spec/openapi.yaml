@@ -19,6 +19,91 @@ tags:
   - name: admin
     description: Admin management operations
 paths:
+  /admin/sales:
+    get:
+      operationId: listAdminSales
+      tags: [admin]
+      responses:
+        "200":
+          description: Manual sales with payment and refund history
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ClinicSale" }
+    post:
+      operationId: createAdminSale
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClinicSaleInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClinicSale" }
+  /admin/sales/{id}/entries:
+    post:
+      operationId: addAdminSaleEntry
+      tags: [admin]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClinicSaleEntryInput" }
+      responses:
+        "200":
+          description: Updated sale
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClinicSale" }
+  /admin/sales/{id}/void:
+    post:
+      operationId: voidAdminSale
+      tags: [admin]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClinicSaleVoidInput" }
+      responses:
+        "200":
+          description: Voided unpaid sale
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClinicSale" }
+  /admin/financial-report:
+    get:
+      operationId: getAdminFinancialReport
+      tags: [admin]
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Recorded receipts and manual refunds by Johannesburg transaction date
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClinicFinancialReport" }
   /healthz:
     get:
       operationId: healthCheck
@@ -1300,3 +1385,95 @@ components:
           type: string
       required:
         - error
+
+    ClinicSaleItem:
+      type: object
+      required: [description, kind, quantity, unitPriceCents]
+      properties:
+        description: { type: string, minLength: 1, maxLength: 200 }
+        kind: { type: string, enum: [treatment, product] }
+        quantity: { type: integer, minimum: 1, maximum: 1000 }
+        unitPriceCents: { type: integer, minimum: 1, maximum: 100000000 }
+    ClinicSaleInput:
+      type: object
+      required: [requestId, clientId, items]
+      properties:
+        requestId: { type: string, minLength: 16, maxLength: 100 }
+        clientId: { type: integer, minimum: 1 }
+        notes: { type: string, maxLength: 2000 }
+        items:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: "#/components/schemas/ClinicSaleItem" }
+    ClinicSaleEntryInput:
+      type: object
+      required: [requestId, kind, amountCents, method, reason]
+      properties:
+        requestId: { type: string, minLength: 16, maxLength: 100 }
+        kind: { type: string, enum: [payment, refund] }
+        amountCents: { type: integer, minimum: 1, maximum: 100000000 }
+        method: { type: string, enum: [cash, eft, card_external] }
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    ClinicSaleVoidInput:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 1000 }
+    ClinicSaleEntry:
+      type: object
+      required: [id, kind, amountCents, method, reason, createdAt]
+      properties:
+        id: { type: integer }
+        kind: { type: string, enum: [payment, refund] }
+        amountCents: { type: integer }
+        method: { type: string }
+        reason: { type: string }
+        createdAt: { type: string }
+    ClinicSale:
+      type: object
+      required: [id, reference, clientId, clientName, items, totalCents, paidCents, refundedCents, outstandingCents, status, notes, createdAt, entries, voidReason]
+      properties:
+        id: { type: integer }
+        reference: { type: string }
+        clientId: { type: integer }
+        clientName: { type: string }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ClinicSaleItem" }
+        totalCents: { type: integer }
+        paidCents: { type: integer }
+        refundedCents: { type: integer }
+        outstandingCents: { type: integer }
+        status: { type: string, enum: [unpaid, part_paid, paid, partially_refunded, refunded, void] }
+        notes: { type: string }
+        voidReason: { type: string }
+        createdAt: { type: string }
+        entries:
+          type: array
+          items: { $ref: "#/components/schemas/ClinicSaleEntry" }
+    ClinicFinancialRow:
+      type: object
+      required: [reference, clientName, source, kind, amountCents, method, createdAt]
+      properties:
+        reference: { type: string }
+        clientName: { type: string }
+        source: { type: string, enum: [manual_sale, booking_payment] }
+        kind: { type: string, enum: [payment, refund] }
+        amountCents: { type: integer }
+        method: { type: string }
+        createdAt: { type: string }
+    ClinicFinancialReport:
+      type: object
+      required: [from, to, receivedCents, refundedCents, netReceiptsCents, manualSalesCents, outstandingCents, rows]
+      properties:
+        from: { type: string }
+        to: { type: string }
+        receivedCents: { type: integer }
+        refundedCents: { type: integer }
+        netReceiptsCents: { type: integer }
+        manualSalesCents: { type: integer }
+        outstandingCents: { type: integer }
+        rows:
+          type: array
+          items: { $ref: "#/components/schemas/ClinicFinancialRow" }

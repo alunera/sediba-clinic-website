@@ -7,6 +7,272 @@
  */
 import * as zod from "zod";
 
+export const listAdminSalesResponseItemsItemDescriptionMax = 200;
+
+export const listAdminSalesResponseItemsItemQuantityMax = 1000;
+
+export const listAdminSalesResponseItemsItemUnitPriceCentsMax = 100000000;
+
+export const ListAdminSalesResponseItem = zod.object({
+  id: zod.number(),
+  reference: zod.string(),
+  clientId: zod.number(),
+  clientName: zod.string(),
+  items: zod.array(
+    zod.object({
+      description: zod
+        .string()
+        .min(1)
+        .max(listAdminSalesResponseItemsItemDescriptionMax),
+      kind: zod.enum(["treatment", "product"]),
+      quantity: zod
+        .number()
+        .min(1)
+        .max(listAdminSalesResponseItemsItemQuantityMax),
+      unitPriceCents: zod
+        .number()
+        .min(1)
+        .max(listAdminSalesResponseItemsItemUnitPriceCentsMax),
+    }),
+  ),
+  totalCents: zod.number(),
+  paidCents: zod.number(),
+  refundedCents: zod.number(),
+  outstandingCents: zod.number(),
+  status: zod.enum([
+    "unpaid",
+    "part_paid",
+    "paid",
+    "partially_refunded",
+    "refunded",
+    "void",
+  ]),
+  notes: zod.string(),
+  voidReason: zod.string(),
+  createdAt: zod.string(),
+  entries: zod.array(
+    zod.object({
+      id: zod.number(),
+      kind: zod.enum(["payment", "refund"]),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reason: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+export const ListAdminSalesResponse = zod.array(ListAdminSalesResponseItem);
+
+export const createAdminSaleBodyRequestIdMin = 16;
+export const createAdminSaleBodyRequestIdMax = 100;
+
+export const createAdminSaleBodyNotesMax = 2000;
+
+export const createAdminSaleBodyItemsItemDescriptionMax = 200;
+
+export const createAdminSaleBodyItemsItemQuantityMax = 1000;
+
+export const createAdminSaleBodyItemsItemUnitPriceCentsMax = 100000000;
+
+export const createAdminSaleBodyItemsMax = 50;
+
+export const CreateAdminSaleBody = zod.object({
+  requestId: zod
+    .string()
+    .min(createAdminSaleBodyRequestIdMin)
+    .max(createAdminSaleBodyRequestIdMax),
+  clientId: zod.number().min(1),
+  notes: zod.string().max(createAdminSaleBodyNotesMax).optional(),
+  items: zod
+    .array(
+      zod.object({
+        description: zod
+          .string()
+          .min(1)
+          .max(createAdminSaleBodyItemsItemDescriptionMax),
+        kind: zod.enum(["treatment", "product"]),
+        quantity: zod
+          .number()
+          .min(1)
+          .max(createAdminSaleBodyItemsItemQuantityMax),
+        unitPriceCents: zod
+          .number()
+          .min(1)
+          .max(createAdminSaleBodyItemsItemUnitPriceCentsMax),
+      }),
+    )
+    .min(1)
+    .max(createAdminSaleBodyItemsMax),
+});
+
+export const AddAdminSaleEntryParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const addAdminSaleEntryBodyRequestIdMin = 16;
+export const addAdminSaleEntryBodyRequestIdMax = 100;
+
+export const addAdminSaleEntryBodyAmountCentsMax = 100000000;
+
+export const addAdminSaleEntryBodyReasonMax = 1000;
+
+export const AddAdminSaleEntryBody = zod.object({
+  requestId: zod
+    .string()
+    .min(addAdminSaleEntryBodyRequestIdMin)
+    .max(addAdminSaleEntryBodyRequestIdMax),
+  kind: zod.enum(["payment", "refund"]),
+  amountCents: zod.number().min(1).max(addAdminSaleEntryBodyAmountCentsMax),
+  method: zod.enum(["cash", "eft", "card_external"]),
+  reason: zod.string().min(1).max(addAdminSaleEntryBodyReasonMax),
+});
+
+export const addAdminSaleEntryResponseItemsItemDescriptionMax = 200;
+
+export const addAdminSaleEntryResponseItemsItemQuantityMax = 1000;
+
+export const addAdminSaleEntryResponseItemsItemUnitPriceCentsMax = 100000000;
+
+export const AddAdminSaleEntryResponse = zod.object({
+  id: zod.number(),
+  reference: zod.string(),
+  clientId: zod.number(),
+  clientName: zod.string(),
+  items: zod.array(
+    zod.object({
+      description: zod
+        .string()
+        .min(1)
+        .max(addAdminSaleEntryResponseItemsItemDescriptionMax),
+      kind: zod.enum(["treatment", "product"]),
+      quantity: zod
+        .number()
+        .min(1)
+        .max(addAdminSaleEntryResponseItemsItemQuantityMax),
+      unitPriceCents: zod
+        .number()
+        .min(1)
+        .max(addAdminSaleEntryResponseItemsItemUnitPriceCentsMax),
+    }),
+  ),
+  totalCents: zod.number(),
+  paidCents: zod.number(),
+  refundedCents: zod.number(),
+  outstandingCents: zod.number(),
+  status: zod.enum([
+    "unpaid",
+    "part_paid",
+    "paid",
+    "partially_refunded",
+    "refunded",
+    "void",
+  ]),
+  notes: zod.string(),
+  voidReason: zod.string(),
+  createdAt: zod.string(),
+  entries: zod.array(
+    zod.object({
+      id: zod.number(),
+      kind: zod.enum(["payment", "refund"]),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reason: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
+export const VoidAdminSaleParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const voidAdminSaleBodyReasonMax = 1000;
+
+export const VoidAdminSaleBody = zod.object({
+  reason: zod.string().min(1).max(voidAdminSaleBodyReasonMax),
+});
+
+export const voidAdminSaleResponseItemsItemDescriptionMax = 200;
+
+export const voidAdminSaleResponseItemsItemQuantityMax = 1000;
+
+export const voidAdminSaleResponseItemsItemUnitPriceCentsMax = 100000000;
+
+export const VoidAdminSaleResponse = zod.object({
+  id: zod.number(),
+  reference: zod.string(),
+  clientId: zod.number(),
+  clientName: zod.string(),
+  items: zod.array(
+    zod.object({
+      description: zod
+        .string()
+        .min(1)
+        .max(voidAdminSaleResponseItemsItemDescriptionMax),
+      kind: zod.enum(["treatment", "product"]),
+      quantity: zod
+        .number()
+        .min(1)
+        .max(voidAdminSaleResponseItemsItemQuantityMax),
+      unitPriceCents: zod
+        .number()
+        .min(1)
+        .max(voidAdminSaleResponseItemsItemUnitPriceCentsMax),
+    }),
+  ),
+  totalCents: zod.number(),
+  paidCents: zod.number(),
+  refundedCents: zod.number(),
+  outstandingCents: zod.number(),
+  status: zod.enum([
+    "unpaid",
+    "part_paid",
+    "paid",
+    "partially_refunded",
+    "refunded",
+    "void",
+  ]),
+  notes: zod.string(),
+  voidReason: zod.string(),
+  createdAt: zod.string(),
+  entries: zod.array(
+    zod.object({
+      id: zod.number(),
+      kind: zod.enum(["payment", "refund"]),
+      amountCents: zod.number(),
+      method: zod.string(),
+      reason: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
+export const GetAdminFinancialReportQueryParams = zod.object({
+  from: zod.coerce.string(),
+  to: zod.coerce.string(),
+});
+
+export const GetAdminFinancialReportResponse = zod.object({
+  from: zod.string(),
+  to: zod.string(),
+  receivedCents: zod.number(),
+  refundedCents: zod.number(),
+  netReceiptsCents: zod.number(),
+  manualSalesCents: zod.number(),
+  outstandingCents: zod.number(),
+  rows: zod.array(
+    zod.object({
+      reference: zod.string(),
+      clientName: zod.string(),
+      source: zod.enum(["manual_sale", "booking_payment"]),
+      kind: zod.enum(["payment", "refund"]),
+      amountCents: zod.number(),
+      method: zod.string(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
 /**
  * Returns server health status
  * @summary Health check

@@ -104,10 +104,13 @@ export default function AdminDashboard() {
 
         <div className="bg-card border border-border p-6 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-muted-foreground uppercase tracking-widest text-[10px]">Today's Revenue</span>
+            <span className="text-muted-foreground uppercase tracking-widest text-[10px]">Today's booking value</span>
             <DollarSign className="w-4 h-4 text-primary" />
           </div>
-          <span className="font-serif text-4xl">R{(stats.todayRevenue / 100).toFixed(2)}</span>
+          <span className="font-serif text-4xl" data-testid="text-booking-value">R{(stats.todayRevenue / 100).toFixed(2)}</span>
+          <p className="mt-3 pt-3 border-t border-border text-[11px] text-muted-foreground leading-relaxed">
+            Listed price of today's confirmed bookings. Not money received. See <a href={`${import.meta.env.BASE_URL.replace(/\/$/, "")}/admin/reports`} className="underline underline-offset-2">Reports</a> for actual receipts.
+          </p>
         </div>
 
         <div className="bg-card border border-border p-6 flex flex-col justify-between">

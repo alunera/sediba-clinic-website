@@ -73,6 +73,30 @@ const MIGRATIONS = [
    )`,
   `ALTER TABLE appointments ADD COLUMN IF NOT EXISTS client_record_id INTEGER REFERENCES client_records(id)`,
   `CREATE INDEX IF NOT EXISTS appointments_client_record_id_idx ON appointments (client_record_id)`,
+  `CREATE TABLE IF NOT EXISTS clinic_sales (
+    id SERIAL PRIMARY KEY,
+    request_id TEXT NOT NULL UNIQUE,
+    client_id INTEGER NOT NULL REFERENCES client_records(id),
+    client_name TEXT NOT NULL,
+    items JSONB NOT NULL,
+    total_cents INTEGER NOT NULL CHECK (total_cents > 0 AND total_cents <= 100000000),
+    notes TEXT NOT NULL DEFAULT '',
+    void_reason TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    voided_at TIMESTAMPTZ
+  )`,
+  `CREATE TABLE IF NOT EXISTS clinic_sale_entries (
+    id SERIAL PRIMARY KEY,
+    sale_id INTEGER NOT NULL REFERENCES clinic_sales(id),
+    request_id TEXT NOT NULL UNIQUE,
+    kind TEXT NOT NULL CHECK (kind IN ('payment', 'refund')),
+    amount_cents INTEGER NOT NULL CHECK (amount_cents > 0 AND amount_cents <= 100000000),
+    method TEXT NOT NULL CHECK (method IN ('cash', 'eft', 'card_external')),
+    reason TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS clinic_sale_entries_sale_idx ON clinic_sale_entries (sale_id)`,
+  `CREATE INDEX IF NOT EXISTS clinic_sale_entries_date_idx ON clinic_sale_entries (created_at)`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can
