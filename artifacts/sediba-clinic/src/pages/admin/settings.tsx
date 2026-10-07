@@ -207,7 +207,7 @@ export default function AdminSettings() {
               placeholder="https://g.page/r/..."
               className="rounded-none border-border bg-background focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary h-12"
             />
-            <p className="text-xs text-muted-foreground mt-2">This link will be sent to clients after completed appointments.</p>
+            <p className="text-xs text-muted-foreground mt-2">Used in manual Google review requests for completed appointments. Use the HTTPS review link from your Google Business Profile. Staff open WhatsApp and press Send; nothing is sent automatically.</p>
           </div>
         </div>
 

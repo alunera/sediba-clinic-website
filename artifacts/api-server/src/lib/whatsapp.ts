@@ -1,7 +1,12 @@
 /**
- * WhatsApp notification service.
+ * Dormant WhatsApp notification service.
  *
- * When all three Twilio environment variables are set the service delivers real
+ * The clinic has selected manual messaging. messaging-policy disables all
+ * provider sends and scheduling, even if credentials are present. The admin
+ * click-to-chat feature does not use this provider implementation.
+ *
+ * If automation is explicitly reintroduced, all three Twilio variables below
+ * would be required for the legacy service to deliver real
  * WhatsApp messages via the Twilio API.  When any of them is absent the service
  * falls back to stub mode: the message is logged as a warning and no HTTP call
  * is made to Twilio.
@@ -16,6 +21,8 @@ import twilio from "twilio";
 import { db, appointmentsTable, servicesTable } from "@workspace/db";
 import { isNull, isNotNull, and, eq } from "drizzle-orm";
 import { logger } from "./logger";
+
+import { MANUAL_ONLY } from "./messaging-policy";
 
 export interface AppointmentDetails {
   appointmentId: number;
@@ -102,6 +109,7 @@ export function buildReminderMessage(appt: AppointmentDetails): string {
  * the server can run in development / CI without Twilio access.
  */
 export async function sendWhatsAppMessage(to: string, body: string): Promise<void> {
+  if (MANUAL_ONLY) throw new Error("Automatic WhatsApp delivery is disabled; use the admin manual message action.");
   const sid  = process.env.TWILIO_ACCOUNT_SID;
   const token = process.env.TWILIO_AUTH_TOKEN;
   const from  = process.env.TWILIO_WHATSAPP_FROM;
@@ -129,6 +137,7 @@ export async function sendWhatsAppMessage(to: string, body: string): Promise<voi
 export async function sendBookingConfirmation(
   appt: AppointmentDetails,
 ): Promise<void> {
+  if (MANUAL_ONLY) return;
   const to = appt.clientWhatsapp ?? appt.clientName; // fallback for logging
   if (!appt.clientWhatsapp) {
     logger.info(
@@ -267,6 +276,7 @@ export function scheduleReminderMessage(
   appt: AppointmentDetails,
   reminderAt: Date,
 ): void {
+  if (MANUAL_ONLY) return;
   if (!appt.clientWhatsapp) {
     return;
   }
@@ -281,6 +291,7 @@ export function scheduleReminderMessage(
  * name, and enqueues each one. Past-due reminders are fired immediately.
  */
 export async function rehydrateReminders(): Promise<void> {
+  if (MANUAL_ONLY) return;
   logger.info("[WhatsApp] Rehydrating pending reminders from database…");
 
   try {

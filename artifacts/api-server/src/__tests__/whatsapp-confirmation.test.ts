@@ -13,6 +13,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+// Retain coverage of the dormant provider implementation; production is manual-only.
+vi.mock("../lib/messaging-policy", () => ({ MANUAL_ONLY: false }));
 
 // ─── Hoisted spies ────────────────────────────────────────────────────────────
 // vi.mock factories are hoisted above all imports, so any variables they close

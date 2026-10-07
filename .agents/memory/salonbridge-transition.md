@@ -9,11 +9,11 @@ Build the Salonbridge replacement incrementally on the existing Sediba booking/p
 
 **How to apply:** Distinguish stored birth dates from permission to send birthday marketing, booking values from verified payments, and provider delivery code from configured, tested messaging. Do not assume historical Salonbridge data can be imported without inspecting an actual export.
 
-The user specified the remaining scope as “bookkeeping, profit & loss and product reporting, as well as the WhatsApp and Google review automations.”
+The user specified bookkeeping, profit & loss, product reporting and WhatsApp/Google review messaging, then chose manual messaging instead of paid automation.
 
-**Why:** The user clarified the capabilities they want, beyond the existing receipts report.
+**Why:** After comparing provider subscriptions and setup requirements, the user said “lets go manual.”
 
-**How to apply:** Include these capabilities in remaining-work discussions. WhatsApp is back in scope rather than indefinitely deferred; this is not permission to send real messages during testing. Do not equate net receipts with profit or a saved review link with working automation.
+**How to apply:** Prepare confirmation, reminder and review-request messages for staff to review and send in WhatsApp. No paid provider, automated delivery or false delivery tracking. Do not reactivate automation just because credentials exist or an older task mentions it. Do not send real messages during testing.
 
 Keep the clinic's current number working in the WhatsApp Business phone app when adding automation.
 

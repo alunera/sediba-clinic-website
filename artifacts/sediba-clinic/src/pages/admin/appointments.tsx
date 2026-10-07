@@ -8,6 +8,7 @@ import {
 } from "@workspace/api-client-react";
 import { Wallet } from "lucide-react";
 import { AppointmentPaymentDialog } from "@/components/admin/appointment-payment-dialog";
+import { ManualWhatsApp } from "@/components/admin/manual-whatsapp";
 import { formatRand } from "@/lib/money";
 import { useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -223,6 +224,7 @@ export default function AdminAppointments() {
                       >
                         <Wallet className="w-3.5 h-3.5" aria-hidden="true" />Payments
                       </button>
+                      <ManualWhatsApp appointment={appt} />
                       </div>
                     </td>
                   </tr>

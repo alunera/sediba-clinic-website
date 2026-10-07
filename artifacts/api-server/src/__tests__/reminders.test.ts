@@ -11,6 +11,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+// Retain coverage of the dormant automation implementation; production is manual-only.
+vi.mock("../lib/messaging-policy", () => ({ MANUAL_ONLY: false }));
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
