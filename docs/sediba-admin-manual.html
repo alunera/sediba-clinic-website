@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sediba — Admin User Manual</title>
+<style>
+:root{--ink:#252521;--gold:#a78658;--line:#ded8cf;--paper:#fff;--soft:#f6f3ee}
+*{box-sizing:border-box}body{margin:0;background:var(--soft);color:var(--ink);font:16px/1.65 Arial,sans-serif}
+main{max-width:920px;margin:36px auto;background:var(--paper);padding:60px}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.2}h1{font-size:44px;margin:12px 0}h2{font-size:28px;border-top:1px solid var(--line);padding-top:30px;margin-top:42px}h3{font-size:20px;margin-top:26px}
+.eyebrow{color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:3px}.lead{font-size:20px;color:#656158}.small{font-size:13px;color:#656158}
+a{color:#735733}nav{background:var(--soft);padding:22px 28px;margin:30px 0}nav ol{columns:2;margin:0;padding-left:20px}li{margin:7px 0}
+.note,.warning{padding:16px 20px;background:var(--soft);border-left:4px solid var(--gold);margin:22px 0}.warning{background:#fff7e9;border-color:#986328}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:var(--soft)}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:18px}
+@media(max-width:650px){main{margin:0;padding:26px}h1{font-size:34px}nav ol{columns:1}td,th{padding:8px}}
+@media print{body{background:white;font-size:11pt}main{margin:0;max-width:none;padding:0}nav{break-after:page}h2,h3{break-after:avoid}tr,.note,.warning{break-inside:avoid}a{color:inherit}footer{font-size:9pt}@page{size:A4;margin:18mm}}
+</style>
+</head>
+<body><main>
+<header><div class="eyebrow">Sediba Aesthetic &amp; Wellness Clinic</div>
+<h1>Admin User Manual</h1>
+<p class="lead">A practical guide for the clinic owner and staff.</p>
+<p class="small">Prepared 7 October 2026 · Website administration · Version 1</p>
+<p>This guide covers the current website, not the mobile app. It explains everyday work and the checks needed to keep bookings, money and stock accurate. Menu labels may change as the website develops.</p>
+<div class="warning"><strong>This is the live clinic system.</strong> Use real client records and real transactions only. Do not create dummy sales, payments or bookings while learning. Yoco is live, as confirmed by the clinic owner. Recording a payment manually is different from charging a card.</div>
+</header>
+<nav aria-label="Contents"><strong>Contents</strong><ol>
+<li><a href="#start">Sign in and get oriented</a></li><li><a href="#clients">Add and manage clients</a></li>
+<li><a href="#appointments">Manage appointments</a></li><li><a href="#availability">Set booking availability</a></li>
+<li><a href="#payments">Booking payments and refunds</a></li><li><a href="#whatsapp">Send manual WhatsApp messages</a></li>
+<li><a href="#sales">Record separate clinic sales</a></li><li><a href="#stock">Manage products and stock</a></li>
+<li><a href="#books">Bookkeeping and bank deposits</a></li><li><a href="#reports">Read reports correctly</a></li>
+<li><a href="#settings">Update settings</a></li><li><a href="#routine">Daily routine and troubleshooting</a></li>
+</ol></nav>
+
+<section id="start"><h2>1. Sign in and get oriented</h2>
+<ol><li>Open the clinic website and select <strong>Staff Login</strong>.</li><li>Sign in using the clinic’s authorised admin credentials, supplied separately. Never include a password in this manual or send it with a public website link.</li><li>Start at <strong>Dashboard</strong> to review the overview and upcoming appointments. Use the admin navigation to open the relevant section.</li><li>On smaller screens, open the navigation menu. Wide tables may require horizontal scrolling to reach the actions on the right.</li><li>Sign out when you finish, especially on a shared computer. If your session expires, sign in again.</li></ol>
+<table><tr><th>Section</th><th>Use it for</th></tr>
+<tr><td>Dashboard / Calendar / Appointments</td><td>Review the schedule; manage appointment status and booking payments.</td></tr>
+<tr><td>Clients</td><td>Add and maintain client records.</td></tr>
+<tr><td>Availability</td><td>Manage the dates and times clients can book.</td></tr>
+<tr><td>Sales / Stock</td><td>Record separate clinic sales and maintain products and physical quantities.</td></tr>
+<tr><td>Bookkeeping / Reports / Profit &amp; products</td><td>Record expenses, match deposits and review money and product performance.</td></tr>
+<tr><td>Settings</td><td>Maintain clinic details, consultation settings and the Google review link.</td></tr></table>
+</section>
+
+<section id="clients"><h2>2. Add and manage clients</h2>
+<p><strong>Existing clients can be added immediately.</strong> They do not need to make an online booking first.</p>
+<ol><li>Open <strong>Clients</strong> and search for the person first to avoid duplicates.</li><li>If no existing record matches, select <strong>New client</strong>.</li><li>Enter the client’s details in the available fields. Check the name and contact numbers carefully; add other information only where appropriate and authorised.</li><li>Select <strong>Create client</strong>.</li><li>Open the saved client record to review it. Use its edit controls to correct details later.</li></ol>
+<div class="note">Add existing clients individually. This guide does not assume that a bulk Salonbridge import has been configured. A stored birthday or phone number is not permission to send marketing messages.</div>
+<p>Only store information needed for clinic operations. Do not share client lists, screenshots or exported reports with unauthorised people.</p>
+</section>
+
+<section id="appointments"><h2>3. Manage appointments</h2>
+<ol><li>Open <strong>Appointments</strong>.</li><li>Use the status tabs to narrow the list, such as <strong>Confirmed</strong>, <strong>Pending</strong> or <strong>Awaiting Payment</strong>.</li><li>Identify the correct booking using the reference, client, treatment, date and time.</li><li>Review both <strong>Payment</strong> and <strong>Booking Status</strong>. These are separate: changing a booking status does not record money.</li><li>Use the status dropdown in <strong>Actions</strong> when the real-world appointment status changes.</li></ol>
+<table><tr><th>Status</th><th>Staff action</th></tr>
+<tr><td>Pending</td><td>Review what is still needed before confirming.</td></tr>
+<tr><td>Awaiting Payment / Payment Failed</td><td>Check the payment record before attempting another collection. A failed screen alone is not proof that no money was taken.</td></tr>
+<tr><td>Confirmed</td><td>The appointment is expected to go ahead. Prepare the client’s confirmation or reminder if needed.</td></tr>
+<tr><td>Completed</td><td>Use after the appointment has taken place. A Google review request can then be prepared.</td></tr>
+<tr><td>Cancelled / No-show</td><td>Record the actual outcome. Handle any refund separately.</td></tr></table>
+<div class="warning">Cancelling an appointment does not automatically refund it. Recording a refund does not automatically cancel the appointment. Do not assume a manual “Confirmed” status means a payment was received.</div>
+</section>
+
+<section id="availability"><h2>4. Set booking availability</h2>
+<ol><li>Open <strong>Availability</strong> and choose the date you want to manage.</li><li>Review the existing time slots before adding more.</li><li>Use the available slot controls to add the times the clinic can actually accept bookings. For a custom time, use 24-hour format, for example <strong>09:30</strong> or <strong>18:15</strong>.</li><li>Remove unneeded, unbooked slots using the displayed controls.</li><li>Review the public booking calendar afterwards to confirm the intended dates and times are available.</li></ol>
+<p>If a slot has a booking, the system may block removal. Resolve the appointment with the client before changing its status; do not cancel a genuine appointment merely to tidy the calendar.</p>
+<div class="note">The working-hours text in Settings is not a substitute for configuring bookable slots in Availability.</div>
+</section>
+
+<section id="payments"><h2>5. Booking payments and refunds</h2>
+<h3>Online Yoco payments</h3>
+<p>Clients can pay through the live Yoco checkout. Review the booking’s payment status and history before collecting anything at the clinic. If a client says they paid but the record is unclear, check the transaction with Yoco rather than immediately requesting another payment.</p>
+<h3>Money received at the clinic for an existing booking</h3>
+<ol><li>In <strong>Appointments</strong>, find the booking and select <strong>Payments</strong>.</li><li>Check the total, amount paid, outstanding balance and transaction history.</li><li>Enter the amount actually received, no more than the outstanding balance.</li><li>Choose <strong>Cash</strong>, <strong>EFT</strong> or <strong>Card (external machine)</strong>.</li><li>Add a reference or note, such as an EFT reference or card slip number.</li><li>Tick the confirmation that the money has already been received, then select <strong>Record payment</strong>.</li></ol>
+<p>A partial payment leaves an outstanding balance. Paying the full balance confirms eligible pending bookings; completed and no-show bookings retain their status.</p>
+<div class="warning"><strong>Do not enter this booking again under Sales.</strong> That would duplicate the transaction. “Record payment” records money already collected; it does not charge a card or transfer money.</div>
+<h3>If collection is blocked</h3>
+<p>An unresolved Yoco checkout can block another payment to prevent double collection. Follow the warning in the payment panel. Use the displayed checkout and attempt references to reconcile with Yoco. Do not bypass the block by creating a separate sale.</p>
+<h3>Record a refund</h3>
+<ol><li>Return the money through the appropriate external method first. For Yoco, handle the refund in Yoco.</li><li>Open the booking’s <strong>Payments</strong> panel and the refund section.</li><li>Select the original payment and enter the refund amount, method, reference and reason. Use the actual Yoco refund transaction reference for a Yoco refund.</li><li>Confirm that the money has already been returned and select <strong>Record refund</strong>.</li></ol>
+<p>A refund reduces net receipts but does not reopen a previously paid balance. An existing unpaid balance remains unchanged. It also does not reverse a bank-deposit match.</p>
+</section>
+
+<section id="whatsapp"><h2>6. Send manual WhatsApp messages</h2>
+<ol><li>Open <strong>Appointments</strong> and select <strong>WhatsApp</strong> beside the correct booking.</li><li>Choose <strong>Send confirmation</strong>, <strong>Send reminder</strong> or <strong>Request Google review</strong>.</li><li>Check the recipient number. Local South African numbers are supported; include the country code for international numbers.</li><li>Read the prepared message and edit it if needed. Confirm the date, time and booking reference.</li><li>Select <strong>Open WhatsApp to send</strong>.</li><li>Make sure you are using the clinic’s WhatsApp Business account, not a personal account. Review the recipient again and press <strong>Send</strong> inside WhatsApp.</li></ol>
+<table><tr><th>Message</th><th>When available</th></tr>
+<tr><td>Confirmation / Reminder</td><td>Confirmed appointments with a future date and time.</td></tr>
+<tr><td>Google review request</td><td>Completed appointments, with a valid HTTPS review link saved in Settings.</td></tr></table>
+<div class="warning">Nothing is sent automatically. Neither the owner nor the client receives an automatic booking WhatsApp alert. Opening WhatsApp is not proof of sending or delivery, and the website does not mark the message as delivered. Check the conversation before sending again.</div>
+<p>A missing or invalid number, empty message, unsuitable appointment status or missing review link can disable the action. The prepared message omits treatment details for privacy. Only contact clients who agreed to receive these messages.</p>
+</section>
+
+<section id="sales"><h2>7. Record separate clinic sales</h2>
+<p>Use <strong>Sales</strong> for sales not already represented by an online booking—for example a separate retail product purchase.</p>
+<ol><li>Open <strong>Sales</strong> and start a new sale.</li><li>Search for and select the correct client. Create a client record first if needed.</li><li>Add the items, selecting the correct type. Choose the stock product where applicable; check quantities and unit selling prices.</li><li>Review the total and notes, then save the sale.</li><li>Open the sale and record the payment only after the money is received. Enter the amount, method and required note, and confirm receipt.</li></ol>
+<div class="note">A newly recorded sale is unpaid until a payment is recorded. Stocked product quantities are deducted when the sale is created, not when it is paid.</div>
+<h3>Corrections and refunds</h3>
+<p>Use the available refund or void controls rather than creating offsetting dummy sales. Refund entries describe money already returned outside the system. A voided sale remains in the register, requires a reason and cannot be reopened; follow any eligibility warning on screen.</p>
+<p>Neither refunding nor voiding automatically puts goods back into stock. Record a physical return separately only when the goods have actually returned and are usable.</p>
+</section>
+
+<section id="stock"><h2>8. Manage products and stock</h2>
+<ol><li>Open <strong>Stock</strong> and search by product name or SKU before creating a duplicate.</li><li>Use the product-add form to enter the product details, selling price, unit cost and opening quantity where requested. Count opening stock physically.</li><li>Save the product and review its detail screen.</li><li>When goods arrive, use the stock-received action, enter the quantity and add a supplier or invoice reference.</li><li>Use a return only for goods physically returned. Use an adjustment for a genuine count correction or damage, with a clear reason.</li><li>Review movement history to investigate unexpected balances.</li></ol>
+<p>Use whole units where required. Archive products that should no longer be sold rather than losing their history. Changing a product’s unit cost does not rewrite historical sale costs: costs are captured when each sale is created.</p>
+<div class="note">Receiving stock updates quantities; it does not automatically record a paid supplier expense. Record money paid for stock separately in Bookkeeping. Do not deduct stock again manually after a sale already deducted it.</div>
+</section>
+
+<section id="books"><h2>9. Bookkeeping and bank deposits</h2>
+<p>This is a cash-basis bookkeeping system, not a full accounting or tax system. Sales and booking receipts feed into the cashbook; do not re-enter them as new income.</p>
+<h3>Record a paid expense</h3>
+<ol><li>Open <strong>Bookkeeping</strong> and use <strong>Record a paid expense</strong>.</li><li>Enter the payment date, amount, category and other required details shown in the form.</li><li>Use a clear description/reference and retain the supporting receipt or invoice.</li><li>Confirm the expense has been paid and save it. Do not enter an unpaid bill as a paid expense.</li></ol>
+<h3>Match a bank deposit</h3>
+<ol><li>Compare the bank statement or provider settlement with the receipts in <strong>Match a bank deposit</strong>.</li><li>Select the receipts included in that deposit.</li><li>Enter the actual bank-deposit details and any provider fee. Check that the selected receipts, fee and bank amount reconcile.</li><li>Confirm you verified the deposit against the statement, then select <strong>Record match</strong>.</li><li>Review the saved entry in the <strong>Deposits</strong> tab.</li></ol>
+<div class="warning">A deposit match is not another sale or another receipt. A provider fee recorded with a deposit must not also be entered as a separate expense. Matching is manual verification, not an automatic bank feed.</div>
+<p>Use the date range and <strong>Show</strong> to review the ledger. Financial mistakes are preserved through voids with reasons rather than deleted. Follow the available void controls and retain evidence of the correction.</p>
+</section>
+
+<section id="reports"><h2>10. Read reports correctly</h2>
+<ol><li>Open the relevant report.</li><li>Select <strong>From</strong> and <strong>To</strong> dates, then apply the range using the displayed control. End dates are inclusive and reporting uses Johannesburg dates.</li><li>Check for a refresh-error warning before relying on the figures.</li><li>Review the totals and underlying rows together. Use <strong>Export CSV</strong> where offered to share the selected report securely.</li></ol>
+<table><tr><th>View</th><th>What it tells you</th><th>Do not assume</th></tr>
+<tr><td>Reports</td><td>Recorded receipts and refunds across sales and bookings.</td><td>That booking face values are money received, or net receipts are profit.</td></tr>
+<tr><td>Bookkeeping</td><td>Receipts, refunds, paid expenses, deposit fees and net cash movement.</td><td>That net cash movement is the bank balance or profit.</td></tr>
+<tr><td>Profit &amp; products</td><td>Cash-basis operating results plus separate product sales and margin information.</td><td>That it is a complete set of accounts or a tax return.</td></tr></table>
+<p>Product margins use the costs captured when a sale was created. They include unpaid, nonvoid sales and are measured before refunds; they are not cash received. Unknown historical costs are not zero. Refunds are not allocated to individual product lines.</p>
+<p>Paid product purchases are already deducted in the cash-basis result. Do not deduct the separate product-margin costs again. Share reports with the clinic’s bookkeeper when reconciling or preparing formal accounts.</p>
+</section>
+
+<section id="settings"><h2>11. Update settings</h2>
+<ol><li>Open <strong>Settings</strong>.</li><li>Check the clinic name, physical address, contact phone and contact email.</li><li>Paste the clinic’s Google review link into <strong>Google Review URL</strong>. It must be a valid link beginning with <strong>https://</strong>.</li><li>Select <strong>Save Settings</strong> and wait for the success message.</li><li>To change consultation duration or price, use the separate <strong>Consultation</strong> section and select <strong>Save Consultation</strong>.</li></ol>
+<p>Consultation settings apply to new consultation bookings. Do not assume that changing the price changes existing booking totals. Saving a Google review URL prepares the manual review-request feature; it does not send messages.</p>
+</section>
+
+<section id="routine"><h2>12. Daily routine and troubleshooting</h2>
+<h3>Opening checklist</h3>
+<ul><li>Review today’s appointments and payment statuses.</li><li>Check availability for upcoming days.</li><li>Prepare appropriate manual reminders; check WhatsApp history to avoid duplicates.</li><li>Check products needed for the day and investigate stock shortages.</li></ul>
+<h3>Closing checklist</h3>
+<ul><li>Update attended, cancelled and no-show appointments accurately.</li><li>Record money actually received and any money already refunded.</li><li>Record paid expenses and physical stock movements.</li><li>Compare cash, card slips and EFT evidence with recorded receipts.</li><li>Match bank deposits when statement evidence is available.</li><li>Review reports and note unresolved discrepancies. Sign out.</li></ul>
+<table><tr><th>Problem</th><th>What to do</th></tr>
+<tr><td>A save or payment entry seems stuck</td><td>Check whether it already appears in history before trying again. Do not recreate the transaction elsewhere. Record the exact error and reference if help is needed.</td></tr>
+<tr><td>A client says they paid, but payment is unclear</td><td>Check Yoco and the booking history before collecting again. Follow unresolved-checkout warnings.</td></tr>
+<tr><td>WhatsApp button is disabled</td><td>Check number, message text, appointment status/date and the HTTPS review URL. Staff must still send inside WhatsApp.</td></tr>
+<tr><td>No bookable times appear</td><td>Review Availability, the selected date and existing bookings. Past or occupied times are not freely bookable.</td></tr>
+<tr><td>Figures do not match the bank</td><td>Check dates, payment methods, refunds, pending settlements and fees. A recorded receipt is not necessarily a bank deposit yet.</td></tr>
+<tr><td>A report says refresh failed</td><td>It may be displaying older figures. Retry before exporting or making decisions.</td></tr>
+<tr><td>Unexpected stock balance</td><td>Review movement history and sale creation times; refunds and voids do not automatically restock.</td></tr>
+</table>
+<div class="note"><strong>When requesting help:</strong> provide the page name, booking/sale reference, time of the issue and exact error. Avoid including unnecessary client details, passwords or full card information in screenshots or messages.</div>
+</section>
+<footer><strong>Sediba Aesthetic &amp; Wellness Clinic — Admin User Manual</strong><p class="small">Prepared from the current website’s controls and operating rules. No credentials or client records are included. To keep an offline copy, open this file in a browser and choose Print → Save as PDF. Review this guide when admin workflows change.</p></footer>
+</main></body></html>

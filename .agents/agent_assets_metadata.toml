@@ -42,3 +42,18 @@ uri = "file://sediba-clinic-html.zip"
 type = "unspecified"
 title = "Sediba Clinic — HTML Files"
 description = "Built static HTML, CSS, JS, and all images for the Sediba Aesthetic & Wellness Clinic website. Upload these files to any web host."
+logical_id = "9f8de9df-cbf4-484e-b0d1-f49d0f211f14"
+
+[[outputs]]
+id = "T6XgK8y7JKaAJny_R5ZbZ"
+uri = "file://docs/sediba-admin-manual.html"
+type = "html"
+title = "Sediba Admin User Manual"
+description = "Printable step-by-step guide covering clients, appointments, Yoco payment records, refunds, manual WhatsApp, stock, sales, bookkeeping, reports and daily checks. Open in a browser and use Print → Save as PDF for a PDF copy."
+logical_id = "baffcc61-9f40-44f6-bafc-b976fe1cbbac"
+content_hash = "sha256:2cc2d53303b12b51a76fbd51def040ccad0ec95dfa0f135ff7871dcf71ff280a"
+size = 21548
+mtime_ms = 1791372526446
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:31d13493-ef38-42c8-be3d-86b02b163886/baffcc61-9f40-44f6-bafc-b976fe1cbbac/9b52a933-8e26-4763-ba87-5dce62f5fed6"
+storage_version_token = "1791372542276628"
+content_type = "text/html"
