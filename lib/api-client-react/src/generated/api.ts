@@ -59,6 +59,7 @@ import type {
   GetAvailableDatesParams,
   GetBookkeepingParams,
   GetPaymentStatusParams,
+  GetProfitReportParams,
   HealthStatus,
   InitiatePaymentBody,
   ListAdminClientRecordsParams,
@@ -68,6 +69,7 @@ import type {
   OpenaiMessage,
   PaymentFormResponse,
   PaymentStatusResponse,
+  ProfitReport,
   RecordStockMovementBody,
   SendOpenaiMessageBody,
   Service,
@@ -86,6 +88,93 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+export const getGetProfitReportUrl = (params: GetProfitReportParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/profit-report?${stringifiedParams}`
+    : `/api/admin/profit-report`;
+};
+
+export const getProfitReport = async (
+  params: GetProfitReportParams,
+  options?: RequestInit,
+): Promise<ProfitReport> => {
+  return customFetch<ProfitReport>(getGetProfitReportUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetProfitReportQueryKey = (params?: GetProfitReportParams) => {
+  return [`/api/admin/profit-report`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetProfitReportQueryOptions = <
+  TData = Awaited<ReturnType<typeof getProfitReport>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetProfitReportParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getProfitReport>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetProfitReportQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getProfitReport>>> = ({
+    signal,
+  }) => getProfitReport(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getProfitReport>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetProfitReportQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getProfitReport>>
+>;
+export type GetProfitReportQueryError = ErrorType<unknown>;
+
+export function useGetProfitReport<
+  TData = Awaited<ReturnType<typeof getProfitReport>>,
+  TError = ErrorType<unknown>,
+>(
+  params: GetProfitReportParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getProfitReport>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetProfitReportQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 export const getListStockUrl = () => {
   return `/api/admin/stock`;

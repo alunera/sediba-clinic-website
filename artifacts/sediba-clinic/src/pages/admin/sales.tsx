@@ -10,6 +10,7 @@ import {
   useListAdminClientRecords,
   getListAdminClientRecordsQueryKey,
   getGetAdminFinancialReportQueryKey,
+  getGetProfitReportQueryKey,
   useListStock,
   getListStockQueryKey,
   type ClinicSale,
@@ -41,6 +42,7 @@ function useInvalidateMoney() {
   return () => {
     qc.invalidateQueries({ queryKey: getListAdminSalesQueryKey() });
     qc.invalidateQueries({ queryKey: getGetAdminFinancialReportQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetProfitReportQueryKey() });
     qc.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === "string" && q.queryKey[0].startsWith(getListStockQueryKey()[0]) });
   };
 }

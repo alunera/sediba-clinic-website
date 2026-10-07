@@ -38,3 +38,9 @@ Stock is committed when a stocked-product sale is created, not when money is col
 **Why:** Payment events and physical movements can occur separately. Automatically restocking a refunded product could make damaged or unreturned goods available for sale.
 
 **How to apply:** Record an explicit physical return or correction with a reason. Keep historic untracked product sales distinct; never retroactively deduct opening stock for them. Do not treat stock quantities or selling prices as cost accounting for the queued profit reports.
+
+The user selected cash-basis profit & loss, with product margins reported separately.
+
+**Why:** This matches the existing receipts and paid-expense bookkeeping without implying accrual accounts. Product purchases are deducted when paid; deducting product margin costs again would double-count them.
+
+**How to apply:** Keep cash operating results distinct from sale-date product gross margins. Product margins use the recorded per-unit cost at sale creation, before refunds, and include unpaid nonvoid sales. Unknown historic costs must remain unknown, not zero or today's cost. Refunds cannot be allocated to product lines without an explicit allocation feature.

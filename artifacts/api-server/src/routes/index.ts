@@ -11,6 +11,7 @@ import salesRouter from "./sales";
 import bookkeepingRouter from "./bookkeeping";
 import appointmentReceiptsRouter from "./appointment-receipts";
 import stockRouter from "./stock";
+import profitReportRouter from "./profit-report";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(salesRouter);
 router.use(bookkeepingRouter);
 router.use(appointmentReceiptsRouter);
 router.use(stockRouter);
+router.use(profitReportRouter);
 
 export default router;

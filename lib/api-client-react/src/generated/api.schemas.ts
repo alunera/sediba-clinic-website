@@ -808,6 +808,12 @@ export interface AppointmentReceipts {
 
 export interface StockProductInput {
   /**
+   * @minimum 0
+   * @maximum 100000000
+   * @nullable
+   */
+  unitCostCents?: number | null;
+  /**
    * @minLength 1
    * @maxLength 200
    */
@@ -850,6 +856,43 @@ export interface StockMovement {
   saleId?: number | null;
   createdAt: string;
 }
+
+export type ProfitReportExpensesItem = {
+  category: string;
+  amountCents: number;
+};
+
+export type ProfitReportProductsItem = {
+  key: string;
+  name: string;
+  quantity: number;
+  salesCents: number;
+  knownCostCents: number;
+  missingCostUnits: number;
+  /** @nullable */
+  grossMarginCents: number | null;
+};
+
+export interface ProfitReport {
+  from: string;
+  to: string;
+  receivedCents: number;
+  refundedCents: number;
+  netReceiptsCents: number;
+  expenseCents: number;
+  cashProfitCents: number;
+  productSalesCents: number;
+  knownProductCostCents: number;
+  missingCostUnits: number;
+  refundedSaleCount: number;
+  expenses: ProfitReportExpensesItem[];
+  products: ProfitReportProductsItem[];
+}
+
+export type GetProfitReportParams = {
+  from: string;
+  to: string;
+};
 
 export type CreateStockProductBody = StockProductInput & {
   /**

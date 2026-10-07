@@ -7,6 +7,45 @@
  */
 import * as zod from "zod";
 
+export const GetProfitReportQueryParams = zod.object({
+  from: zod.coerce.string(),
+  to: zod.coerce.string(),
+});
+
+export const GetProfitReportResponse = zod.object({
+  from: zod.string(),
+  to: zod.string(),
+  receivedCents: zod.number(),
+  refundedCents: zod.number(),
+  netReceiptsCents: zod.number(),
+  expenseCents: zod.number(),
+  cashProfitCents: zod.number(),
+  productSalesCents: zod.number(),
+  knownProductCostCents: zod.number(),
+  missingCostUnits: zod.number(),
+  refundedSaleCount: zod.number(),
+  expenses: zod.array(
+    zod.object({
+      category: zod.string(),
+      amountCents: zod.number(),
+    }),
+  ),
+  products: zod.array(
+    zod.object({
+      key: zod.string(),
+      name: zod.string(),
+      quantity: zod.number(),
+      salesCents: zod.number(),
+      knownCostCents: zod.number(),
+      missingCostUnits: zod.number(),
+      grossMarginCents: zod.number().nullable(),
+    }),
+  ),
+});
+
+export const listStockResponseOneUnitCostCentsMin = 0;
+export const listStockResponseOneUnitCostCentsMax = 100000000;
+
 export const listStockResponseOneNameMax = 200;
 
 export const listStockResponseOneSkuMax = 80;
@@ -20,6 +59,11 @@ export const listStockResponseOneUnitPriceCentsMax = 100000000;
 
 export const ListStockResponseItem = zod
   .object({
+    unitCostCents: zod
+      .number()
+      .min(listStockResponseOneUnitCostCentsMin)
+      .max(listStockResponseOneUnitCostCentsMax)
+      .nullish(),
     name: zod.string().min(1).max(listStockResponseOneNameMax),
     sku: zod.string().min(1).max(listStockResponseOneSkuMax),
     unit: zod.string().min(1).max(listStockResponseOneUnitMax),
@@ -42,6 +86,9 @@ export const ListStockResponseItem = zod
   );
 export const ListStockResponse = zod.array(ListStockResponseItem);
 
+export const createStockProductBodyOneUnitCostCentsMin = 0;
+export const createStockProductBodyOneUnitCostCentsMax = 100000000;
+
 export const createStockProductBodyOneNameMax = 200;
 
 export const createStockProductBodyOneSkuMax = 80;
@@ -61,6 +108,11 @@ export const createStockProductBodyTwoOpeningQuantityMax = 1000000;
 
 export const CreateStockProductBody = zod
   .object({
+    unitCostCents: zod
+      .number()
+      .min(createStockProductBodyOneUnitCostCentsMin)
+      .max(createStockProductBodyOneUnitCostCentsMax)
+      .nullish(),
     name: zod.string().min(1).max(createStockProductBodyOneNameMax),
     sku: zod.string().min(1).max(createStockProductBodyOneSkuMax),
     unit: zod.string().min(1).max(createStockProductBodyOneUnitMax),
@@ -87,6 +139,9 @@ export const CreateStockProductBody = zod
     }),
   );
 
+export const createStockProductResponseOneUnitCostCentsMin = 0;
+export const createStockProductResponseOneUnitCostCentsMax = 100000000;
+
 export const createStockProductResponseOneNameMax = 200;
 
 export const createStockProductResponseOneSkuMax = 80;
@@ -100,6 +155,11 @@ export const createStockProductResponseOneUnitPriceCentsMax = 100000000;
 
 export const CreateStockProductResponse = zod
   .object({
+    unitCostCents: zod
+      .number()
+      .min(createStockProductResponseOneUnitCostCentsMin)
+      .max(createStockProductResponseOneUnitCostCentsMax)
+      .nullish(),
     name: zod.string().min(1).max(createStockProductResponseOneNameMax),
     sku: zod.string().min(1).max(createStockProductResponseOneSkuMax),
     unit: zod.string().min(1).max(createStockProductResponseOneUnitMax),
@@ -125,6 +185,9 @@ export const UpdateStockProductParams = zod.object({
   id: zod.coerce.number(),
 });
 
+export const updateStockProductBodyOneUnitCostCentsMin = 0;
+export const updateStockProductBodyOneUnitCostCentsMax = 100000000;
+
 export const updateStockProductBodyOneNameMax = 200;
 
 export const updateStockProductBodyOneSkuMax = 80;
@@ -138,6 +201,11 @@ export const updateStockProductBodyOneUnitPriceCentsMax = 100000000;
 
 export const UpdateStockProductBody = zod
   .object({
+    unitCostCents: zod
+      .number()
+      .min(updateStockProductBodyOneUnitCostCentsMin)
+      .max(updateStockProductBodyOneUnitCostCentsMax)
+      .nullish(),
     name: zod.string().min(1).max(updateStockProductBodyOneNameMax),
     sku: zod.string().min(1).max(updateStockProductBodyOneSkuMax),
     unit: zod.string().min(1).max(updateStockProductBodyOneUnitMax),
@@ -157,6 +225,9 @@ export const UpdateStockProductBody = zod
     }),
   );
 
+export const updateStockProductResponseOneUnitCostCentsMin = 0;
+export const updateStockProductResponseOneUnitCostCentsMax = 100000000;
+
 export const updateStockProductResponseOneNameMax = 200;
 
 export const updateStockProductResponseOneSkuMax = 80;
@@ -170,6 +241,11 @@ export const updateStockProductResponseOneUnitPriceCentsMax = 100000000;
 
 export const UpdateStockProductResponse = zod
   .object({
+    unitCostCents: zod
+      .number()
+      .min(updateStockProductResponseOneUnitCostCentsMin)
+      .max(updateStockProductResponseOneUnitCostCentsMax)
+      .nullish(),
     name: zod.string().min(1).max(updateStockProductResponseOneNameMax),
     sku: zod.string().min(1).max(updateStockProductResponseOneSkuMax),
     unit: zod.string().min(1).max(updateStockProductResponseOneUnitMax),
@@ -233,6 +309,9 @@ export const RecordStockMovementBody = zod.object({
   reason: zod.string().min(1).max(recordStockMovementBodyReasonMax),
 });
 
+export const recordStockMovementResponseOneUnitCostCentsMin = 0;
+export const recordStockMovementResponseOneUnitCostCentsMax = 100000000;
+
 export const recordStockMovementResponseOneNameMax = 200;
 
 export const recordStockMovementResponseOneSkuMax = 80;
@@ -246,6 +325,11 @@ export const recordStockMovementResponseOneUnitPriceCentsMax = 100000000;
 
 export const RecordStockMovementResponse = zod
   .object({
+    unitCostCents: zod
+      .number()
+      .min(recordStockMovementResponseOneUnitCostCentsMin)
+      .max(recordStockMovementResponseOneUnitCostCentsMax)
+      .nullish(),
     name: zod.string().min(1).max(recordStockMovementResponseOneNameMax),
     sku: zod.string().min(1).max(recordStockMovementResponseOneSkuMax),
     unit: zod.string().min(1).max(recordStockMovementResponseOneUnitMax),

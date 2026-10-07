@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createIdempotencyKeeper, errMsg, formatJhb, formatRand, methodLabel, parseRandToCents } from "@/lib/money";
 
-const RELATED_PREFIXES = ["/api/admin/appointments", "/api/admin/financial-report", "/api/admin/client", "/api/admin/bookkeeping", "/api/admin/availability", "/api/appointments", "/api/payments"];
+const RELATED_PREFIXES = ["/api/admin/appointments", "/api/admin/financial-report", "/api/admin/profit-report", "/api/admin/client", "/api/admin/bookkeeping", "/api/admin/availability", "/api/appointments", "/api/payments"];
 
 function isRelated(q: Query) {
   const k = q.queryKey[0];

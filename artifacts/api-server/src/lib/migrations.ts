@@ -155,6 +155,7 @@ const MIGRATIONS = [
   )`,
   `CREATE INDEX IF NOT EXISTS stock_movements_product ON stock_movements(product_id,id)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS stock_movements_sale_product ON stock_movements(sale_id,product_id) WHERE sale_id IS NOT NULL`,
+  `ALTER TABLE stock_products ADD COLUMN IF NOT EXISTS unit_cost_cents INTEGER CHECK (unit_cost_cents BETWEEN 0 AND 100000000)`,
 ];
 
 // Guarantee at the database level that two non-cancelled appointments can

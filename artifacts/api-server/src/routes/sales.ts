@@ -102,6 +102,7 @@ router.post("/admin/sales", async (req, res) => {
       [requestId, clientId, client.name, JSON.stringify(items), total, notes],
     );
     await deductSaleStock(tx, sale!.id, items);
+    await tx.query("UPDATE clinic_sales SET items=$2 WHERE id=$1", [sale!.id, JSON.stringify(items)]);
     return present(sale!, []);
   });
   res.status(201).json(CreateAdminSaleResponse.parse(result));

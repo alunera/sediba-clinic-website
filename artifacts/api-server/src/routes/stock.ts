@@ -28,9 +28,9 @@ router.post("/admin/stock", async (req,res) => {
       return presentProduct(prior);
     }
     const { rows: [p] } = await tx.query<ProductRow>(`INSERT INTO stock_products
-      (request_id,creation_input,name,sku,unit,reorder_level,unit_price_cents,active)
-      VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-      [d.requestId,JSON.stringify(d),d.name,d.sku,d.unit,d.reorderLevel,d.unitPriceCents,d.active]);
+      (request_id,creation_input,name,sku,unit,reorder_level,unit_price_cents,active,unit_cost_cents)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+      [d.requestId,JSON.stringify(d),d.name,d.sku,d.unit,d.reorderLevel,d.unitPriceCents,d.active,d.unitCostCents ?? null]);
     if (!d.openingQuantity) return presentProduct(p!);
     return applyMovement(tx,p!,{ requestId: `opening:${p!.id}`, kind: "opening", quantity: d.openingQuantity,reason:"Opening stock" });
   });
@@ -41,9 +41,10 @@ router.patch("/admin/stock/:id", async (req,res) => {
   if (!parsed.success) throw new StockError(400,"Enter valid product details and the current version.");
   const d = parsed.data;
   const { rows: [p] } = await pool.query<ProductRow>(`UPDATE stock_products SET name=$2,sku=$3,unit=$4,
-    reorder_level=$5,unit_price_cents=$6,active=$7,version=version+1 WHERE id=$1 AND version=$8
+    reorder_level=$5,unit_price_cents=$6,active=$7,version=version+1,
+    unit_cost_cents=CASE WHEN $10 THEN $9 ELSE unit_cost_cents END WHERE id=$1 AND version=$8
     AND (unit=$4 OR NOT EXISTS(SELECT 1 FROM stock_movements WHERE product_id=$1)) RETURNING *`,
-    [id,d.name.trim(),d.sku.trim().toUpperCase(),d.unit.trim(),d.reorderLevel,d.unitPriceCents,d.active,d.version]);
+    [id,d.name.trim(),d.sku.trim().toUpperCase(),d.unit.trim(),d.reorderLevel,d.unitPriceCents,d.active,d.version,d.unitCostCents ?? null,d.unitCostCents !== undefined]);
   if (!p) throw new StockError(409,"Product changed, no longer exists, or its unit was changed after stock movements. Refresh before editing; keep the original unit when history exists.");
   res.json(presentProduct(p));
 });

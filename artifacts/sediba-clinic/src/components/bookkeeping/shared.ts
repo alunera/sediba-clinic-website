@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetBookkeepingQueryKey, type BookRow } from "@workspace/api-client-react";
+import { getGetBookkeepingQueryKey, getGetProfitReportQueryKey, type BookRow } from "@workspace/api-client-react";
 
 export const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 export const MAX_RANGE_DAYS = 367;
@@ -37,7 +37,10 @@ export function daysBetween(a: string, b: string): number {
 
 export function useInvalidateBooks() {
   const qc = useQueryClient();
-  return () => qc.invalidateQueries({ queryKey: [getGetBookkeepingQueryKey()[0]] });
+  return () => {
+    qc.invalidateQueries({ queryKey: [getGetProfitReportQueryKey()[0]] });
+    return qc.invalidateQueries({ queryKey: [getGetBookkeepingQueryKey()[0]] });
+  };
 }
 
 export const inputCls = "w-full bg-background border border-border px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60";

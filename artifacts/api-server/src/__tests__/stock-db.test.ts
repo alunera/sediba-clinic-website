@@ -26,7 +26,7 @@ describe.skipIf(process.env.STOCK_DB_TEST!=="1")("inventory transaction contract
       const {rows:[client]}=await pool.query("INSERT INTO client_records(name) VALUES($1) RETURNING id",[prefix]);
       clientId=client.id;
       expect((await call("/admin/stock",undefined,"GET",false)).status).toBe(401);
-      const input={requestId:`${prefix}-p1`,name:prefix,sku:prefix,unit:"bottle",unitPriceCents:10000,reorderLevel:2,openingQuantity:5,active:true};
+      const input={requestId:`${prefix}-p1`,name:prefix,sku:prefix,unit:"bottle",unitPriceCents:10000,unitCostCents:6000,reorderLevel:2,openingQuantity:5,active:true};
       const first=await call("/admin/stock",input);
       expect(first.status).toBe(200);
       const id=product(first.data).id;
@@ -61,6 +61,13 @@ describe.skipIf(process.env.STOCK_DB_TEST!=="1")("inventory transaction contract
       expect((await call("/admin/sales",{...sale,requestId:`${prefix}-archived`,items:[{...item,quantity:1}]})).status).toBe(409);
       expect(product((await call(`/admin/stock/${id}/movements`,{...movement,requestId:`${prefix}-return`,kind:"return",quantity:1})).data).onHand).toBe(2);
       expect(product((await call(`/admin/stock/${id}`,{...input,version:2},"PATCH")).data).active).toBe(true);
+      expect((await call(`/admin/stock/${id}`,{...input,unitCostCents:7000,version:3},"PATCH")).status).toBe(200);
+      const {rows:[saved]}=await pool.query("SELECT items FROM clinic_sales WHERE request_id=$1",[sale.requestId]);
+      expect(saved.items[0].unitCostCents).toBe(6000);
+      // Retrying the original sale after a cost update neither rewrites cost nor deducts stock.
+      expect((await call("/admin/sales",sale)).status).toBe(201);
+      const {rows:[retried]}=await pool.query("SELECT items FROM clinic_sales WHERE request_id=$1",[sale.requestId]);
+      expect(retried.items[0].unitCostCents).toBe(6000);
     } finally {
       await pool.query("DELETE FROM stock_movements WHERE product_id IN(SELECT id FROM stock_products WHERE request_id LIKE $1)",[`${prefix}%`]);
       await pool.query("DELETE FROM stock_products WHERE request_id LIKE $1",[`${prefix}%`]);

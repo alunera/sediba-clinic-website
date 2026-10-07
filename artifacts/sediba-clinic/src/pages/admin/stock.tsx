@@ -5,6 +5,7 @@ import { AlertCircle, AlertTriangle, ArrowLeft, Info, Package, Plus, Search, X }
 import {
   useListStock,
   getListStockQueryKey,
+  getGetProfitReportQueryKey,
   useCreateStockProduct,
   useUpdateStockProduct,
   useListStockMovements,
@@ -167,6 +168,7 @@ function ProductForm({ product, onDone, onCancel }: { product?: StockProduct; on
   const [price, setPrice] = useState(product ? (product.unitPriceCents / 100).toFixed(2) : "");
   const [reorder, setReorder] = useState(String(product?.reorderLevel ?? 0));
   const [opening, setOpening] = useState("0");
+  const [cost, setCost] = useState(product?.unitCostCents == null ? "" : (product.unitCostCents / 100).toFixed(2));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [stale, setStale] = useState(false);
@@ -186,9 +188,15 @@ function ProductForm({ product, onDone, onCancel }: { product?: StockProduct; on
     if (!Number.isInteger(r) || r > 1_000_000) er.reorder = "Whole number 0 or more.";
     const o = int(opening);
     if (!isEdit && (!Number.isInteger(o) || o > 1_000_000)) er.opening = "Whole units, 0 or more.";
+    let costCents: number | null = null;
+    if (cost.trim()) {
+      const c = parseRandToCents(cost);
+      if (c === null || c < 0 || c > 100_000_000) er.cost = "Enter Rands, e.g. 180 or 0 for free goods. Leave blank if unknown.";
+      else costCents = c;
+    }
     setErrors(er);
     if (Object.keys(er).length) return;
-    const base = { name: name.trim(), sku: sku.trim(), unit: unit.trim(), unitPriceCents: cents as number, reorderLevel: r, active: product?.active ?? true };
+    const base = { name: name.trim(), sku: sku.trim(), unit: unit.trim(), unitPriceCents: cents as number, reorderLevel: r, active: product?.active ?? true, unitCostCents: costCents };
     setSubmitError(null);
     const onError = (err: unknown) => {
       if (status(err) === 409 && isEdit) setStale(true);
@@ -197,14 +205,14 @@ function ProductForm({ product, onDone, onCancel }: { product?: StockProduct; on
     };
     if (product) {
       update.mutate({ id: product.id, data: { ...base, version: product.version } }, {
-        onSuccess: (p) => { qc.invalidateQueries({ queryKey: getListStockQueryKey() }); toast({ title: "Product updated", description: p.name }); onDone(p.id); },
+        onSuccess: (p) => { qc.invalidateQueries({ queryKey: getListStockQueryKey() }); qc.invalidateQueries({ queryKey: getGetProfitReportQueryKey() }); toast({ title: "Product updated", description: p.name }); onDone(p.id); },
         onError,
       });
     } else {
       const body = { ...base, openingQuantity: o };
       const requestId = keeper.current.get(body);
       create.mutate({ data: { ...body, requestId } }, {
-        onSuccess: (p) => { keeper.current.reset(); qc.invalidateQueries({ queryKey: getListStockQueryKey() }); toast({ title: "Product added", description: `${p.name}, ${p.onHand} ${p.unit} on hand.` }); onDone(p.id); },
+        onSuccess: (p) => { keeper.current.reset(); qc.invalidateQueries({ queryKey: getListStockQueryKey() }); qc.invalidateQueries({ queryKey: getGetProfitReportQueryKey() }); toast({ title: "Product added", description: `${p.name}, ${p.onHand} ${p.unit} on hand.` }); onDone(p.id); },
         onError,
       });
     }
@@ -227,8 +235,10 @@ function ProductForm({ product, onDone, onCancel }: { product?: StockProduct; on
         {isEdit && <p className="text-xs text-muted-foreground">Keep the original unit once stock history exists. For a different pack size, create a separate product.</p>}
         {field("product-price", "Selling price (R)", price, setPrice, { err: errors.price, mode: "decimal", placeholder: "0.00" })}
         {field("product-reorder", "Reorder level", reorder, setReorder, { err: errors.reorder, mode: "numeric" })}
+        {field("product-cost", "Cost per unit (R, optional)", cost, setCost, { err: errors.cost, mode: "decimal", placeholder: "Unknown" })}
         {!isEdit && field("product-opening", "Opening quantity", opening, setOpening, { err: errors.opening, mode: "numeric" })}
       </div>
+      <p className="text-xs text-muted-foreground border-l-2 border-primary/40 pl-3" data-testid="text-cost-note">Cost is copied onto each <b className="text-foreground">future</b> sale line as a snapshot for the gross-margin report. Changing it never rewrites past sales. Leave blank if unknown (margin shows as unavailable); enter 0 only for genuinely free goods. This is not FIFO costing or inventory valuation, and it does not record an expense.</p>
       {!isEdit ? <p className="text-xs text-muted-foreground">Opening quantity is recorded once as the first history entry. Later changes use receive, return or adjustment.</p>
         : <p className="text-xs text-muted-foreground">On-hand quantity is not edited here. Use a stock movement below.</p>}
       {stale && (
@@ -259,8 +269,8 @@ function ProductDetail({ product, onBack }: { product: StockProduct; onBack: () 
 
   const toggleActive = () => {
     if (update.isPending) return;
-    const { name, sku, unit, unitPriceCents, reorderLevel, active, version } = product;
-    update.mutate({ id: product.id, data: { name, sku, unit, unitPriceCents, reorderLevel, active: !active, version } }, {
+    const { name, sku, unit, unitPriceCents, reorderLevel, active, version, unitCostCents } = product;
+    update.mutate({ id: product.id, data: { name, sku, unit, unitPriceCents, reorderLevel, active: !active, version, unitCostCents: unitCostCents ?? null } }, {
       onSuccess: (p) => { qc.invalidateQueries({ queryKey: getListStockQueryKey() }); toast({ title: p.active ? "Product reactivated" : "Product archived", description: p.name }); },
       onError: (err) => {
         qc.invalidateQueries({ queryKey: getListStockQueryKey() });
@@ -276,10 +286,11 @@ function ProductDetail({ product, onBack }: { product: StockProduct; onBack: () 
       <div className="bg-card border border-border">
         <Header eyebrow={`${product.sku}${product.active ? "" : " · archived"}`} title={product.name} onBack={onBack} />
         <div className="p-6 space-y-6">
-          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border border border-border">
+          <dl className="grid grid-cols-2 sm:grid-cols-5 gap-px bg-border border border-border">
             <div className={`p-4 ${low ? "bg-amber-600/10" : "bg-card"}`}><dt className={labelCls}>On hand</dt><dd className="font-serif text-2xl" data-testid="text-product-onhand">{product.onHand} <span className="text-sm text-muted-foreground">{product.unit}</span></dd></div>
             <div className="p-4 bg-card"><dt className={labelCls}>Reorder at</dt><dd className="font-serif text-xl">{product.reorderLevel}</dd></div>
             <div className="p-4 bg-card"><dt className={labelCls}>Price</dt><dd className="font-serif text-xl">{formatRand(product.unitPriceCents)}</dd></div>
+            <div className="p-4 bg-card"><dt className={labelCls}>Unit cost</dt><dd className="font-serif text-xl" data-testid="text-product-cost">{product.unitCostCents == null ? <span className="text-sm text-muted-foreground">Unknown</span> : formatRand(product.unitCostCents)}</dd></div>
             <div className="p-4 bg-card"><dt className={labelCls}>Status</dt><dd className="text-sm mt-2">{product.active ? (low ? "Low stock" : "Active") : "Archived"}</dd></div>
           </dl>
           {low && <p className="text-xs flex gap-2 items-start text-amber-800"><AlertTriangle className="w-4 h-4 shrink-0" />At or below the reorder level. Time to restock.</p>}

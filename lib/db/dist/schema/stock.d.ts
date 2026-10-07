@@ -138,6 +138,23 @@ export declare const stockProductsTable: import("drizzle-orm/pg-core").PgTableWi
             identity: undefined;
             generated: undefined;
         }, {}, {}>;
+        unitCostCents: import("drizzle-orm/pg-core").PgColumn<{
+            name: "unit_cost_cents";
+            tableName: "stock_products";
+            dataType: "number";
+            columnType: "PgInteger";
+            data: number;
+            driverParam: string | number;
+            notNull: false;
+            hasDefault: false;
+            isPrimaryKey: false;
+            isAutoincrement: false;
+            hasRuntimeDefault: false;
+            enumValues: undefined;
+            baseColumn: never;
+            identity: undefined;
+            generated: undefined;
+        }, {}, {}>;
         active: import("drizzle-orm/pg-core").PgColumn<{
             name: "active";
             tableName: "stock_products";

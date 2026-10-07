@@ -10,6 +10,7 @@ export const stockProductsTable = pgTable("stock_products", {
   unit: text("unit").notNull(),
   reorderLevel: integer("reorder_level").notNull(),
   unitPriceCents: integer("unit_price_cents").notNull(),
+  unitCostCents: integer("unit_cost_cents"),
   active: boolean("active").notNull().default(true),
   onHand: integer("on_hand").notNull().default(0),
   version: integer("version").notNull().default(1),
