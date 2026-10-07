@@ -9,6 +9,12 @@ Sedi must quote the branded treatment names and prices shown on the public Servi
 
 **How to apply:** Keep Sedi's service answers aligned with the shared public branded menu. Preserve public-menu naming and pricing when reconciling booking data.
 
+The user also explicitly requires the booking treatment list to match the Services page.
+
+**Why:** Customers must choose from the same treatment names and advertised prices they browse.
+
+**How to apply:** Treat the public menu as authoritative for new bookings; retain historical service references rather than deleting old appointment history.
+
 Sedi's conversational booking stops at a validated handoff to the existing booking form; client details, policy acceptance and payment remain in that form.
 
 **Why:** The user explicitly prohibited a second booking, availability or payment system. Reusing the established form avoids collecting booking personal data in chat and preserves the existing confirmation rules.

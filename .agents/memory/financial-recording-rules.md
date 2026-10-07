@@ -3,6 +3,12 @@ name: Financial recording boundaries
 description: Manual sales versus booking payments, refund semantics and integer validation.
 ---
 
+The user explicitly requires only a bookkeeping system, not an accounting system.
+
+**Why:** The user stated: “we need only a bookeeping system and not accounting.”
+
+**How to apply:** Keep receipts, payments, expenses, stock and operational cash/product reporting in scope. Do not treat full accounting, accrual accounts or tax reporting as missing requirements to build without a new request.
+
 Keep manual sales separate from online bookings; reports combine manual receipts with verified booking-payment records, not booking face values.
 
 **Why:** Entering an online booking again as a manual sale would duplicate money in reports. Recording a staff-entered payment or refund is bookkeeping only, not an instruction to a card provider. Net receipts do not equal profit or provider settlement.
