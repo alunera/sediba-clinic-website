@@ -15,6 +15,12 @@ The user specified the remaining scope as “bookkeeping, profit & loss and prod
 
 **How to apply:** Include these capabilities in remaining-work discussions. WhatsApp is back in scope rather than indefinitely deferred; this is not permission to send real messages during testing. Do not equate net receipts with profit or a saved review link with working automation.
 
+Keep the clinic's current number working in the WhatsApp Business phone app when adding automation.
+
+**Why:** The user explicitly chose to keep the current number working in the phone app.
+
+**How to apply:** Require a verified coexistence onboarding route before connecting that number to an API. Do not delete the WhatsApp account or use a migration that removes phone-app access. Provider subscriptions need the user's approval; earlier message-only estimates exclude coexistence-provider charges.
+
 Leave receipt printing out for now.
 
 **Why:** The user asked to defer it.
