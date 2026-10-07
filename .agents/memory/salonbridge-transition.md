@@ -26,3 +26,9 @@ Leave galleries out. The user confirmed that domain transfer is done.
 **Why:** The user explicitly removed galleries from scope and confirmed the domain-transfer status.
 
 **How to apply:** Do not include galleries or domain transfer in the remaining build work. This does not replace verification of newly released features on the live website.
+
+The user instructed: “stop publishin the app, disable the app.”
+
+**Why:** The user asked to stop publishing and disable this app.
+
+**How to apply:** Do not publish, suggest publishing, or restart app workflows without a new user instruction authorizing it. Stopping workspace workflows does not shut down the published deployment; that requires the Publishing shutdown action.
