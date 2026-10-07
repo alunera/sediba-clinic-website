@@ -21,6 +21,12 @@ Keep the clinic's current number working in the WhatsApp Business phone app when
 
 **How to apply:** Require a verified coexistence onboarding route before connecting that number to an API. Do not delete the WhatsApp account or use a migration that removes phone-app access. Provider subscriptions need the user's approval; earlier message-only estimates exclude coexistence-provider charges.
 
+The user confirmed that Yoco is live.
+
+**Why:** The user explicitly corrected the earlier assumption that live payments still needed activation.
+
+**How to apply:** Do not describe Yoco activation as pending. This is user-confirmed status, not evidence of a payment transaction tested by the agent.
+
 Leave receipt printing out for now.
 
 **Why:** The user asked to defer it.
